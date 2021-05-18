@@ -14,14 +14,14 @@ ACEC is using a subset of the analyzed low-level audio-features to evaluate a pr
 
 There are other experimental classification models in the source tree such as a simple [ANN](https://en.wikipedia.org/wiki/Artificial_neural_network), [RBM](https://en.wikipedia.org/wiki/Deep_belief_network), [SVM](https://en.wikipedia.org/wiki/Support-vector_machine), [KNN](https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm), [Naive Bayes](https://en.wikipedia.org/wiki/Naive_Bayes_classifier) and [Random Forest Tree](https://en.wikipedia.org/wiki/Random_forest) implemented in [Shark C++](http://image.diku.dk/shark/), but only the LightGBM model is used in production as pretrained model. So AFEC also can be used to experiment with audio classification. 
 
-See [./Scripts/ModelCreator](`./Scripts/ModelCreator`) for scripts that train and test various classification models.
+See [./Scripts/ModelCreator](./Scripts/ModelCreator) for scripts that train and test various classification models.
 
 There are also various keras / tensorflow experiments in the [AFEC-Classifiers](https://github.com/emuell/afec-classifiers) repository, which are using the same data than the internal C++ tools. 
 
 
 # Download
 
-Prebuilt binaries can be downloaded [here](./releases).
+Prebuilt binaries can be downloaded [here](https://github.com/emuell/AFEC/releases/).
 
 
 # Usage
