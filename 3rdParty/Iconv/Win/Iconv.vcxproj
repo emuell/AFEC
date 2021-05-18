@@ -1,0 +1,480 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BAEA2CDA-A041-4BCA-AEFF-CBC51A3ECEDC}</ProjectGuid>
+    <RootNamespace>Iconv</RootNamespace>
+    <Keyword>Library</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">./../Library/Win/x86/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\../../../Temp/$(Platform)/Debug/$(ProjectName)/</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">./../Library/Win/x64/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\../../../Temp/$(Platform)/Debug/$(ProjectName)/</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">./../Library/Win/x86/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\../../../Temp/$(Platform)/Release/$(ProjectName)/</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">./../Library/Win/x64/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\../../../Temp/$(Platform)/Release/$(ProjectName)/</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectName)_d</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>.;..\Dist\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;WIN32;_WINDOWS;BUILDING_LIBICONV;BUILDING_LIBCHARSET;HAVE_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0407</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <Link>
+      <OutputFile>..\Library\Win\x86\$(ProjectName)_d.dll</OutputFile>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>.;..\Dist\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;WIN32;_WINDOWS;BUILDING_LIBICONV;BUILDING_LIBCHARSET;HAVE_CONFIG_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0407</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <Link>
+      <OutputFile>..\Library\Win\x64\$(ProjectName)_d.dll</OutputFile>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>
+      </ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <ImportLibrary>..\Library\Win\x64\$(ProjectName)_d.lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>.;..\Dist\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;_SECURE_SCL=0;_LIB;HAVE_CONFIG_H;LIBCHARSET_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0407</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>..\Library\Win\x86\$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>.;..\Dist\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;_SECURE_SCL=0;_LIB;HAVE_CONFIG_H;LIBCHARSET_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0407</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>..\Library\Win\x64\$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Dist\lib\aliases.h" />
+    <ClInclude Include="..\Dist\lib\aliases2.h" />
+    <ClInclude Include="..\Dist\lib\aliases_aix.h" />
+    <ClInclude Include="..\Dist\lib\aliases_dos.h" />
+    <ClInclude Include="..\Dist\lib\aliases_extra.h" />
+    <ClInclude Include="..\Dist\lib\aliases_osf1.h" />
+    <ClInclude Include="..\Dist\lib\armscii_8.h" />
+    <ClInclude Include="..\Dist\lib\ascii.h" />
+    <ClInclude Include="..\Dist\lib\big5.h" />
+    <ClInclude Include="..\Dist\lib\big5hkscs.h" />
+    <ClInclude Include="..\Dist\lib\c99.h" />
+    <ClInclude Include="..\Dist\lib\ces_big5.h" />
+    <ClInclude Include="..\Dist\lib\ces_gbk.h" />
+    <ClInclude Include="..\Dist\lib\cjk_variants.h" />
+    <ClInclude Include="..\Dist\lib\cns11643.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_1.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_15.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_2.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_3.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_4.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_4a.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_4b.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_5.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_6.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_7.h" />
+    <ClInclude Include="..\Dist\lib\cns11643_inv.h" />
+    <ClInclude Include="..\Dist\lib\converters.h" />
+    <ClInclude Include="..\Dist\lib\cp1046.h" />
+    <ClInclude Include="..\Dist\lib\cp1124.h" />
+    <ClInclude Include="..\Dist\lib\cp1125.h" />
+    <ClInclude Include="..\Dist\lib\cp1129.h" />
+    <ClInclude Include="..\Dist\lib\cp1133.h" />
+    <ClInclude Include="..\Dist\lib\cp1161.h" />
+    <ClInclude Include="..\Dist\lib\cp1162.h" />
+    <ClInclude Include="..\Dist\lib\cp1163.h" />
+    <ClInclude Include="..\Dist\lib\cp1250.h" />
+    <ClInclude Include="..\Dist\lib\cp1251.h" />
+    <ClInclude Include="..\Dist\lib\cp1252.h" />
+    <ClInclude Include="..\Dist\lib\cp1253.h" />
+    <ClInclude Include="..\Dist\lib\cp1254.h" />
+    <ClInclude Include="..\Dist\lib\cp1255.h" />
+    <ClInclude Include="..\Dist\lib\cp1256.h" />
+    <ClInclude Include="..\Dist\lib\cp1257.h" />
+    <ClInclude Include="..\Dist\lib\cp1258.h" />
+    <ClInclude Include="..\Dist\lib\cp437.h" />
+    <ClInclude Include="..\Dist\lib\cp737.h" />
+    <ClInclude Include="..\Dist\lib\cp775.h" />
+    <ClInclude Include="..\Dist\lib\cp850.h" />
+    <ClInclude Include="..\Dist\lib\cp852.h" />
+    <ClInclude Include="..\Dist\lib\cp853.h" />
+    <ClInclude Include="..\Dist\lib\cp855.h" />
+    <ClInclude Include="..\Dist\lib\cp856.h" />
+    <ClInclude Include="..\Dist\lib\cp857.h" />
+    <ClInclude Include="..\Dist\lib\cp858.h" />
+    <ClInclude Include="..\Dist\lib\cp860.h" />
+    <ClInclude Include="..\Dist\lib\cp861.h" />
+    <ClInclude Include="..\Dist\lib\cp862.h" />
+    <ClInclude Include="..\Dist\lib\cp863.h" />
+    <ClInclude Include="..\Dist\lib\cp864.h" />
+    <ClInclude Include="..\Dist\lib\cp865.h" />
+    <ClInclude Include="..\Dist\lib\cp866.h" />
+    <ClInclude Include="..\Dist\lib\cp869.h" />
+    <ClInclude Include="..\Dist\lib\cp874.h" />
+    <ClInclude Include="..\Dist\lib\cp922.h" />
+    <ClInclude Include="..\Dist\lib\cp932.h" />
+    <ClInclude Include="..\Dist\lib\cp932ext.h" />
+    <ClInclude Include="..\Dist\lib\cp936ext.h" />
+    <ClInclude Include="..\Dist\lib\cp943.h" />
+    <ClInclude Include="..\Dist\lib\cp949.h" />
+    <ClInclude Include="..\Dist\lib\cp950.h" />
+    <ClInclude Include="..\Dist\lib\cp950ext.h" />
+    <ClInclude Include="..\Dist\lib\dec_hanyu.h" />
+    <ClInclude Include="..\Dist\lib\dec_kanji.h" />
+    <ClInclude Include="..\Dist\lib\euc_cn.h" />
+    <ClInclude Include="..\Dist\lib\euc_jisx0213.h" />
+    <ClInclude Include="..\Dist\lib\euc_jp.h" />
+    <ClInclude Include="..\Dist\lib\euc_kr.h" />
+    <ClInclude Include="..\Dist\lib\euc_tw.h" />
+    <ClInclude Include="..\Dist\lib\flags.h" />
+    <ClInclude Include="..\Dist\lib\flushwc.h" />
+    <ClInclude Include="..\Dist\lib\gb12345.h" />
+    <ClInclude Include="..\Dist\lib\gb12345ext.h" />
+    <ClInclude Include="..\Dist\lib\gb18030.h" />
+    <ClInclude Include="..\Dist\lib\gb18030ext.h" />
+    <ClInclude Include="..\Dist\lib\gb18030uni.h" />
+    <ClInclude Include="..\Dist\lib\gb2312.h" />
+    <ClInclude Include="..\Dist\lib\gbk.h" />
+    <ClInclude Include="..\Dist\lib\gbkext1.h" />
+    <ClInclude Include="..\Dist\lib\gbkext2.h" />
+    <ClInclude Include="..\Dist\lib\gbkext_inv.h" />
+    <ClInclude Include="..\Dist\lib\georgian_academy.h" />
+    <ClInclude Include="..\Dist\lib\georgian_ps.h" />
+    <ClInclude Include="..\Dist\lib\hkscs.h" />
+    <ClInclude Include="..\Dist\lib\hp_roman8.h" />
+    <ClInclude Include="..\Dist\lib\hz.h" />
+    <ClInclude Include="..\Dist\lib\iso2022_cn.h" />
+    <ClInclude Include="..\Dist\lib\iso2022_cnext.h" />
+    <ClInclude Include="..\Dist\lib\iso2022_jp.h" />
+    <ClInclude Include="..\Dist\lib\iso2022_jp1.h" />
+    <ClInclude Include="..\Dist\lib\iso2022_jp2.h" />
+    <ClInclude Include="..\Dist\lib\iso2022_jp3.h" />
+    <ClInclude Include="..\Dist\lib\iso2022_kr.h" />
+    <ClInclude Include="..\Dist\lib\iso646_cn.h" />
+    <ClInclude Include="..\Dist\lib\iso646_jp.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_1.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_10.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_13.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_14.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_15.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_16.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_2.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_3.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_4.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_5.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_6.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_7.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_8.h" />
+    <ClInclude Include="..\Dist\lib\iso8859_9.h" />
+    <ClInclude Include="..\Dist\lib\isoir165.h" />
+    <ClInclude Include="..\Dist\lib\isoir165ext.h" />
+    <ClInclude Include="..\Dist\lib\java.h" />
+    <ClInclude Include="..\Dist\lib\jisx0201.h" />
+    <ClInclude Include="..\Dist\lib\jisx0208.h" />
+    <ClInclude Include="..\Dist\lib\jisx0212.h" />
+    <ClInclude Include="..\Dist\lib\jisx0213.h" />
+    <ClInclude Include="..\Dist\lib\johab.h" />
+    <ClInclude Include="..\Dist\lib\johab_hangul.h" />
+    <ClInclude Include="..\Dist\lib\koi8_r.h" />
+    <ClInclude Include="..\Dist\lib\koi8_ru.h" />
+    <ClInclude Include="..\Dist\lib\koi8_t.h" />
+    <ClInclude Include="..\Dist\lib\koi8_u.h" />
+    <ClInclude Include="..\Dist\lib\ksc5601.h" />
+    <ClInclude Include="..\Dist\lib\loop_unicode.h" />
+    <ClInclude Include="..\Dist\lib\loop_wchar.h" />
+    <ClInclude Include="..\Dist\lib\loops.h" />
+    <ClInclude Include="..\Dist\lib\mac_arabic.h" />
+    <ClInclude Include="..\Dist\lib\mac_centraleurope.h" />
+    <ClInclude Include="..\Dist\lib\mac_croatian.h" />
+    <ClInclude Include="..\Dist\lib\mac_cyrillic.h" />
+    <ClInclude Include="..\Dist\lib\mac_greek.h" />
+    <ClInclude Include="..\Dist\lib\mac_hebrew.h" />
+    <ClInclude Include="..\Dist\lib\mac_iceland.h" />
+    <ClInclude Include="..\Dist\lib\mac_roman.h" />
+    <ClInclude Include="..\Dist\lib\mac_romania.h" />
+    <ClInclude Include="..\Dist\lib\mac_thai.h" />
+    <ClInclude Include="..\Dist\lib\mac_turkish.h" />
+    <ClInclude Include="..\Dist\lib\mac_ukraine.h" />
+    <ClInclude Include="..\Dist\lib\mulelao.h" />
+    <ClInclude Include="..\Dist\lib\nextstep.h" />
+    <ClInclude Include="..\Dist\lib\relocatable.h" />
+    <ClInclude Include="..\Dist\lib\riscos1.h" />
+    <ClInclude Include="..\Dist\lib\shift_jisx0213.h" />
+    <ClInclude Include="..\Dist\lib\sjis.h" />
+    <ClInclude Include="..\Dist\lib\tcvn.h" />
+    <ClInclude Include="..\Dist\lib\tds565.h" />
+    <ClInclude Include="..\Dist\lib\tis620.h" />
+    <ClInclude Include="..\Dist\lib\translit.h" />
+    <ClInclude Include="..\Dist\lib\ucs2.h" />
+    <ClInclude Include="..\Dist\lib\ucs2be.h" />
+    <ClInclude Include="..\Dist\lib\ucs2internal.h" />
+    <ClInclude Include="..\Dist\lib\ucs2le.h" />
+    <ClInclude Include="..\Dist\lib\ucs2swapped.h" />
+    <ClInclude Include="..\Dist\lib\ucs4.h" />
+    <ClInclude Include="..\Dist\lib\ucs4be.h" />
+    <ClInclude Include="..\Dist\lib\ucs4internal.h" />
+    <ClInclude Include="..\Dist\lib\ucs4le.h" />
+    <ClInclude Include="..\Dist\lib\ucs4swapped.h" />
+    <ClInclude Include="..\Dist\lib\uhc_1.h" />
+    <ClInclude Include="..\Dist\lib\uhc_2.h" />
+    <ClInclude Include="..\Dist\lib\utf16.h" />
+    <ClInclude Include="..\Dist\lib\utf16be.h" />
+    <ClInclude Include="..\Dist\lib\utf16le.h" />
+    <ClInclude Include="..\Dist\lib\utf32.h" />
+    <ClInclude Include="..\Dist\lib\utf32be.h" />
+    <ClInclude Include="..\Dist\lib\utf32le.h" />
+    <ClInclude Include="..\Dist\lib\utf7.h" />
+    <ClInclude Include="..\Dist\lib\utf8.h" />
+    <ClInclude Include="..\Dist\lib\vietcomb.h" />
+    <ClInclude Include="..\Dist\lib\viscii.h" />
+    <ClInclude Include="..\Export\Iconv.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dist\lib\iconv.c" />
+    <ClCompile Include="..\Dist\libcharset\lib\localcharset.c" />
+    <ClCompile Include="..\Dist\lib\relocatable.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

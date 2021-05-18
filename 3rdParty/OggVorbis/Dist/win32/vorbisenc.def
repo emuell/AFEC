@@ -1,0 +1,9 @@
+;
+; $Id: vorbisenc.def 1524 2003-04-06 22:02:47Z taktik $
+;
+LIBRARY
+
+EXPORTS
+vorbis_encode_init
+vorbis_encode_init_vbr
+vorbis_encode_ctl

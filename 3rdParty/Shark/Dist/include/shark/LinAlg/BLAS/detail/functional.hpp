@@ -1,0 +1,728 @@
+/*!
+ * \brief       Functors used inside the library
+ * 
+ * \author      O. Krause
+ * \date        2013
+ *
+ *
+ * \par Copyright 1995-2015 Shark Development Team
+ * 
+ * <BR><HR>
+ * This file is part of Shark.
+ * <http://image.diku.dk/shark/>
+ * 
+ * Shark is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published 
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Shark is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Shark.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+#ifndef SHARK_LINALG_BLAS_DETAIL_FUNCTIONAL_HPP
+#define SHARK_LINALG_BLAS_DETAIL_FUNCTIONAL_HPP
+
+#include <boost/math/constants/constants.hpp>
+#include <boost/math/special_functions/atanh.hpp>
+#include "traits.hpp"
+#include <shark/Core/Exception.h>
+#include <shark/Core/Math.h>
+
+namespace shark {
+namespace blas {
+
+namespace detail {
+template<class T>
+T maxExpInput() {
+	return boost::math::constants::ln_two<T>()*std::numeric_limits<T>::max_exponent;
+}
+/// Minimum value for exp(x) allowed so that it is not 0.
+template<class T>
+T minExpInput() {
+	return boost::math::constants::ln_two<T>()*std::numeric_limits<T>::min_exponent;
+}
+}
+
+// Scalar functors
+//~ template<class T>
+//~ struct scalar_identity {
+	//~ typedef T argument_type;
+	//~ typedef argument_type result_type;
+	//~ static const bool zero_identity = true;
+
+	//~ result_type operator()(argument_type x)const {
+		//~ return x;
+	//~ }
+//~ };
+
+template<class T>
+struct scalar_negate {
+	typedef T argument_type;
+	typedef T result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		return -x;
+	}
+};
+
+template<class T, class ScalarType>
+struct scalar_divide {
+	typedef T argument_type;
+	typedef decltype(T()/ScalarType()) result_type;
+	static const bool zero_identity = true;
+
+	scalar_divide(ScalarType divisor):m_divisor(divisor) {}
+	result_type operator()(argument_type x)const {
+		return x/m_divisor;
+	}
+private:
+	ScalarType m_divisor;
+};
+
+template<class T>
+struct scalar_inverse {
+	typedef T argument_type;
+	typedef T result_type;
+	static const bool zero_identity = false;
+
+	result_type operator()(argument_type x)const {
+		return T(1.0)/x;
+	}
+};
+
+template<class T, class ScalarType>
+struct scalar_multiply1 {
+	typedef T argument_type;
+	typedef decltype(ScalarType() * T()) result_type;
+	static const bool zero_identity = true;
+
+	scalar_multiply1(ScalarType factor):m_factor(factor) {}
+	result_type operator()(argument_type x)const {
+		return m_factor * x;
+	}
+private:
+	ScalarType m_factor;
+};
+
+template<class T, class ScalarType>
+struct scalar_multiply2 {
+	typedef T argument_type;
+	typedef decltype(T() * ScalarType()) result_type;
+	static const bool zero_identity = true;
+
+	scalar_multiply2(ScalarType factor):m_factor(factor) {}
+	result_type operator()(argument_type x)const {
+		return x * m_factor;
+	}
+private:
+	ScalarType m_factor;
+};
+
+template<class T, class ScalarType>
+struct scalar_add{
+	typedef T argument_type;
+	typedef decltype(T() + ScalarType()) result_type;
+	static const bool zero_identity = false;
+
+	scalar_add(ScalarType summand):m_summand(summand) {}
+	result_type operator()(argument_type x)const {
+		return x + m_summand;
+	}
+private:
+	ScalarType m_summand;
+};
+
+
+//constant-x
+template<class T, class ScalarType>
+struct scalar_subtract1{
+	typedef T argument_type;
+	typedef decltype(ScalarType() - T()) result_type;
+	static const bool zero_identity = false;
+
+	scalar_subtract1(ScalarType value):m_value(value) {}
+	result_type operator()(argument_type x)const {
+		return m_value -x;
+	}
+private:
+	ScalarType m_value;
+};
+
+//x-constant
+template<class T, class ScalarType>
+struct scalar_subtract2{
+	typedef T argument_type;
+	typedef decltype(T() - ScalarType()) result_type;
+	static const bool zero_identity = false;
+
+	scalar_subtract2(ScalarType value):m_value(value) {}
+	result_type operator()(argument_type x)const {
+		return x - m_value;
+	}
+private:
+	ScalarType m_value;
+};
+
+
+
+template<class T>
+struct scalar_conj {
+	typedef T argument_type;
+	typedef T result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		return x;
+	}
+};
+template<class T>
+struct scalar_conj<std::complex<T> > {
+	typedef std::complex<T> argument_type;
+	typedef T result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		return conj(x);
+	}
+};
+
+template<class T>
+struct scalar_real {
+	typedef T argument_type;
+	typedef typename real_traits<T>::type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		return x;
+	}
+};
+template<class T>
+struct scalar_real<std::complex<T> > {
+	typedef std::complex<T> argument_type;
+	typedef typename real_traits<T>::type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		return x.real();
+	}
+};
+
+template<class T>
+struct scalar_imag {
+	typedef T argument_type;
+	typedef typename real_traits<T>::type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		return real_traits<T>::imag(x);
+	}
+};
+template<class T>
+struct scalar_imag<std::complex<T> > {
+	typedef std::complex<T> argument_type;
+	typedef typename real_traits<T>::type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		return x.imag();
+	}
+};
+
+template<class T>
+struct scalar_abs {
+	typedef T argument_type;
+	typedef typename real_traits<T>::type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		using std::abs;
+		return abs(x);
+	}
+};
+
+template<class T>
+struct scalar_sqr{
+	typedef T argument_type;
+	typedef argument_type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		return x*x;
+	}
+};
+
+template<class T>
+struct scalar_sqrt {
+	typedef T argument_type;
+	typedef argument_type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		using std::sqrt;
+		return sqrt(x);
+	}
+};
+
+template<class T>
+struct scalar_abs_sqr{
+	typedef T argument_type;
+	typedef typename real_traits<T>::type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		result_type absolute_value = std::abs(x);
+		return absolute_value*absolute_value;
+	}
+};
+
+template<class T>
+struct scalar_abs_sqr<std::complex<T> >{
+	typedef std::complex<T> argument_type;
+	typedef typename real_traits<T>::type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const{
+		using std::abs;
+		result_type abs_real = abs(x.real());
+		result_type abs_imag = abs(x.imag());
+		return abs_real*abs_real+abs_imag*abs_imag;
+	}
+};
+
+template<class T>
+struct scalar_exp {
+	typedef T argument_type;
+	typedef argument_type result_type;
+	static const bool zero_identity = false;
+
+	result_type operator()(argument_type x)const {
+		using std::exp;
+		return exp(x);
+	}
+};
+
+template<class T>
+struct scalar_sin {
+    typedef T argument_type;
+    typedef argument_type result_type;
+    static const bool zero_identity = false;
+
+    result_type operator()(argument_type x)const {
+        using std::sin;
+        return sin(x);
+    }
+};
+
+template<class T>
+struct scalar_cos {
+    typedef T argument_type;
+    typedef argument_type result_type;
+    static const bool zero_identity = false;
+
+    result_type operator()(argument_type x)const {
+        using std::cos;
+        return cos(x);
+    }
+};
+
+template<class T>
+struct scalar_log {
+	typedef T argument_type;
+	typedef argument_type result_type;
+	static const bool zero_identity = false;
+
+	result_type operator()(argument_type x)const {
+		using std::log;
+		return log(x);
+	}
+};
+
+template<class T, class U>
+struct scalar_pow{
+	typedef T argument_type;
+	typedef argument_type result_type;
+	static const bool zero_identity = true;
+
+	scalar_pow(U exponent):m_exponent(exponent) {}
+	result_type operator()(argument_type x)const {
+		using std::pow;
+		return pow(x,m_exponent);
+	}
+private:
+	U m_exponent;
+};
+
+template<class T>
+struct scalar_tanh{
+	typedef T argument_type;
+	typedef argument_type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		using std::tanh;
+		return tanh(x);
+	}
+};
+
+template<class T>
+struct scalar_atanh{
+	typedef T argument_type;
+	typedef argument_type result_type;
+	static const bool zero_identity = true;
+
+	result_type operator()(argument_type x)const {
+		return boost::math::atanh(x);
+	}
+};
+
+template<class T>
+struct scalar_soft_plus {
+	typedef T argument_type;
+	typedef argument_type result_type;
+	static const bool zero_identity = false;
+
+	result_type operator()(argument_type x)const {
+		return shark::softPlus(x);
+	}
+};
+
+template<class T>
+struct scalar_sigmoid {
+	typedef T argument_type;
+	typedef argument_type result_type;
+	static const bool zero_identity = false;
+
+	result_type operator()(argument_type x)const {
+		return shark::sigmoid(x);
+	}
+};
+
+template<class T, class ScalarType>
+struct scalar_less_than{
+	typedef T argument_type;
+	typedef int result_type;
+	static const bool zero_identity = false;
+
+	scalar_less_than(ScalarType comparator):m_comparator(comparator) {}
+	result_type operator()(argument_type x)const {
+		return x < m_comparator;
+	}
+private:
+	ScalarType m_comparator;
+};
+
+template<class T, class ScalarType>
+struct scalar_less_equal_than{
+	typedef ScalarType argument_type;
+	typedef int result_type;
+	static const bool zero_identity = false;
+
+	scalar_less_equal_than(ScalarType comparator):m_comparator(comparator) {}
+	result_type operator()(argument_type x)const {
+		return x <= m_comparator;
+	}
+private:
+	ScalarType m_comparator;
+};
+
+template<class T, class ScalarType>
+struct scalar_bigger_than{
+	typedef T argument_type;
+	typedef int result_type;
+	static const bool zero_identity = false;
+
+	scalar_bigger_than(ScalarType comparator):m_comparator(comparator) {}
+	result_type operator()(argument_type x)const {
+		return x > m_comparator;
+	}
+private:
+	ScalarType m_comparator;
+};
+
+template<class T, class ScalarType>
+struct scalar_bigger_equal_than{
+	typedef T argument_type;
+	typedef int result_type;
+	static const bool zero_identity = false;
+
+	scalar_bigger_equal_than(ScalarType comparator):m_comparator(comparator) {}
+	result_type operator()(argument_type x)const {
+		return x > m_comparator;
+	}
+private:
+	ScalarType m_comparator;
+};
+
+template<class T,class ScalarType>
+struct scalar_equal{
+	typedef T argument_type;
+	typedef int result_type;
+	static const bool zero_identity = false;
+
+	scalar_equal(ScalarType comparator):m_comparator(comparator) {}
+	result_type operator()(argument_type x)const {
+		return x == m_comparator;
+	}
+private:
+	ScalarType m_comparator;
+};
+
+template<class T, class ScalarType>
+struct scalar_not_equal{
+	typedef T argument_type;
+	typedef int result_type;
+	static const bool zero_identity = false;
+
+	scalar_not_equal(ScalarType comparator):m_comparator(comparator) {}
+	result_type operator()(argument_type x)const {
+		return x != m_comparator;
+	}
+private:
+	ScalarType m_comparator;
+};
+
+template<class T, class ScalarType>
+struct scalar_min {
+	typedef T argument_type;
+	typedef T result_type;
+	static const bool zero_identity = true;
+
+	scalar_min(result_type argument):m_argument(argument) {}
+	result_type operator()(argument_type x)const {
+		return std::min<result_type>(x,m_argument);
+	}
+private:
+	result_type m_argument;
+};
+template<class T, class ScalarType>
+struct scalar_max {
+	typedef T argument_type;
+	typedef T result_type;
+	static const bool zero_identity = true;
+
+	scalar_max(ScalarType argument):m_argument(argument) {}
+	result_type operator()(argument_type x)const {
+		return std::max<result_type>(x,m_argument);
+	}
+private:
+	result_type m_argument;
+};
+
+//////BINARY SCALAR OPRATIONS////////////////
+template<class T1,class T2>
+struct scalar_binary_plus {
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	typedef decltype(T1() + T2()) result_type;
+	static const bool left_zero_remains =  false;
+	static const bool right_zero_remains =  false;
+	result_type operator()(argument1_type x, argument2_type y)const {
+		return x+y;
+	}
+};
+template<class T1,class T2>
+struct scalar_binary_minus {
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	typedef decltype(T1() - T2()) result_type;
+	static const bool left_zero_remains =  false;
+	static const bool right_zero_remains =  false;
+	result_type operator()(argument1_type x, argument2_type y)const {
+		return x-y;
+	}
+};
+
+template<class T1,class T2>
+struct scalar_binary_multiply {
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	typedef decltype(T1() * T2()) result_type;
+	static const bool left_zero_remains =  true;
+	static const bool right_zero_remains =  true;
+	result_type operator()(argument1_type x, argument2_type y)const {
+		return x*y;
+	}
+};
+
+template<class T1,class T2>
+struct scalar_binary_divide {
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	typedef decltype(T1() / T2()) result_type;
+	static const bool left_zero_remains =  true;
+	static const bool right_zero_remains =  false;
+	result_type operator()(argument1_type x, argument2_type y)const {
+		return x/y;
+	}
+};
+template<class T1,class T2>
+struct scalar_binary_safe_divide {
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	typedef decltype(T1() / T2()) result_type;
+	static const bool left_zero_remains =  true;
+	static const bool right_zero_remains =  false;
+	scalar_binary_safe_divide(result_type defaultValue):m_defaultValue(defaultValue) {}
+	result_type operator()(argument1_type x, argument2_type y)const {
+		return y == T2()? m_defaultValue : x/y;
+	}
+private:
+	result_type m_defaultValue;
+};
+
+template<class T1,class T2>
+struct scalar_binary_pow {
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	typedef decltype(T1() * T2()) result_type;
+	static const bool left_zero_remains =  false;
+	static const bool right_zero_remains =  false;
+	result_type operator()(argument1_type x, argument2_type y)const {
+		using std::pow;
+		return pow(x,y);
+	}
+};
+
+template<class T1,class T2>
+struct scalar_binary_min{
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	typedef decltype(T1() + T2()) result_type;
+	static const bool left_zero_remains =  false;
+	static const bool right_zero_remains =  false;
+	result_type operator()(argument1_type x, argument2_type y)const {
+		using std::min;
+		//convert to the bigger type to prevent std::min conversion errors.
+		return min(result_type(x),result_type(y));
+	}
+};
+
+template<class T1,class T2>
+struct scalar_binary_max{
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	typedef decltype(T1() + T2()) result_type;
+	static const bool left_zero_remains =  false;
+	static const bool right_zero_remains =  false;
+	result_type operator()(argument1_type x, argument2_type y)const {
+		using std::max;
+		//convert to the bigger type to prevent std::max conversion errors.
+		return max(result_type(x),result_type(y));
+	}
+};
+
+
+
+///////////////////BINARY ASSIGNMENT/////////////////////////////////
+template<class T1, class T2>
+struct scalar_plus_assign{
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	static const bool right_zero_identity = true;
+	static const bool left_zero_identity = false;
+	void operator()(argument1_type t1, argument2_type t2) {
+		t1 += static_cast<typename std::decay<T1>::type const>(t2);
+	}
+};
+
+template<class T1, class T2>
+struct scalar_minus_assign{
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	static const bool right_zero_identity = true;
+	static const bool left_zero_identity = false;
+	void operator()(argument1_type t1, argument2_type t2) {
+		t1 -= t2;
+	}
+};
+
+template<class T1, class T2>
+struct scalar_multiply_assign{
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	static const bool right_zero_identity = false;
+	static const bool left_zero_identity = true;
+	void operator()(argument1_type t1, argument2_type t2) {
+		t1 *= t2;
+	}
+};
+template<class T1, class T2>
+struct scalar_divide_assign{
+	typedef T1 argument1_type;
+	typedef T2 argument2_type;
+	static const bool right_zero_identity = false;
+	static const bool left_zero_identity = true;
+	void operator()(argument1_type t1, argument2_type t2) {
+		t1 /= t2;
+	}
+};
+
+///////////////////VECTOR REDUCTION FUNCTORS/////////////////////////
+
+//Functor implementing reduction of the form f(v_n,f(v_{n-1},f(....f(v_0,seed))))
+// we assume for sparse vectors that the following holds:
+// f(0,0) = 0 and f(v,f(0,w))=f(f(v,w),0)
+//second argument to the function is the default value(seed).
+template<class F>
+struct vector_fold{
+	typedef F functor_type;
+	typedef typename F::result_type result_type;
+	
+	vector_fold(functor_type const& f):m_functor(f){}
+	vector_fold(){}
+	
+	template<class E>
+	result_type operator()(
+		vector_expression<E, cpu_tag> const& v,
+		result_type seed
+	) {
+		return apply(v(),seed, typename E::const_iterator::iterator_category());
+	}
+private:
+	//Dense Case
+	template<class E>
+	result_type apply(
+		E const& v,
+		result_type seed,
+		dense_random_access_iterator_tag
+	) {
+		std::size_t size = v.size();
+		result_type result = seed;
+		for(std::size_t i = 0; i != size; ++i){
+			result = m_functor(result,v(i));
+		}
+		return result;
+	}
+	//Sparse Case
+	template<class E>
+	result_type apply(
+		E const& v,
+		result_type seed,
+		sparse_bidirectional_iterator_tag
+	) {
+		typename E::const_iterator iter=v.begin();
+		typename E::const_iterator end=v.end();
+		
+		result_type result = seed;
+		std::size_t nnz = 0;
+		for(;iter != end;++iter,++nnz){
+			result = m_functor(result,*iter);
+		}
+		//apply final operator f(0,v)
+		if(nnz != v.size())
+			result = m_functor(result,*iter);
+		return result;
+	}
+	functor_type m_functor;
+};
+
+}}
+
+#endif

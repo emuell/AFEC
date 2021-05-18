@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Export">
+      <UniqueIdentifier>{0abe5d29-870a-4b33-9e63-c74a61cea168}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist">
+      <UniqueIdentifier>{480dfea9-ac51-48e9-a4cb-850a8b26930f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\LibFlac">
+      <UniqueIdentifier>{ebf08c10-b7c8-47d4-b6c2-9627a144b85a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\LibFlac++">
+      <UniqueIdentifier>{dbb5271d-ff03-4773-a664-d2e20e3bab94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include">
+      <UniqueIdentifier>{1c0398e9-7f4c-46fe-8857-bcabf6c76145}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\LibFlac">
+      <UniqueIdentifier>{7a552e43-2d6c-4e16-a90f-8d3018407b37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\LibFlac++">
+      <UniqueIdentifier>{697df978-1c56-4fe9-84a7-3dc1c739299f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Export\Flac.h">
+      <Filter>Export</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC\all.h">
+      <Filter>Include\LibFlac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC\assert.h">
+      <Filter>Include\LibFlac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC\callback.h">
+      <Filter>Include\LibFlac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC\export.h">
+      <Filter>Include\LibFlac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC\format.h">
+      <Filter>Include\LibFlac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC\metadata.h">
+      <Filter>Include\LibFlac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC\ordinals.h">
+      <Filter>Include\LibFlac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC\stream_decoder.h">
+      <Filter>Include\LibFlac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC\stream_encoder.h">
+      <Filter>Include\LibFlac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC++\all.h">
+      <Filter>Include\LibFlac++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC++\decoder.h">
+      <Filter>Include\LibFlac++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC++\encoder.h">
+      <Filter>Include\LibFlac++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC++\export.h">
+      <Filter>Include\LibFlac++</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\include\FLAC++\metadata.h">
+      <Filter>Include\LibFlac++</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dist\src\libFLAC\bitmath.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\bitreader.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\bitwriter.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\cpu.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\crc.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\fixed.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\float.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\format.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\lpc.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\md5.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\memory.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\metadata_iterators.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\metadata_object.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\stream_decoder.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\stream_encoder.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\stream_encoder_framing.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\window.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC++\metadata.cpp">
+      <Filter>Dist\LibFlac++</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC++\stream_decoder.cpp">
+      <Filter>Dist\LibFlac++</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC++\stream_encoder.cpp">
+      <Filter>Dist\LibFlac++</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\share\win_utf8_io\win_utf8_io.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\lpc_intrin_avx2.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\lpc_intrin_sse.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\lpc_intrin_sse2.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\lpc_intrin_sse41.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\stream_encoder_intrin_avx2.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\stream_encoder_intrin_sse2.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\stream_encoder_intrin_ssse3.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\fixed_intrin_ssse3.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libFLAC\fixed_intrin_sse2.c">
+      <Filter>Dist\LibFlac</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

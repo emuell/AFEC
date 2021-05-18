@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Dist">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Dist\src">
+      <UniqueIdentifier>{d4036a08-0ec8-4475-afac-14354ad1b1a0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dist\libs\serialization\src\archive_exception.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_archive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_iarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_iserializer.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_oarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_oserializer.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_pointer_iserializer.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_pointer_oserializer.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_serializer_map.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_text_iprimitive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_text_oprimitive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_text_wiprimitive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_text_woprimitive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\basic_xml_archive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\binary_iarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\binary_oarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\binary_wiarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\binary_woarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\codecvt_null.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\extended_type_info.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\extended_type_info_no_rtti.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\extended_type_info_typeid.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\polymorphic_iarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\polymorphic_oarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\singleton.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\stl_port.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\text_iarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\text_oarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\text_wiarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\text_woarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\utf8_codecvt_facet.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\void_cast.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\xml_archive_exception.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\xml_grammar.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\xml_iarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\xml_oarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\xml_wgrammar.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\xml_wiarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\serialization\src\xml_woarchive.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Dist\libs\serialization\src\basic_xml_grammar.ipp">
+      <Filter>Dist\src</Filter>
+    </None>
+  </ItemGroup>
+</Project>

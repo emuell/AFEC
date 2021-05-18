@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup
+    Condition="'$(NasmBeforeTargets)' == '' and '$(NasmAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <NasmBeforeTargets>Midl</NasmBeforeTargets>
+    <NasmAfterTargets>CustomBuild</NasmAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NasmDependsOn
+      Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(NasmDependsOn)</NasmDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Nasm>
+      <CommandLineTemplate>cd %(RootDir)%(Directory) &amp;&amp; nasmw.exe  -f win32 -d OBJ_FORMAT_win32 -i ia32/ %(RootDir)%(Directory)/%(Filename).nasm -o %(RootDir)%(Directory)/%(Filename).obj</CommandLineTemplate>
+      <Outputs>%(RootDir)%(Directory)%(Filename).obj</Outputs>
+      <ExecutionDescription>Nasm %(Filename)</ExecutionDescription>
+    </Nasm>
+  </ItemDefinitionGroup>
+</Project>

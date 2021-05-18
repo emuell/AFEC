@@ -1,0 +1,23 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Crawler (debug)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "windows": {
+        "program": "${workspaceFolder}/Dist/Debug/Crawler.exe",
+        "args": ["-l", "high", "${workspaceFolder}/../AFEC-Classifiers/OneShot-vs-Loops"],
+      },
+      "program": "${workspaceFolder}/Dist/Debug/Crawler",
+      "args": ["-l", "high", "${workspaceFolder}/../afec-classifiers/OneShot-vs-Loops"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/Dist/Debug",
+      "environment": [],
+      "externalConsole": true
+    }
+  ]
+}

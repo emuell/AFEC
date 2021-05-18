@@ -1,0 +1,37 @@
+# Object files
+*.o
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.dylib
+
+# VS files
+*.sdf
+*.tlog
+
+# sublime 
+
+*sublime*
+
+# vim 
+*.swp
+
+# Python byte code
+*.pyc
+
+# Doxygen
+doc/latex
+doc/html
+
+# Build files
+.build
+dist
+
+# Project-specific files
+examples/simpletest/simpletest
+tests/xttest

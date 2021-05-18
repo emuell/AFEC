@@ -1,0 +1,368 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Export">
+      <UniqueIdentifier>{98cfade9-c9b4-48c1-b86e-465fb44c08b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist">
+      <UniqueIdentifier>{ccecff9a-550e-40b6-a63e-34764235340f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src">
+      <UniqueIdentifier>{a41565ce-1e5b-4f57-8180-f262e2bf717f}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Dist\src\io">
+      <UniqueIdentifier>{a69316b0-2b3c-4fdc-ab1b-e2861d6174ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\onset">
+      <UniqueIdentifier>{dbad5c94-4f8c-4e24-b04c-b47f39f2433c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\pitch">
+      <UniqueIdentifier>{eb931419-c9a1-4594-8e04-d27a726a3d67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\spectral">
+      <UniqueIdentifier>{0a03a128-2434-4256-8ba3-c11c45f91387}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\synth">
+      <UniqueIdentifier>{7dc9af45-b2d9-456f-a871-06d49a5da8bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\tempo">
+      <UniqueIdentifier>{dd40e892-3dc2-42d1-8b5b-873ebfa6a720}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\temporal">
+      <UniqueIdentifier>{1f6578de-18dc-489a-bde0-2caa863db84f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\utils">
+      <UniqueIdentifier>{d31a6a4d-62bc-4b44-abce-73e6e65c4d64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\notes">
+      <UniqueIdentifier>{69119922-1cf2-459e-b6bd-26aa26b40ff3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Export\Aubio.h">
+      <Filter>Export</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\sink.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\sink_apple_audio.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\sink_sndfile.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\sink_wavwrite.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\source.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\source_apple_audio.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\source_avcodec.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\source_sndfile.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\source_wavread.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\audio_unit.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\notes\notes.h">
+      <Filter>Dist\src\notes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\onset\onset.h">
+      <Filter>Dist\src\onset</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\onset\peakpicker.h">
+      <Filter>Dist\src\onset</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\pitch\pitchfcomb.h">
+      <Filter>Dist\src\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\pitch\pitchmcomb.h">
+      <Filter>Dist\src\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\pitch\pitchschmitt.h">
+      <Filter>Dist\src\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\pitch\pitchspecacf.h">
+      <Filter>Dist\src\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\pitch\pitchyin.h">
+      <Filter>Dist\src\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\pitch\pitchyinfft.h">
+      <Filter>Dist\src\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\pitch\pitch.h">
+      <Filter>Dist\src\pitch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\spectral\filterbank_mel.h">
+      <Filter>Dist\src\spectral</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\spectral\mfcc.h">
+      <Filter>Dist\src\spectral</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\spectral\phasevoc.h">
+      <Filter>Dist\src\spectral</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\spectral\specdesc.h">
+      <Filter>Dist\src\spectral</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\spectral\tss.h">
+      <Filter>Dist\src\spectral</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\spectral\fft.h">
+      <Filter>Dist\src\spectral</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\spectral\filterbank.h">
+      <Filter>Dist\src\spectral</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\synth\wavetable.h">
+      <Filter>Dist\src\synth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\synth\sampler.h">
+      <Filter>Dist\src\synth</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\tempo\beattracking.h">
+      <Filter>Dist\src\tempo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\tempo\tempo.h">
+      <Filter>Dist\src\tempo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\temporal\c_weighting.h">
+      <Filter>Dist\src\temporal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\temporal\filter.h">
+      <Filter>Dist\src\temporal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\temporal\resampler.h">
+      <Filter>Dist\src\temporal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\temporal\a_weighting.h">
+      <Filter>Dist\src\temporal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\temporal\biquad.h">
+      <Filter>Dist\src\temporal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\utils\parameter.h">
+      <Filter>Dist\src\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\utils\scale.h">
+      <Filter>Dist\src\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\utils\hist.h">
+      <Filter>Dist\src\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\utils\log.h">
+      <Filter>Dist\src\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\aubio.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\aubio_priv.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\cvec.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\fmat.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\fvec.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\lvec.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\mathutils.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\musicutils.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\types.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\vecutils.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h" />
+    <ClInclude Include="..\Dist\src\spectral\awhitening.h">
+      <Filter>Dist\src\spectral</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\ioutils.h">
+      <Filter>Dist\src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\pitch\pitchyinfast.h">
+      <Filter>Dist\src\pitch</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dist\src\io\sink_apple_audio.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\sink_sndfile.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\sink_wavwrite.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\source.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\source_apple_audio.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\source_avcodec.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\source_sndfile.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\source_wavread.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\utils_apple_audio.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\audio_unit.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\sink.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\notes\notes.c">
+      <Filter>Dist\src\notes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\onset\peakpicker.c">
+      <Filter>Dist\src\onset</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\onset\onset.c">
+      <Filter>Dist\src\onset</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\pitch\pitchmcomb.c">
+      <Filter>Dist\src\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\pitch\pitchschmitt.c">
+      <Filter>Dist\src\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\pitch\pitchspecacf.c">
+      <Filter>Dist\src\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\pitch\pitchyin.c">
+      <Filter>Dist\src\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\pitch\pitchyinfft.c">
+      <Filter>Dist\src\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\pitch\pitch.c">
+      <Filter>Dist\src\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\pitch\pitchfcomb.c">
+      <Filter>Dist\src\pitch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\mfcc.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\ooura_fft8g.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\phasevoc.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\specdesc.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\statistics.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\tss.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\fft.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\filterbank.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\filterbank_mel.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\synth\wavetable.c">
+      <Filter>Dist\src\synth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\synth\sampler.c">
+      <Filter>Dist\src\synth</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\tempo\tempo.c">
+      <Filter>Dist\src\tempo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\tempo\beattracking.c">
+      <Filter>Dist\src\tempo</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\temporal\c_weighting.c">
+      <Filter>Dist\src\temporal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\temporal\filter.c">
+      <Filter>Dist\src\temporal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\temporal\resampler.c">
+      <Filter>Dist\src\temporal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\temporal\a_weighting.c">
+      <Filter>Dist\src\temporal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\temporal\biquad.c">
+      <Filter>Dist\src\temporal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\utils\parameter.c">
+      <Filter>Dist\src\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\utils\scale.c">
+      <Filter>Dist\src\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\utils\windll.c">
+      <Filter>Dist\src\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\utils\hist.c">
+      <Filter>Dist\src\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\utils\log.c">
+      <Filter>Dist\src\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\cvec.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\fmat.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\fvec.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\lvec.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\mathutils.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\vecutils.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\spectral\awhitening.c">
+      <Filter>Dist\src\spectral</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\ioutils.c">
+      <Filter>Dist\src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\pitch\pitchyinfast.c">
+      <Filter>Dist\src\pitch</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

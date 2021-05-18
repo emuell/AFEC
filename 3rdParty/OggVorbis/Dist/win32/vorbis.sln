@@ -1,0 +1,61 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vorbis_dynamic", "vorbis_dynamic.vcproj", "{139FD8DB-1D44-4D0D-9BB5-8A2551652FEA}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vorbis_static", "vorbis_static.vcproj", "{3C1BDAC9-611E-4FB7-9AB1-481DE6683D5C}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vorbisenc_dynamic", "vorbisenc_dynamic.vcproj", "{1F9CD015-312F-43FB-A120-FA67939F545F}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vorbisenc_static", "vorbisenc_static.vcproj", "{6474E23C-39E3-40BB-BABB-AAD5F220CE63}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vorbisfile_dynamic", "vorbisfile_dynamic.vcproj", "{4B4595B9-5758-4565-A5EE-292385D47030}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vorbisfile_static", "vorbisfile_static.vcproj", "{6BCD6325-1606-4A48-A60A-027DEEED129A}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{139FD8DB-1D44-4D0D-9BB5-8A2551652FEA}.Debug.ActiveCfg = Debug|Win32
+		{139FD8DB-1D44-4D0D-9BB5-8A2551652FEA}.Debug.Build.0 = Debug|Win32
+		{139FD8DB-1D44-4D0D-9BB5-8A2551652FEA}.Release.ActiveCfg = Release|Win32
+		{139FD8DB-1D44-4D0D-9BB5-8A2551652FEA}.Release.Build.0 = Release|Win32
+		{3C1BDAC9-611E-4FB7-9AB1-481DE6683D5C}.Debug.ActiveCfg = Debug|Win32
+		{3C1BDAC9-611E-4FB7-9AB1-481DE6683D5C}.Debug.Build.0 = Debug|Win32
+		{3C1BDAC9-611E-4FB7-9AB1-481DE6683D5C}.Release.ActiveCfg = Release|Win32
+		{3C1BDAC9-611E-4FB7-9AB1-481DE6683D5C}.Release.Build.0 = Release|Win32
+		{1F9CD015-312F-43FB-A120-FA67939F545F}.Debug.ActiveCfg = Debug|Win32
+		{1F9CD015-312F-43FB-A120-FA67939F545F}.Debug.Build.0 = Debug|Win32
+		{1F9CD015-312F-43FB-A120-FA67939F545F}.Release.ActiveCfg = Release|Win32
+		{1F9CD015-312F-43FB-A120-FA67939F545F}.Release.Build.0 = Release|Win32
+		{6474E23C-39E3-40BB-BABB-AAD5F220CE63}.Debug.ActiveCfg = Debug|Win32
+		{6474E23C-39E3-40BB-BABB-AAD5F220CE63}.Debug.Build.0 = Debug|Win32
+		{6474E23C-39E3-40BB-BABB-AAD5F220CE63}.Release.ActiveCfg = Release|Win32
+		{6474E23C-39E3-40BB-BABB-AAD5F220CE63}.Release.Build.0 = Release|Win32
+		{4B4595B9-5758-4565-A5EE-292385D47030}.Debug.ActiveCfg = Debug|Win32
+		{4B4595B9-5758-4565-A5EE-292385D47030}.Debug.Build.0 = Debug|Win32
+		{4B4595B9-5758-4565-A5EE-292385D47030}.Release.ActiveCfg = Release|Win32
+		{4B4595B9-5758-4565-A5EE-292385D47030}.Release.Build.0 = Release|Win32
+		{6BCD6325-1606-4A48-A60A-027DEEED129A}.Debug.ActiveCfg = Debug|Win32
+		{6BCD6325-1606-4A48-A60A-027DEEED129A}.Debug.Build.0 = Debug|Win32
+		{6BCD6325-1606-4A48-A60A-027DEEED129A}.Release.ActiveCfg = Release|Win32
+		{6BCD6325-1606-4A48-A60A-027DEEED129A}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

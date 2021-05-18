@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- TPtr -->
+  <Type Name="TPtr&lt;*&gt;">
+      <SmartPointer Usage="Minimal">mpObject</SmartPointer>
+      <DisplayString Condition="mpObject == 0">NULL</DisplayString>
+      <DisplayString Condition="mpObject != 0">TPtr {*mpObject}</DisplayString>
+      <Expand>
+          <Item Condition="mpObject != 0" Name="[ptr]">mpObject</Item>
+      </Expand>
+  </Type>
+
+  <!-- TWeakPtr -->
+  <Type Name="TWeakPtr&lt;*&gt;">
+      <SmartPointer Usage="Minimal">mpObject</SmartPointer>
+      <DisplayString Condition="mpObject == 0">NULL</DisplayString>
+      <DisplayString Condition="mpObject != 0">TWeakPtr {*mpObject}</DisplayString>
+      <Expand>
+          <Item Condition="mpObject != 0" Name="[ptr]">mpObject</Item>
+      </Expand>
+  </Type>
+
+  <!-- TOwnerPtr -->
+  <Type Name="TOwnerPtr&lt;*&gt;">
+      <SmartPointer Usage="Minimal">mpObject</SmartPointer>
+      <DisplayString Condition="mpObject == 0">NULL</DisplayString>
+      <DisplayString Condition="mpObject != 0">TOwnerPtr {*mpObject}</DisplayString>
+      <Expand>
+          <Item Condition="mpObject != 0" Name="[ptr]">mpObject</Item>
+      </Expand>
+  </Type>
+
+  <!-- TString -->
+  <Type Name="TString">
+      <DisplayString>{mpStringBuffer.mpObject->mpChars,su}</DisplayString>
+      <Expand>
+          <Item Name="[capacity]" ExcludeView="simple">mpStringBuffer.mpObject->mAllocatedSize</Item>
+          <ArrayItems>
+              <Size>mpStringBuffer.mpObject->mAllocatedSize</Size>
+              <ValuePointer>mpStringBuffer.mpObject->mpChars,su</ValuePointer>
+          </ArrayItems>
+      </Expand>
+  </Type>
+
+  <!-- TList -->
+  <Type Name="TList&lt;*&gt;">
+      <DisplayString>{{ size={mSize} }}</DisplayString>
+      <Expand>
+        <Item Name="[capacity]" ExcludeView="simple">mPhysicalSize</Item>
+        <ArrayItems>
+              <Size>mSize</Size>
+              <ValuePointer>mpBuffer</ValuePointer>
+          </ArrayItems>
+      </Expand>
+  </Type>
+
+  <!-- TArray -->
+  <Type Name="TArray&lt;*&gt;">
+      <DisplayString>{{ size={mSize} }}</DisplayString>
+      <Expand>
+          <ArrayItems>
+              <Size>mSize</Size>
+              <ValuePointer>mpBuffer</ValuePointer>
+          </ArrayItems>
+      </Expand>
+  </Type>
+
+  <!-- TStaticArray -->
+  <Type Name="TStaticArray&lt;*,*&gt;">
+      <DisplayString>{{ size={$T2} }}</DisplayString>
+      <Expand>
+          <ArrayItems>
+              <Size>$T2</Size>
+              <ValuePointer>mBuffer</ValuePointer>
+          </ArrayItems>
+      </Expand>
+  </Type>
+
+  <!-- TPair -->
+  <Type Name="TPair&lt;*,*&gt;">
+    <DisplayString IncludeView="noparens">{mFirst}, {mSecond}</DisplayString>
+    <DisplayString ExcludeView="noparens">({mFirst}, {mSecond})</DisplayString>
+    <Expand>
+      <Item Name="first">mFirst</Item>
+      <Item Name="second">mSecond</Item>
+    </Expand>
+  </Type>
+
+</AutoVisualizer>

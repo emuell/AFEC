@@ -1,0 +1,566 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Exp">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Dist\lib\aliases.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\aliases2.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\aliases_aix.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\aliases_dos.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\aliases_extra.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\aliases_osf1.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\armscii_8.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ascii.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\big5.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\big5hkscs.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\c99.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ces_big5.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ces_gbk.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cjk_variants.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_1.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_15.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_2.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_3.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_4.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_4a.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_4b.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_5.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_6.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_7.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cns11643_inv.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\converters.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1046.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1124.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1125.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1129.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1133.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1161.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1162.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1163.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1250.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1251.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1252.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1253.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1254.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1255.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1256.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1257.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp1258.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp437.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp737.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp775.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp850.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp852.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp853.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp855.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp856.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp857.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp858.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp860.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp861.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp862.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp863.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp864.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp865.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp866.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp869.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp874.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp922.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp932.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp932ext.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp936ext.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp943.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp949.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp950.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\cp950ext.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\dec_hanyu.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\dec_kanji.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\euc_cn.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\euc_jisx0213.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\euc_jp.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\euc_kr.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\euc_tw.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\flags.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\flushwc.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gb12345.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gb12345ext.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gb18030.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gb18030ext.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gb18030uni.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gb2312.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gbk.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gbkext1.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gbkext2.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\gbkext_inv.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\georgian_academy.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\georgian_ps.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\hkscs.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\hp_roman8.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\hz.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso2022_cn.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso2022_cnext.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso2022_jp.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso2022_jp1.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso2022_jp2.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso2022_jp3.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso2022_kr.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso646_cn.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso646_jp.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_1.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_10.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_13.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_14.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_15.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_16.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_2.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_3.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_4.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_5.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_6.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_7.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_8.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\iso8859_9.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\isoir165.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\isoir165ext.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\java.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\jisx0201.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\jisx0208.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\jisx0212.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\jisx0213.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\johab.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\johab_hangul.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\koi8_r.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\koi8_ru.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\koi8_t.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\koi8_u.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ksc5601.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\loop_unicode.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\loop_wchar.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\loops.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_arabic.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_centraleurope.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_croatian.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_cyrillic.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_greek.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_hebrew.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_iceland.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_roman.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_romania.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_thai.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_turkish.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mac_ukraine.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\mulelao.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\nextstep.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\relocatable.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\riscos1.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\shift_jisx0213.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\sjis.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\tcvn.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\tds565.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\tis620.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\translit.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs2.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs2be.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs2internal.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs2le.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs2swapped.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs4.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs4be.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs4internal.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs4le.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\ucs4swapped.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\uhc_1.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\uhc_2.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\utf16.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\utf16be.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\utf16le.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\utf32.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\utf32be.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\utf32le.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\utf7.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\utf8.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\vietcomb.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\lib\viscii.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Export\Iconv.h">
+      <Filter>Exp</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dist\lib\iconv.c">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libcharset\lib\localcharset.c">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\lib\relocatable.c">
+      <Filter>Src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,307 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 44;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		34C57F67107D2ADA0022CE00 /* libresample.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C57F5E107D2ADA0022CE00 /* libresample.h */; };
+		34C57F68107D2ADA0022CE00 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C57F60107D2ADA0022CE00 /* config.h */; };
+		34C57F69107D2ADA0022CE00 /* configtemplate.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C57F61107D2ADA0022CE00 /* configtemplate.h */; };
+		34C57F6A107D2ADA0022CE00 /* filterkit.c in Sources */ = {isa = PBXBuildFile; fileRef = 34C57F62107D2ADA0022CE00 /* filterkit.c */; };
+		34C57F6B107D2ADA0022CE00 /* filterkit.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C57F63107D2ADA0022CE00 /* filterkit.h */; };
+		34C57F6C107D2ADA0022CE00 /* resample.c in Sources */ = {isa = PBXBuildFile; fileRef = 34C57F64107D2ADA0022CE00 /* resample.c */; };
+		34C57F6D107D2ADA0022CE00 /* resample_defs.h in Headers */ = {isa = PBXBuildFile; fileRef = 34C57F65107D2ADA0022CE00 /* resample_defs.h */; };
+		34C57F6E107D2ADA0022CE00 /* resamplesubs.c in Sources */ = {isa = PBXBuildFile; fileRef = 34C57F66107D2ADA0022CE00 /* resamplesubs.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		34186CC50979300900DAA865 /* libResample_.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libResample_.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		34C57F5E107D2ADA0022CE00 /* libresample.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = libresample.h; path = ../Dist/include/libresample.h; sourceTree = SOURCE_ROOT; };
+		34C57F60107D2ADA0022CE00 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = config.h; path = ../Dist/src/config.h; sourceTree = SOURCE_ROOT; };
+		34C57F61107D2ADA0022CE00 /* configtemplate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = configtemplate.h; path = ../Dist/src/configtemplate.h; sourceTree = SOURCE_ROOT; };
+		34C57F62107D2ADA0022CE00 /* filterkit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = filterkit.c; path = ../Dist/src/filterkit.c; sourceTree = SOURCE_ROOT; };
+		34C57F63107D2ADA0022CE00 /* filterkit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = filterkit.h; path = ../Dist/src/filterkit.h; sourceTree = SOURCE_ROOT; };
+		34C57F64107D2ADA0022CE00 /* resample.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = resample.c; path = ../Dist/src/resample.c; sourceTree = SOURCE_ROOT; };
+		34C57F65107D2ADA0022CE00 /* resample_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = resample_defs.h; path = ../Dist/src/resample_defs.h; sourceTree = SOURCE_ROOT; };
+		34C57F66107D2ADA0022CE00 /* resamplesubs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = resamplesubs.c; path = ../Dist/src/resamplesubs.c; sourceTree = SOURCE_ROOT; };
+		743016280556BD2500D2A596 /* Resample.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Resample.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		34186CC30979300900DAA865 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		34C57F5D107D2ADA0022CE00 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				34C57F5E107D2ADA0022CE00 /* libresample.h */,
+			);
+			name = include;
+			path = ../Dist/include;
+			sourceTree = SOURCE_ROOT;
+		};
+		34C57F5F107D2ADA0022CE00 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				34C57F60107D2ADA0022CE00 /* config.h */,
+				34C57F61107D2ADA0022CE00 /* configtemplate.h */,
+				34C57F62107D2ADA0022CE00 /* filterkit.c */,
+				34C57F63107D2ADA0022CE00 /* filterkit.h */,
+				34C57F64107D2ADA0022CE00 /* resample.c */,
+				34C57F65107D2ADA0022CE00 /* resample_defs.h */,
+				34C57F66107D2ADA0022CE00 /* resamplesubs.c */,
+			);
+			name = src;
+			path = ../Dist/src;
+			sourceTree = SOURCE_ROOT;
+		};
+		557CB1950455FF95004EEA14 = {
+			isa = PBXGroup;
+			children = (
+				557CB1A00455FFA2004EEA14 /* Products */,
+				743016270556BD2500D2A596 /* Export */,
+				743015D90556BD2400D2A596 /* Dist */,
+			);
+			sourceTree = "<group>";
+		};
+		557CB1A00455FFA2004EEA14 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				34186CC50979300900DAA865 /* libResample_.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		743015D90556BD2400D2A596 /* Dist */ = {
+			isa = PBXGroup;
+			children = (
+				34C57F5D107D2ADA0022CE00 /* include */,
+				34C57F5F107D2ADA0022CE00 /* src */,
+			);
+			name = Dist;
+			path = ../Dist;
+			sourceTree = SOURCE_ROOT;
+		};
+		743016270556BD2500D2A596 /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				743016280556BD2500D2A596 /* Resample.h */,
+			);
+			name = Export;
+			path = ../Export;
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		34186CC10979300900DAA865 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34C57F67107D2ADA0022CE00 /* libresample.h in Headers */,
+				34C57F68107D2ADA0022CE00 /* config.h in Headers */,
+				34C57F69107D2ADA0022CE00 /* configtemplate.h in Headers */,
+				34C57F6B107D2ADA0022CE00 /* filterkit.h in Headers */,
+				34C57F6D107D2ADA0022CE00 /* resample_defs.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		34186CC40979300900DAA865 /* Resample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34186CC70979302B00DAA865 /* Build configuration list for PBXNativeTarget "Resample" */;
+			buildPhases = (
+				34186CC10979300900DAA865 /* Headers */,
+				34186CC20979300900DAA865 /* Sources */,
+				34186CC30979300900DAA865 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Resample;
+			productName = Resample_;
+			productReference = 34186CC50979300900DAA865 /* libResample_.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		557CB1990455FF95004EEA14 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 346B8113086434B200BF4866 /* Build configuration list for PBXProject "Resample" */;
+			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 557CB1950455FF95004EEA14;
+			productRefGroup = 557CB1A00455FFA2004EEA14 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				34186CC40979300900DAA865 /* Resample */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		34186CC20979300900DAA865 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34C57F6A107D2ADA0022CE00 /* filterkit.c in Sources */,
+				34C57F6C107D2ADA0022CE00 /* resample.c in Sources */,
+				34C57F6E107D2ADA0022CE00 /* resamplesubs.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		34186CC80979302B00DAA865 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = (
+					../Dist/include,
+					../Mac,
+				);
+				INSTALL_PATH = /usr/local/lib;
+				PREBINDING = NO;
+				PRODUCT_NAME = Resample_;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		34186CC90979302B00DAA865 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				HEADER_SEARCH_PATHS = (
+					../Dist/include,
+					../Mac,
+				);
+				INSTALL_PATH = /usr/local/lib;
+				PREBINDING = NO;
+				PRODUCT_NAME = Resample_;
+				STRIP_INSTALLED_PRODUCT = NO;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		346B8114086434B200BF4866 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+					x86_64,
+				);
+				COPY_PHASE_STRIP = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_VERSION = 4.0;
+				"GCC_VERSION[arch=x86_64]" = 4.2;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = NO;
+				HEADER_SEARCH_PATHS = (
+					../Dist/include,
+					../Mac,
+				);
+				OBJROOT = ../../../Temp;
+				OTHER_CFLAGS = "-DHAVE_CONFIG_H";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-wnone",
+				);
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
+				"SDKROOT[arch=x86_64]" = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				SYMROOT = ../Library;
+			};
+			name = Debug;
+		};
+		346B8115086434B200BF4866 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+					x86_64,
+				);
+				GCC_DEBUGGING_SYMBOLS = default;
+				GCC_ENABLE_ASM_KEYWORD = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_VERSION = 4.0;
+				"GCC_VERSION[arch=x86_64]" = 4.2;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = NO;
+				HEADER_SEARCH_PATHS = (
+					../Dist/include,
+					../Mac,
+				);
+				OBJROOT = ../../../Temp;
+				OTHER_CFLAGS = "-DHAVE_CONFIG_H";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-wnone",
+				);
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
+				"SDKROOT[arch=x86_64]" = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = ../Library;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		34186CC70979302B00DAA865 /* Build configuration list for PBXNativeTarget "Resample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34186CC80979302B00DAA865 /* Debug */,
+				34186CC90979302B00DAA865 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		346B8113086434B200BF4866 /* Build configuration list for PBXProject "Resample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				346B8114086434B200BF4866 /* Debug */,
+				346B8115086434B200BF4866 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 557CB1990455FF95004EEA14 /* Project object */;
+}

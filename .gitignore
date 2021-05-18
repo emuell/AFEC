@@ -1,0 +1,58 @@
+# globally
+.DS_Store
+**/.DS_Store
+.idea
+**/.idea
+cmake-build-debug
+**/cmake-build-debug
+**/.vagrant
+
+# /
+/Dist
+/Temp
+
+# /Build/
+/Build/Out
+
+# /Source/
+/Source/html
+/Source/doxygen_objdb*
+
+# /Source/Crawler/XModelCreator/
+/Source/Crawler/XModelCreator/Resources
+
+# /Source/Crawler/XModelTester/Resources/
+/Source/Crawler/XModelTester/Resources/Models
+/Source/Crawler/XModelTester/Resources/Results
+
+# /Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Test/
+/Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Test/*.db
+/Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Test/*.db-shm
+/Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Test/*.db-wal
+
+# /Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Train/
+/Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Train/*.model
+/Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Train/*.db
+/Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Train/*.db-shm
+/Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Train/*.db-wal
+/Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Train/*.shark
+/Source/Crawler/XUnitTests/Resources/Kicks-vs-Snare-Train/*.csv
+
+# /3rdParty
+/3rdParty/*.VC.db
+/3rdParty/*.VC.opendb
+/3rdParty/.vs
+
+# /3rdParty/*/Library/Win/*/
+/3rdParty/*/Library/Win/*/*.bsc
+
+# /3rdParty/*/Win
+/3rdParty/*/Win/*.vcxproj.user
+
+# /3rdParty/*/Mac/*.xcodeproj/
+/3rdParty/*/Mac/*.xcodeproj/project.xcworkspace
+/3rdParty/*/Mac/*.xcodeproj/xcuserdata
+
+# /3rdParty/*/Linux/
+/3rdParty/*/Linux/Build
+/3rdParty/*/Linux/*~

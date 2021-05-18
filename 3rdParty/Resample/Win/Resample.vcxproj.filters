@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Exp">
+      <UniqueIdentifier>{c6dc4b6f-e367-4b1e-ba89-0de42fd6ac98}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Dist\src\config.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\configtemplate.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\filterkit.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\resample_defs.h">
+      <Filter>Src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Export\Resample.h">
+      <Filter>Exp</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dist\src\filterkit.c">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\resample.c">
+      <Filter>Src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\resamplesubs.c">
+      <Filter>Src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

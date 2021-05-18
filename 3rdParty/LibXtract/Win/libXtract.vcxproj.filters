@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Export">
+      <UniqueIdentifier>{19740550-1d21-40f8-8ce8-b0fa7fbfb17b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist">
+      <UniqueIdentifier>{dea99706-03b2-4d6d-83d6-ce491a67761b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src">
+      <UniqueIdentifier>{79b2bdc9-c0fc-4062-8083-11432b88a47c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\c-ringbuf">
+      <UniqueIdentifier>{4dc07c5e-24bf-46ff-88a0-97bf3e9745e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\dywapitchtrack">
+      <UniqueIdentifier>{86110e43-5048-46ee-8f12-43860ad7e23a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist\src\ooura">
+      <UniqueIdentifier>{2111ee11-10f2-4339-9826-e3e293e38822}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dist\src\delta.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\descriptors.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\fini.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\helper.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\init.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\libxtract.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\scalar.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\stateful.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\vector.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\window.c">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\c-ringbuf\ringbuf.c">
+      <Filter>Dist\src\c-ringbuf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\dywapitchtrack\dywapitchtrack.c">
+      <Filter>Dist\src\dywapitchtrack</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\ooura\fftsg.c">
+      <Filter>Dist\src\ooura</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Dist\src\fft.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\xtract_globals_private.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\xtract_macros_private.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\xtract_window_private.h">
+      <Filter>Dist\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\c-ringbuf\ringbuf.h">
+      <Filter>Dist\src\c-ringbuf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\dywapitchtrack\dywapitchtrack.h">
+      <Filter>Dist\src\dywapitchtrack</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\ooura\fftsg.h">
+      <Filter>Dist\src\ooura</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Dist\src\Make.config">
+      <Filter>Dist\src</Filter>
+    </None>
+    <None Include="..\Dist\src\Makefile">
+      <Filter>Dist\src</Filter>
+    </None>
+  </ItemGroup>
+</Project>

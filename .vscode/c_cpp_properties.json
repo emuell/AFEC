@@ -1,0 +1,176 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "/usr/include",
+                "/usr/local/include",
+                "/usr/include/c++/4.2.1",
+                "/usr/include/c++/4.2.1/tr1",
+                "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1",
+                "${workspaceRoot}",
+                "${workspaceRoot}/Source/Core",
+                "${workspaceRoot}/Source/Core/SubPath",
+                "${workspaceRoot}/Source/Crawler",
+                "${workspaceRoot}/Source/Crawler/SubPath",
+                //"${workspaceRoot}/3rdParty/IPP/Dist",
+                "${workspaceRoot}/3rdParty/ZLib/Dist",
+                "${workspaceRoot}/3rdParty/Boost/Dist",
+                "${workspaceRoot}/3rdParty/Sqlite/Dist/src",
+                "${workspaceRoot}/3rdParty/Msgpack/Dist/include",
+                "${workspaceRoot}/3rdParty/Flac/Dist/include",
+                "${workspaceRoot}/3rdParty/OggVorbis/Dist/include",
+                "${workspaceRoot}/3rdParty/Aubio/Dist/src",
+                "${workspaceRoot}/3rdParty/LibXtract/Dist/include",
+                "${workspaceRoot}/3rdParty/Resample/Dist/include",
+                "${workspaceRoot}/3rdParty/PortAudio/Dist/include",
+                "${workspaceRoot}/3rdParty/OpenBLAS/Dist",
+                "${workspaceRoot}/3rdParty/CuDNN/Dist/include",
+                "${workspaceRoot}/3rdParty/Shark/Dist/include",
+                "${workspaceRoot}/3rdParty/TinyDNN/Dist",
+                "${workspaceRoot}/3rdParty/Sqlite/Dist/src"
+            ],
+            "defines": [
+                "MDebug",
+                "MMac",
+                "MCompiler_GCC",
+                "MCompiler_Clang",
+                "MArch_X64"
+            ],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
+                    "/usr/include",
+                    "/usr/local/include",
+                    "${workspaceRoot}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "macFrameworkPath": [
+                "/System/Library/Frameworks",
+                "/Library/Frameworks"
+            ],
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++14"
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "/usr/include/c++/4.9",
+                "/usr/include/x86_64-linux-gnu/c++/4.9",
+                "/usr/include/c++/4.9/backward",
+                "/usr/lib/gcc/x86_64-linux-gnu/4.9/include",
+                "/usr/local/include",
+                "/usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed",
+                "/usr/include/x86_64-linux-gnu",
+                "/usr/include",
+                "${workspaceRoot}/Source/Core",
+                "${workspaceRoot}/Source/Core/SubPath",
+                "${workspaceRoot}/Source/Crawler",
+                "${workspaceRoot}/Source/Crawler/SubPath",
+                //"${workspaceRoot}/3rdParty/IPP/Dist",
+                "${workspaceRoot}/3rdParty/ZLib/Dist",
+                "${workspaceRoot}/3rdParty/Boost/Dist",
+                "${workspaceRoot}/3rdParty/Sqlite/Dist/src",
+                "${workspaceRoot}/3rdParty/Msgpack/Dist/include",
+                "${workspaceRoot}/3rdParty/Flac/Dist/include",
+                "${workspaceRoot}/3rdParty/OggVorbis/Dist/include",
+                "${workspaceRoot}/3rdParty/Aubio/Dist/src",
+                "${workspaceRoot}/3rdParty/LibXtract/Dist/include",
+                "${workspaceRoot}/3rdParty/Resample/Dist/include",
+                "${workspaceRoot}/3rdParty/OpenBLAS/Dist",
+                "${workspaceRoot}/3rdParty/CuDNN/Dist/include",
+                "${workspaceRoot}/3rdParty/Shark/Dist/include",
+                "${workspaceRoot}/3rdParty/TinyDNN/Dist",
+                "${workspaceRoot}/3rdParty/Sqlite/Dist/src"
+            ],
+            "defines": [
+                "MDebug",
+                "MLinux",
+                "MCompiler_GCC",
+                "MCompiler_Clang",
+                "MArch_X64"
+            ],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
+                    "/usr/include/c++/4.9",
+                    "/usr/include/x86_64-linux-gnu/c++/4.9",
+                    "/usr/include/c++/4.9/backward",
+                    "/usr/lib/gcc/x86_64-linux-gnu/4.9/include",
+                    "/usr/local/include",
+                    "/usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed",
+                    "/usr/include/x86_64-linux-gnu",
+                    "/usr/include",
+                    "${workspaceRoot}/Source",
+                    "${workspaceRoot}/Source/Core",
+                    "${workspaceRoot}/Source/Crawler",
+                    "${workspaceRoot}/3rdParty/IPP/Dist",
+                    "${workspaceRoot}/3rdParty/ZLib/Dist",
+                    "${workspaceRoot}/3rdParty/Boost/Dist",
+                    "${workspaceRoot}/3rdParty/Sqlite/Dist/src",
+                    "${workspaceRoot}/3rdParty/Msgpack/Dist/include",
+                    "${workspaceRoot}/3rdParty/Flac/Dist/include",
+                    "${workspaceRoot}/3rdParty/OggVorbis/Dist/include",
+                    "${workspaceRoot}/3rdParty/Aubio/Dist/src",
+                    "${workspaceRoot}/3rdParty/LibXtract/Dist/include",
+                    "${workspaceRoot}/3rdParty/Resample/Dist/include",
+                    "${workspaceRoot}/3rdParty/OpenBLAS/Dist",
+                    "${workspaceRoot}/3rdParty/CuDNN/Dist/include",
+                    "${workspaceRoot}/3rdParty/Shark/Dist/include",
+                    "${workspaceRoot}/3rdParty/TinyDNN/Dist",
+                    "${workspaceRoot}/3rdParty/Sqlite/Dist/src"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++14"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include",
+                "${workspaceRoot}/Source",
+                "${workspaceRoot}/Source/Core",
+                "${workspaceRoot}/Source/Crawler",
+                //"${workspaceRoot}/3rdParty/IPP/Dist",
+                "${workspaceRoot}/3rdParty/ZLib/Dist",
+                "${workspaceRoot}/3rdParty/Boost/Dist",
+                "${workspaceRoot}/3rdParty/Sqlite/Dist/src",
+                "${workspaceRoot}/3rdParty/Msgpack/Dist/include",
+                "${workspaceRoot}/3rdParty/Flac/Dist/include",
+                "${workspaceRoot}/3rdParty/OggVorbis/Dist/include",
+                "${workspaceRoot}/3rdParty/Aubio/Dist/src",
+                "${workspaceRoot}/3rdParty/LibXtract/Dist/include",
+                "${workspaceRoot}/3rdParty/Resample/Dist/include",
+                "${workspaceRoot}/3rdParty/OpenBLAS/Dist",
+                "${workspaceRoot}/3rdParty/Shark/Dist/include",
+                "${workspaceRoot}/3rdParty/TinyDNN/Dist",
+                "${workspaceRoot}/3rdParty/Sqlite/Dist/src"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE"
+            ],
+            "intelliSenseMode": "msvc-x64",
+            "browse": {
+                "path": [
+                    "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/include/*",
+                    "${workspaceRoot}"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "windowsSdkVersion": "8.1"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Export">
+      <UniqueIdentifier>{98f75164-d2e9-4589-a3a8-9f2090d95247}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dist">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Dist\src">
+      <UniqueIdentifier>{d4036a08-0ec8-4475-afac-14354ad1b1a0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Export\BoostUnitTest.h">
+      <Filter>Export</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dist\libs\test\src\compiler_log_formatter.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\debug.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\decorator.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\execution_monitor.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\framework.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\junit_log_formatter.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\plain_report_formatter.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\progress_monitor.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\results_collector.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\results_reporter.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\unit_test_log.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\unit_test_main.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\unit_test_monitor.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\unit_test_parameters.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\xml_log_formatter.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\xml_report_formatter.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\test_tools.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\test_tree.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\libs\test\src\cpp_main.cpp">
+      <Filter>Dist\src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

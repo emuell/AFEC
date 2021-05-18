@@ -1,0 +1,386 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Dist\src\aubio.h" />
+    <ClInclude Include="..\Dist\src\aubio_priv.h" />
+    <ClInclude Include="..\Dist\src\cvec.h" />
+    <ClInclude Include="..\Dist\src\fmat.h" />
+    <ClInclude Include="..\Dist\src\fvec.h" />
+    <ClInclude Include="..\Dist\src\io\audio_unit.h" />
+    <ClInclude Include="..\Dist\src\io\ioutils.h" />
+    <ClInclude Include="..\Dist\src\io\sink.h" />
+    <ClInclude Include="..\Dist\src\io\sink_apple_audio.h" />
+    <ClInclude Include="..\Dist\src\io\sink_sndfile.h" />
+    <ClInclude Include="..\Dist\src\io\sink_wavwrite.h" />
+    <ClInclude Include="..\Dist\src\io\source.h" />
+    <ClInclude Include="..\Dist\src\io\source_apple_audio.h" />
+    <ClInclude Include="..\Dist\src\io\source_avcodec.h" />
+    <ClInclude Include="..\Dist\src\io\source_sndfile.h" />
+    <ClInclude Include="..\Dist\src\io\source_wavread.h" />
+    <ClInclude Include="..\Dist\src\lvec.h" />
+    <ClInclude Include="..\Dist\src\mathutils.h" />
+    <ClInclude Include="..\Dist\src\musicutils.h" />
+    <ClInclude Include="..\Dist\src\notes\notes.h" />
+    <ClInclude Include="..\Dist\src\onset\onset.h" />
+    <ClInclude Include="..\Dist\src\onset\peakpicker.h" />
+    <ClInclude Include="..\Dist\src\pitch\pitch.h" />
+    <ClInclude Include="..\Dist\src\pitch\pitchfcomb.h" />
+    <ClInclude Include="..\Dist\src\pitch\pitchmcomb.h" />
+    <ClInclude Include="..\Dist\src\pitch\pitchschmitt.h" />
+    <ClInclude Include="..\Dist\src\pitch\pitchspecacf.h" />
+    <ClInclude Include="..\Dist\src\pitch\pitchyin.h" />
+    <ClInclude Include="..\Dist\src\pitch\pitchyinfast.h" />
+    <ClInclude Include="..\Dist\src\pitch\pitchyinfft.h" />
+    <ClInclude Include="..\Dist\src\spectral\awhitening.h" />
+    <ClInclude Include="..\Dist\src\spectral\fft.h" />
+    <ClInclude Include="..\Dist\src\spectral\filterbank.h" />
+    <ClInclude Include="..\Dist\src\spectral\filterbank_mel.h" />
+    <ClInclude Include="..\Dist\src\spectral\mfcc.h" />
+    <ClInclude Include="..\Dist\src\spectral\phasevoc.h" />
+    <ClInclude Include="..\Dist\src\spectral\specdesc.h" />
+    <ClInclude Include="..\Dist\src\spectral\tss.h" />
+    <ClInclude Include="..\Dist\src\synth\sampler.h" />
+    <ClInclude Include="..\Dist\src\synth\wavetable.h" />
+    <ClInclude Include="..\Dist\src\temporal\a_weighting.h" />
+    <ClInclude Include="..\Dist\src\temporal\biquad.h" />
+    <ClInclude Include="..\Dist\src\temporal\c_weighting.h" />
+    <ClInclude Include="..\Dist\src\temporal\filter.h" />
+    <ClInclude Include="..\Dist\src\temporal\resampler.h" />
+    <ClInclude Include="..\Dist\src\tempo\beattracking.h" />
+    <ClInclude Include="..\Dist\src\tempo\tempo.h" />
+    <ClInclude Include="..\Dist\src\types.h" />
+    <ClInclude Include="..\Dist\src\utils\hist.h" />
+    <ClInclude Include="..\Dist\src\utils\log.h" />
+    <ClInclude Include="..\Dist\src\utils\parameter.h" />
+    <ClInclude Include="..\Dist\src\utils\scale.h" />
+    <ClInclude Include="..\Dist\src\vecutils.h" />
+    <ClInclude Include="..\Export\Aubio.h" />
+    <ClInclude Include="config.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Dist\src\cvec.c" />
+    <ClCompile Include="..\Dist\src\fmat.c" />
+    <ClCompile Include="..\Dist\src\fvec.c" />
+    <ClCompile Include="..\Dist\src\io\audio_unit.c" />
+    <ClCompile Include="..\Dist\src\io\ioutils.c" />
+    <ClCompile Include="..\Dist\src\io\sink.c" />
+    <ClCompile Include="..\Dist\src\io\sink_apple_audio.c" />
+    <ClCompile Include="..\Dist\src\io\sink_sndfile.c" />
+    <ClCompile Include="..\Dist\src\io\sink_wavwrite.c" />
+    <ClCompile Include="..\Dist\src\io\source.c" />
+    <ClCompile Include="..\Dist\src\io\source_apple_audio.c" />
+    <ClCompile Include="..\Dist\src\io\source_avcodec.c" />
+    <ClCompile Include="..\Dist\src\io\source_sndfile.c" />
+    <ClCompile Include="..\Dist\src\io\source_wavread.c" />
+    <ClCompile Include="..\Dist\src\io\utils_apple_audio.c" />
+    <ClCompile Include="..\Dist\src\lvec.c" />
+    <ClCompile Include="..\Dist\src\mathutils.c" />
+    <ClCompile Include="..\Dist\src\notes\notes.c" />
+    <ClCompile Include="..\Dist\src\onset\onset.c" />
+    <ClCompile Include="..\Dist\src\onset\peakpicker.c" />
+    <ClCompile Include="..\Dist\src\pitch\pitch.c" />
+    <ClCompile Include="..\Dist\src\pitch\pitchfcomb.c" />
+    <ClCompile Include="..\Dist\src\pitch\pitchmcomb.c" />
+    <ClCompile Include="..\Dist\src\pitch\pitchschmitt.c" />
+    <ClCompile Include="..\Dist\src\pitch\pitchspecacf.c" />
+    <ClCompile Include="..\Dist\src\pitch\pitchyin.c" />
+    <ClCompile Include="..\Dist\src\pitch\pitchyinfast.c" />
+    <ClCompile Include="..\Dist\src\pitch\pitchyinfft.c" />
+    <ClCompile Include="..\Dist\src\spectral\awhitening.c" />
+    <ClCompile Include="..\Dist\src\spectral\fft.c" />
+    <ClCompile Include="..\Dist\src\spectral\filterbank.c" />
+    <ClCompile Include="..\Dist\src\spectral\filterbank_mel.c" />
+    <ClCompile Include="..\Dist\src\spectral\mfcc.c" />
+    <ClCompile Include="..\Dist\src\spectral\ooura_fft8g.c" />
+    <ClCompile Include="..\Dist\src\spectral\phasevoc.c" />
+    <ClCompile Include="..\Dist\src\spectral\specdesc.c" />
+    <ClCompile Include="..\Dist\src\spectral\statistics.c" />
+    <ClCompile Include="..\Dist\src\spectral\tss.c" />
+    <ClCompile Include="..\Dist\src\synth\sampler.c" />
+    <ClCompile Include="..\Dist\src\synth\wavetable.c" />
+    <ClCompile Include="..\Dist\src\temporal\a_weighting.c" />
+    <ClCompile Include="..\Dist\src\temporal\biquad.c" />
+    <ClCompile Include="..\Dist\src\temporal\c_weighting.c" />
+    <ClCompile Include="..\Dist\src\temporal\filter.c" />
+    <ClCompile Include="..\Dist\src\temporal\resampler.c" />
+    <ClCompile Include="..\Dist\src\tempo\beattracking.c" />
+    <ClCompile Include="..\Dist\src\tempo\tempo.c" />
+    <ClCompile Include="..\Dist\src\utils\hist.c" />
+    <ClCompile Include="..\Dist\src\utils\log.c" />
+    <ClCompile Include="..\Dist\src\utils\parameter.c" />
+    <ClCompile Include="..\Dist\src\utils\scale.c" />
+    <ClCompile Include="..\Dist\src\utils\windll.c" />
+    <ClCompile Include="..\Dist\src\vecutils.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5AA81D15-3084-4F6A-AFDC-F71C2EDC2C29}</ProjectGuid>
+    <RootNamespace>Aubio</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">./../Library/Win/x86/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\../../../Temp/$(Platform)/Debug/$(ProjectName)/</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">./../Library/Win/x64/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\../../../Temp/$(Platform)/Debug/$(ProjectName)/</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">./../Library/Win/x86/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\../../../Temp/$(Platform)/Release/$(ProjectName)/</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">./../Library/Win/x64/</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\../../../Temp/$(Platform)/Release/$(ProjectName)/</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectName)_d</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>.;..\Dist\src;..\..\IPP\Dist;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;WIN32;_WINDOWS;_HAS_ITERATOR_DEBUGGING=0;_SECURE_SCL=0;HAVE_CONFIG_H=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0407</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <OutputFile>..\Library\Win\x86\$(ProjectName)_d.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>.;..\Dist\src;..\..\IPP\Dist;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG;_DEBUG;WIN32;_WINDOWS;_HAS_ITERATOR_DEBUGGING=0;_SECURE_SCL=0;HAVE_CONFIG_H=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0407</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <OutputFile>..\Library\Win\x64\$(ProjectName)_d.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(TargetDir)$(TargetName).pdb</ProgramDatabaseFile>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <ImportLibrary>..\Library\Win\x64\$(ProjectName)_d.lib</ImportLibrary>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>.;..\Dist\src;..\..\IPP\Dist;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;_ITERATOR_DEBUG_LEVEL=0;_SECURE_SCL=0;HAVE_CONFIG_H=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <OpenMPSupport>true</OpenMPSupport>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0407</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>..\Library\Win\x86\$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>.;..\Dist\src;..\..\IPP\Dist;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;_ITERATOR_DEBUG_LEVEL=0;_SECURE_SCL=0;HAVE_CONFIG_H=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
+      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>Default</CompileAs>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <OpenMPSupport>true</OpenMPSupport>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0407</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Lib>
+      <OutputFile>..\Library\Win\x64\$(ProjectName).lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
