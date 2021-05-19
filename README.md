@@ -350,7 +350,7 @@ Just like for high-level features, the column name ending specifies the data typ
 
 ## Third-Party Libraries
 
-AFEC uses the following third-party libraries, which are bundled in the `3rdParty` folder, including precompiled static libraries for Windows (Visual C++) OSX (Clang) and Linux (GCC). Note: if you're trying to build AFEC on Linux with gcc-8 or later, you may get linger errors and then need to recompile a few of the C++ third party libraries. There are build scripts in the `Linux/` sub folders in each third party library.
+AFEC uses the following third-party libraries, which are bundled in the `3rdParty` folder, including precompiled static libraries for Windows (Visual C++) OSX (Clang) and Linux (GCC). Note: if you're trying to build AFEC on Linux with gcc-8 or later, you may get linker errors and then need to recompile a few of the C++ third party libraries. There are build scripts in the `Linux/` sub folders in each third party library.
 
 ### Sound Classification:
 * [SharkC++](http://image.diku.dk/shark/): Used for various classification test models and for the model ensemble generation.
@@ -375,7 +375,13 @@ AFEC uses the following third-party libraries, which are bundled in the `3rdPart
 
 ## How to Build
 
-go to `./Build` and run: 
+The precompiled 3rd party libraries are stored via git lfs, so first make sure they are checked out: 
+
+```bash
+git lfs pull 
+```
+
+then go to `./Build` and run: 
 
 ```bash
 ./Build/build.sh|bat
