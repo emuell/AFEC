@@ -46,18 +46,21 @@ To modify PATH, just follow the pictures after going to the ``Control Panel``:
 .. image:: ./_static/images/screenshot-system.png
    :align: center
    :target: ./_static/images/screenshot-system.png
+   :alt: A screenshot of the System option under System and Security of the Control Panel.
 
 Then, go to ``Advanced`` > ``Environment Variables...``:
 
 .. image:: ./_static/images/screenshot-advanced-system-settings.png
    :align: center
    :target: ./_static/images/screenshot-advanced-system-settings.png
+   :alt: A screenshot of the System Properties window.
 
 Under ``System variables``, the variable ``Path``:
 
 .. image:: ./_static/images/screenshot-environment-variables.png
    :align: center
    :target: ./_static/images/screenshot-environment-variables.png
+   :alt: A screenshot of the Environment variables window with variable path selected under the system variables.
 
 --------------
 
@@ -75,13 +78,15 @@ OpenCL SDK Installation
 -----------------------
 
 Installing the appropriate OpenCL SDK requires you to download the correct vendor source SDK.
-You need to know on what you are going to use LightGBM!:
+You need to know what you are going to use LightGBM!
 
--  For running on Intel, get `Intel SDK for OpenCL`_ (NOT RECOMMENDED)
+-  For running on Intel, get `Intel SDK for OpenCL`_ (**NOT RECOMMENDED**).
 
--  For running on AMD, get AMD APP SDK
+-  For running on AMD, get AMD APP SDK (downloads `for Linux`_ and `for Windows`_). You may want to replace the ``OpenCL.dll`` from the GPU driver package with the one from the SDK, if the one shipped with the driver lacks some functions.
 
--  For running on NVIDIA, get `CUDA Toolkit`_
+-  For running on NVIDIA, get `CUDA Toolkit`_.
+
+-  Or you can try to use `Khronos official OpenCL headers`_, the CMake module would automatically find the OpenCL library used in your system, though the result may be not portable.
 
 Further reading and correspondence table (especially if you intend to use cross-platform devices,
 like Intel CPU with AMD APP SDK): `GPU SDK Correspondence and Device Targeting Table <./GPU-Targets.rst>`__.
@@ -103,6 +108,7 @@ You may choose a version other than the most recent one if you need a previous M
 .. image:: ./_static/images/screenshot-mingw-installation.png
    :align: center
    :target: ./_static/images/screenshot-mingw-installation.png
+   :alt: A screenshot of the Min G W installation setup settings window.
 
 Then, add to your PATH the following (to adjust to your MinGW version):
 
@@ -121,6 +127,7 @@ You can check which MinGW version you are using by running the following in a co
 .. image:: ./_static/images/screenshot-r-mingw-used.png
    :align: center
    :target: ./_static/images/screenshot-r-mingw-used.png
+   :alt: A screenshot of the administrator command prompt where G C C version is being checked.
 
 To check whether you need 32-bit or 64-bit MinGW for R, install LightGBM as usual and check for the following:
 
@@ -133,11 +140,12 @@ To check whether you need 32-bit or 64-bit MinGW for R, install LightGBM as usua
 If it says ``mingw_64`` then you need the 64-bit version (PATH with ``c:\Rtools\bin;c:\Rtools\mingw_64\bin``),
 otherwise you need the 32-bit version (``c:\Rtools\bin;c:\Rtools\mingw_32\bin``), the latter being a very rare and untested case.
 
-Quick installation of LightGBM can be done using:
+NOTE: If you are using `Rtools` 4.0 or later, the path will have `mingw64` instead of `mingw_64` (PATH with `C:\rtools40\mingw64\bin`), and `mingw32` instead of `mingw_32` (`C:\rtools40\mingw32\bin`). The 32-bit version remains an unsupported solution under Rtools 4.0.
 
-.. code:: r
+Download the prebuilt Boost
+---------------------------
 
-    devtools::install_github("Microsoft/LightGBM", subdir = "R-package")
+Download  `Prebuilt Boost x86_64`_ or `Prebuilt Boost i686`_ and unpack them with `7zip`_, alternatively you can build Boost from source.
 
 --------------
 
@@ -167,7 +175,7 @@ Adjust ``C:\boost`` if you install it elsewhere.
 
 We can now start downloading and compiling the required Boost libraries:
 
--  Download `Boost`_ (boost\_1\_63\_0.zip)
+-  Download `Boost`_ (for example, the filename for 1.63.0 version is ``boost_1_63_0.zip``)
 
 -  Extract the archive to ``C:\boost``
 
@@ -217,10 +225,11 @@ This is what you should (approximately) get at the end of Boost compilation:
 .. image:: ./_static/images/screenshot-boost-compiled.png
    :align: center
    :target: ./_static/images/screenshot-boost-compiled.png
+   :alt: A screenshot of the command prompt that ends with text that reads - updated 14621 targets.
 
 If you are getting an error:
 
--  Wipe your boost directory
+-  Wipe your Boost directory
 
 -  Close the command prompt
 
@@ -228,7 +237,7 @@ If you are getting an error:
    ``C:\boost\boost-build\bin``, ``C:\boost\boost-build\include\boost`` to
    your PATH (adjust accordingly if you use another folder)
 
--  Do the boost compilation steps again (extract => command prompt => ``cd`` => ``bootstrap`` => ``b2`` => ``cd`` => ``b2``
+-  Do the Boost compilation steps again (extract => command prompt => ``cd`` => ``bootstrap`` => ``b2`` => ``cd`` => ``b2``
 
 --------------
 
@@ -240,6 +249,7 @@ Installing Git for Windows is straightforward, use the following `link`_.
 .. image:: ./_static/images/screenshot-git-for-windows.png
    :align: center
    :target: ./_static/images/screenshot-git-for-windows.png
+   :alt: A screenshot of the website to download git that shows various versions of git compatible with 32 bit and 64 bit Windows separately.
 
 Now, we can fetch LightGBM repository for GitHub. Run Git Bash and the following command:
 
@@ -248,7 +258,7 @@ Now, we can fetch LightGBM repository for GitHub. Run Git Bash and the following
     cd C:/
     mkdir github_repos
     cd github_repos
-    git clone --recursive https://github.com/Microsoft/LightGBM
+    git clone --recursive https://github.com/microsoft/LightGBM
 
 Your LightGBM repository copy should now be under ``C:\github_repos\LightGBM``.
 You are free to use any folder you want, but you have to adapt.
@@ -267,8 +277,9 @@ Installing CMake requires one download first and then a lot of configuration for
 .. image:: ./_static/images/screenshot-downloading-cmake.png
    :align: center
    :target: ./_static/images/screenshot-downloading-cmake.png
+   :alt: A screenshot of the binary distributions of C Make for downloading on 64 bit Windows.
 
--  Download `CMake`_ 3.8.0
+-  Download `CMake`_ (3.8 or higher)
 
 -  Install CMake
 
@@ -285,16 +296,19 @@ Installing CMake requires one download first and then a lot of configuration for
    .. image:: ./_static/images/screenshot-create-directory.png
       :align: center
       :target: ./_static/images/screenshot-create-directory.png
+      :alt: A screenshot with a pop-up window that reads - Build directory does not exist, should I create it?
 
    .. image:: ./_static/images/screenshot-mingw-makefiles-to-use.png
       :align: center
       :target: ./_static/images/screenshot-mingw-makefiles-to-use.png
+      :alt: A screenshot that asks to specify the generator for the project which should be selected as Min G W makefiles and selected as the use default native compilers option.
 
 -  Lookup for ``USE_GPU`` and check the checkbox
 
    .. image:: ./_static/images/screenshot-use-gpu.png
       :align: center
       :target: ./_static/images/screenshot-use-gpu.png
+      :alt: A screenshot of the C Make window where the checkbox with the test Use G P U is checked.
 
 -  Click ``Configure``
 
@@ -303,12 +317,13 @@ Installing CMake requires one download first and then a lot of configuration for
    .. image:: ./_static/images/screenshot-configured-lightgbm.png
       :align: center
       :target: ./_static/images/screenshot-configured-lightgbm.png
+      :alt: A screenshot of the C Make window after clicking on the configure button.
 
    ::
 
        Looking for CL_VERSION_2_0
        Looking for CL_VERSION_2_0 - found
-       Found OpenCL: C:/Windows/System32/OpenCL.dll (found version "2.0") 
+       Found OpenCL: C:/Windows/System32/OpenCL.dll (found version "2.0")
        OpenCL include directory:C:/Program Files (x86)/AMD APP SDK/3.0/include
        Boost version: 1.63.0
        Found the following Boost libraries:
@@ -363,6 +378,7 @@ You can do everything in the Git Bash console you left open:
 .. image:: ./_static/images/screenshot-lightgbm-with-gpu-support-compiled.png
    :align: center
    :target: ./_static/images/screenshot-lightgbm-with-gpu-support-compiled.png
+   :alt: A screenshot of the git bash window with Light G B M successfully installed.
 
 If everything was done correctly, you now compiled CLI LightGBM with GPU support!
 
@@ -379,6 +395,7 @@ You can now test LightGBM directly in CLI in a **command prompt** (not Git Bash)
 .. image:: ./_static/images/screenshot-lightgbm-in-cli-with-gpu.png
    :align: center
    :target: ./_static/images/screenshot-lightgbm-in-cli-with-gpu.png
+   :alt: A screenshot of the command prompt where a binary classification model is being trained using Light G B M.
 
 Congratulations for reaching this stage!
 
@@ -394,8 +411,9 @@ Now that you compiled LightGBM, you try it... and you always see a segmentation 
 .. image:: ./_static/images/screenshot-segmentation-fault.png
    :align: center
    :target: ./_static/images/screenshot-segmentation-fault.png
+   :alt: A screenshot of the command prompt where a segmentation fault has occurred while using Light G B M.
 
-Please check if you are using the right device (``Using GPU device: ...``). You can find a list of your OpenCL devices using `GPUCapsViewer`_, and make sure you are using a discrete (AMD/NVIDIA) GPU if you have both integrated (Intel) and discrete GPUs installed. 
+Please check if you are using the right device (``Using GPU device: ...``). You can find a list of your OpenCL devices using `GPUCapsViewer`_, and make sure you are using a discrete (AMD/NVIDIA) GPU if you have both integrated (Intel) and discrete GPUs installed.
 Also, try to set ``gpu_device_id = 0`` and ``gpu_platform_id = 0`` or ``gpu_device_id = -1`` and ``gpu_platform_id = -1`` to use the first platform and device or the default platform and device.
 If it still does not work, then you should follow all the steps below.
 
@@ -408,6 +426,7 @@ You will have to redo the compilation steps for LightGBM to add debugging mode. 
 .. image:: ./_static/images/screenshot-files-to-remove.png
    :align: center
    :target: ./_static/images/screenshot-files-to-remove.png
+   :alt: A screenshot of the Light G B M folder with 1 folder and 3 files selected to be removed.
 
 Once you removed the file, go into CMake, and follow the usual steps.
 Before clicking "Generate", click on "Add Entry":
@@ -415,12 +434,14 @@ Before clicking "Generate", click on "Add Entry":
 .. image:: ./_static/images/screenshot-added-manual-entry-in-cmake.png
    :align: center
    :target: ./_static/images/screenshot-added-manual-entry-in-cmake.png
+   :alt: A screenshot of the Cache Entry popup where the name is set to CMAKE_BUILD_TYPE in all caps, the type is set to STRING in all caps and the value is set to Debug.
 
 In addition, click on Configure and Generate:
 
 .. image:: ./_static/images/screenshot-configured-and-generated-cmake.png
    :align: center
    :target: ./_static/images/screenshot-configured-and-generated-cmake.png
+   :alt: A screenshot of the C Make window after clicking on configure and generate.
 
 And then, follow the regular LightGBM CLI installation from there.
 
@@ -434,6 +455,7 @@ open a command prompt and run the following:
 .. image:: ./_static/images/screenshot-debug-run.png
    :align: center
    :target: ./_static/images/screenshot-debug-run.png
+   :alt: A screenshot of the command prompt after the command above is run.
 
 Type ``run`` and press the Enter key.
 
@@ -450,7 +472,7 @@ You will probably get something similar to this:
 
     Program received signal SIGSEGV, Segmentation fault.
     0x00007ffbb37c11f1 in strlen () from C:\Windows\system32\msvcrt.dll
-    (gdb) 
+    (gdb)
 
 There, write ``backtrace`` and press the Enter key as many times as gdb requests two choices:
 
@@ -534,7 +556,7 @@ Right-click the command prompt, click "Mark", and select all the text from the f
     [New Thread 105220.0x1a62c]
     [LightGBM] [Info] Using GPU Device: Oland, Vendor: Advanced Micro Devices, Inc.
     [LightGBM] [Info] Compiling OpenCL Kernel with 256 bins...
-    
+
     Program received signal SIGSEGV, Segmentation fault.
     0x00007ffbb37c11f1 in strlen () from C:\Windows\system32\msvcrt.dll
     (gdb) backtrace
@@ -570,14 +592,26 @@ And open an issue in GitHub `here`_ with that log.
 
 .. _CUDA Toolkit: https://developer.nvidia.com/cuda-downloads
 
+.. _for Linux: https://github.com/microsoft/LightGBM/releases/download/v2.0.12/AMD-APP-SDKInstaller-v3.0.130.136-GA-linux64.tar.bz2
+
+.. _for Windows: https://github.com/microsoft/LightGBM/releases/download/v2.0.12/AMD-APP-SDKInstaller-v3.0.130.135-GA-windows-F-x64.exe
+
+.. _Khronos official OpenCL headers: https://github.com/KhronosGroup/OpenCL-Headers
+
 .. _this: http://iweb.dl.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/installer/mingw-w64-install.exe
 
-.. _Boost: http://www.boost.org/users/history/version_1_63_0.html
+.. _Boost: https://www.boost.org/users/history/
+
+.. _Prebuilt Boost x86_64: https://mirror.linux-ia64.org/fedora/linux/releases/32/Everything/x86_64/os/Packages/m/mingw64-boost-static-1.66.0-6.fc32.noarch.rpm
+
+.. _Prebuilt Boost i686: https://mirror.linux-ia64.org/fedora/linux/releases/32/Everything/x86_64/os/Packages/m/mingw32-boost-static-1.66.0-6.fc32.noarch.rpm
+
+.. _7zip: https://www.7-zip.org/download.html
 
 .. _link: https://git-scm.com/download/win
 
 .. _CMake: https://cmake.org/download/
 
-.. _here: https://github.com/Microsoft/LightGBM/issues
+.. _here: https://github.com/microsoft/LightGBM/issues
 
 .. _GPUCapsViewer: http://www.ozone3d.net/gpu_caps_viewer/

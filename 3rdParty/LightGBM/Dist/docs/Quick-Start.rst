@@ -18,13 +18,13 @@ Follow the `Installation Guide <./Installation-Guide.rst>`__ to install LightGBM
 Training Data Format
 --------------------
 
-LightGBM supports input data files with `CSV`_, `TSV`_ and `LibSVM`_ formats.
+LightGBM supports input data files with `CSV`_, `TSV`_ and `LibSVM`_ (zero-based) formats.
 
-Files could be both with and without headers.
+Files could be both with and without `headers <./Parameters.rst#header>`__.
 
-Label column could be specified both by index and by name.
+`Label column <./Parameters.rst#label_column>`__ could be specified both by index and by name.
 
-Some columns could be ignored.
+Some columns could be `ignored <./Parameters.rst#ignore_column>`__.
 
 Categorical Feature Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,15 +32,15 @@ Categorical Feature Support
 LightGBM can use categorical features directly (without one-hot encoding).
 The experiment on `Expo data`_ shows about 8x speed-up compared with one-hot encoding.
 
-For the setting details, please refer to `Parameters <./Parameters.rst>`__.
+For the setting details, please refer to the ``categorical_feature`` `parameter <./Parameters.rst#categorical_feature>`__.
 
 Weight and Query/Group Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-LightGBM also supports weighted training, it needs an additional `weight data <./Parameters.rst#io-parameters>`__.
-And it needs an additional `query data <./Parameters.rst#io-parameters>`_ for ranking task.
+LightGBM also supports weighted training, it needs an additional `weight data <./Parameters.rst#weight-data>`__.
+And it needs an additional `query data <./Parameters.rst#query-data>`_ for ranking task.
 
-Also, weight and query data could be specified as columns in training data in the same manner as label.
+Also, `weight <./Parameters.rst#weight_column>`__ and `query <./Parameters.rst#group_column>`__ data could be specified as columns in training data in the same manner as label.
 
 Parameters Quick Look
 ---------------------
@@ -57,35 +57,27 @@ sections of the full detailed list of `LightGBM's parameters <./Parameters.rst>`
 Run LightGBM
 ------------
 
-For Windows:
+::
+
+    "./lightgbm" config=your_config_file other_args ...
+
+Parameters can be set both in the config file and command line, and the parameters in command line have higher priority than in the config file.
+For example, the following command line will keep ``num_trees=10`` and ignore the same parameter in the config file.
 
 ::
 
-    lightgbm.exe config=your_config_file other_args ...
-
-For Unix:
-
-::
-
-    ./lightgbm config=your_config_file other_args ...
-
-Parameters can be set both in config file and command line, and the parameters in command line have higher priority than in config file.
-For example, following command line will keep ``num_trees=10`` and ignore the same parameter in config file.
-
-::
-
-    ./lightgbm config=train.conf num_trees=10
+    "./lightgbm" config=train.conf num_trees=10
 
 Examples
 --------
 
--  `Binary Classification <https://github.com/Microsoft/LightGBM/tree/master/examples/binary_classification>`__
+-  `Binary Classification <https://github.com/microsoft/LightGBM/tree/master/examples/binary_classification>`__
 
--  `Regression <https://github.com/Microsoft/LightGBM/tree/master/examples/regression>`__
+-  `Regression <https://github.com/microsoft/LightGBM/tree/master/examples/regression>`__
 
--  `Lambdarank <https://github.com/Microsoft/LightGBM/tree/master/examples/lambdarank>`__
+-  `Lambdarank <https://github.com/microsoft/LightGBM/tree/master/examples/lambdarank>`__
 
--  `Parallel Learning <https://github.com/Microsoft/LightGBM/tree/master/examples/parallel_learning>`__
+-  `Distributed Learning <https://github.com/microsoft/LightGBM/tree/master/examples/parallel_learning>`__
 
 .. _CSV: https://en.wikipedia.org/wiki/Comma-separated_values
 

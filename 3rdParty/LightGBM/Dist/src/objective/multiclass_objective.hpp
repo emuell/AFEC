@@ -1,10 +1,18 @@
+/*!
+ * Copyright (c) 2016 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #ifndef LIGHTGBM_OBJECTIVE_MULTICLASS_OBJECTIVE_HPP_
 #define LIGHTGBM_OBJECTIVE_MULTICLASS_OBJECTIVE_HPP_
 
+#include <LightGBM/network.h>
 #include <LightGBM/objective_function.h>
 
-#include <cstring>
+#include <string>
+#include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <memory>
 #include <vector>
 
 #include "binary_objective.hpp"
@@ -14,9 +22,13 @@ namespace LightGBM {
 * \brief Objective function for multiclass classification, use softmax as objective functions
 */
 class MulticlassSoftmax: public ObjectiveFunction {
-public:
+ public:
   explicit MulticlassSoftmax(const Config& config) {
     num_class_ = config.num_class;
+    // This factor is to rescale the redundant form of K-classification, to the non-redundant form.
+    // In the traditional settings of K-classification, there is one redundant class, whose output is set to 0 (like the class 0 in binary classification).
+    // This is from the Friedman GBDT paper.
+    factor_ = static_cast<double>(num_class_) / (num_class_ - 1.0f);
   }
 
   explicit MulticlassSoftmax(const std::vector<std::string>& strs) {
@@ -32,10 +44,10 @@ public:
     if (num_class_ < 0) {
       Log::Fatal("Objective should contain num_class field");
     }
+    factor_ = static_cast<double>(num_class_) / (num_class_ - 1.0f);
   }
 
   ~MulticlassSoftmax() {
-
   }
 
   void Init(const Metadata& metadata, data_size_t num_data) override {
@@ -43,11 +55,31 @@ public:
     label_ = metadata.label();
     weights_ = metadata.weights();
     label_int_.resize(num_data_);
+    class_init_probs_.resize(num_class_, 0.0);
+    double sum_weight = 0.0;
     for (int i = 0; i < num_data_; ++i) {
       label_int_[i] = static_cast<int>(label_[i]);
       if (label_int_[i] < 0 || label_int_[i] >= num_class_) {
         Log::Fatal("Label must be in [0, %d), but found %d in label", num_class_, label_int_[i]);
       }
+      if (weights_ == nullptr) {
+        class_init_probs_[label_int_[i]] += 1.0;
+      } else {
+        class_init_probs_[label_int_[i]] += weights_[i];
+        sum_weight += weights_[i];
+      }
+    }
+    if (weights_ == nullptr) {
+      sum_weight = num_data_;
+    }
+    if (Network::num_machines() > 1) {
+      sum_weight = Network::GlobalSyncUpBySum(sum_weight);
+      for (int i = 0; i < num_class_; ++i) {
+        class_init_probs_[i] = Network::GlobalSyncUpBySum(class_init_probs_[i]);
+      }
+    }
+    for (int i = 0; i < num_class_; ++i) {
+      class_init_probs_[i] /= sum_weight;
     }
   }
 
@@ -70,7 +102,7 @@ public:
           } else {
             gradients[idx] = static_cast<score_t>(p);
           }
-          hessians[idx] = static_cast<score_t>(2.0f * p * (1.0f - p));
+          hessians[idx] = static_cast<score_t>(factor_ * p * (1.0f - p));
         }
       }
     } else {
@@ -91,7 +123,7 @@ public:
           } else {
             gradients[idx] = static_cast<score_t>((p) * weights_[i]);
           }
-          hessians[idx] = static_cast<score_t>((2.0f * p * (1.0f - p))* weights_[i]);
+          hessians[idx] = static_cast<score_t>((factor_ * p * (1.0f - p))* weights_[i]);
         }
       }
     }
@@ -120,7 +152,21 @@ public:
 
   bool NeedAccuratePrediction() const override { return false; }
 
-private:
+  double BoostFromScore(int class_id) const override {
+    return std::log(std::max<double>(kEpsilon, class_init_probs_[class_id]));
+  }
+
+  bool ClassNeedTrain(int class_id) const override {
+    if (std::fabs(class_init_probs_[class_id]) <= kEpsilon
+        || std::fabs(class_init_probs_[class_id]) >= 1.0 - kEpsilon) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+ private:
+  double factor_;
   /*! \brief Number of data */
   data_size_t num_data_;
   /*! \brief Number of classes */
@@ -131,13 +177,14 @@ private:
   std::vector<int> label_int_;
   /*! \brief Weights for data */
   const label_t* weights_;
+  std::vector<double> class_init_probs_;
 };
 
 /*!
 * \brief Objective function for multiclass classification, use one-vs-all binary objective function
 */
 class MulticlassOVA: public ObjectiveFunction {
-public:
+ public:
   explicit MulticlassOVA(const Config& config) {
     num_class_ = config.num_class;
     for (int i = 0; i < num_class_; ++i) {
@@ -169,7 +216,6 @@ public:
   }
 
   ~MulticlassOVA() {
-
   }
 
   void Init(const Metadata& metadata, data_size_t num_data) override {
@@ -181,8 +227,8 @@ public:
 
   void GetGradients(const double* score, score_t* gradients, score_t* hessians) const override {
     for (int i = 0; i < num_class_; ++i) {
-      int64_t bias = static_cast<int64_t>(num_data_) * i;
-      binary_loss_[i]->GetGradients(score + bias, gradients + bias, hessians + bias);
+      int64_t offset = static_cast<int64_t>(num_data_) * i;
+      binary_loss_[i]->GetGradients(score + offset, gradients + offset, hessians + offset);
     }
   }
 
@@ -212,7 +258,15 @@ public:
 
   bool NeedAccuratePrediction() const override { return false; }
 
-private:
+  double BoostFromScore(int class_id) const override {
+    return binary_loss_[class_id]->BoostFromScore(0);
+  }
+
+  bool ClassNeedTrain(int class_id) const override {
+    return binary_loss_[class_id]->ClassNeedTrain(0);
+  }
+
+ private:
   /*! \brief Number of data */
   data_size_t num_data_;
   /*! \brief Number of classes */

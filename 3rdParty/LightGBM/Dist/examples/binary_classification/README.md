@@ -3,21 +3,16 @@ Binary Classification Example
 
 Here is an example for LightGBM to run binary classification task.
 
-***You should copy executable file to this folder first.***
+***You must follow the [installation instructions](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html)
+for the following commands to work. The `lightgbm` binary must be built and available at the root of this project.***
 
-Trainin
--------
+Training
+--------
 
-For Windows, by running following command in this folder:
+Run the following command in this folder:
 
-```
-lightgbm.exe config=train.conf
-```
-
-For Linux, by running following command in this folder:
-
-```
-./lightgbm config=train.conf
+```bash
+"../../lightgbm" config=train.conf
 ```
 
 Prediction
@@ -25,14 +20,8 @@ Prediction
 
 You should finish training first.
 
-For Windows, by running following command in this folder:
+Run the following command in this folder:
 
-```
-lightgbm.exe config=predict.conf
-```
-
-For Linux, by running following command in this folder:
-
-```
-./lightgbm config=predict.conf
+```bash
+"../../lightgbm" config=predict.conf
 ```

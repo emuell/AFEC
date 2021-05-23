@@ -1,16 +1,20 @@
+/*!
+ * Copyright (c) 2016 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #ifndef LIGHTGBM_TREELEARNER_PARALLEL_TREE_LEARNER_H_
 #define LIGHTGBM_TREELEARNER_PARALLEL_TREE_LEARNER_H_
 
+#include <LightGBM/network.h>
 #include <LightGBM/utils/array_args.h>
 
-#include <LightGBM/network.h>
-#include "serial_tree_learner.h"
-#include "gpu_tree_learner.h"
-
 #include <cstring>
-
-#include <vector>
 #include <memory>
+#include <vector>
+
+#include "cuda_tree_learner.h"
+#include "gpu_tree_learner.h"
+#include "serial_tree_learner.h"
 
 namespace LightGBM {
 
@@ -21,15 +25,16 @@ namespace LightGBM {
 */
 template <typename TREELEARNER_T>
 class FeatureParallelTreeLearner: public TREELEARNER_T {
-public:
+ public:
   explicit FeatureParallelTreeLearner(const Config* config);
   ~FeatureParallelTreeLearner();
   void Init(const Dataset* train_data, bool is_constant_hessian) override;
 
-protected:
+ protected:
   void BeforeTrain() override;
-  void FindBestSplitsFromHistograms(const std::vector<int8_t>& is_feature_used, bool use_subtract) override;
-private:
+  void FindBestSplitsFromHistograms(const std::vector<int8_t>& is_feature_used, bool use_subtract, const Tree* tree) override;
+
+ private:
   /*! \brief rank of local machine */
   int rank_;
   /*! \brief Number of machines of this parallel task */
@@ -47,15 +52,16 @@ private:
 */
 template <typename TREELEARNER_T>
 class DataParallelTreeLearner: public TREELEARNER_T {
-public:
+ public:
   explicit DataParallelTreeLearner(const Config* config);
   ~DataParallelTreeLearner();
   void Init(const Dataset* train_data, bool is_constant_hessian) override;
   void ResetConfig(const Config* config) override;
-protected:
+
+ protected:
   void BeforeTrain() override;
-  void FindBestSplits() override;
-  void FindBestSplitsFromHistograms(const std::vector<int8_t>& is_feature_used, bool use_subtract) override;
+  void FindBestSplits(const Tree* tree) override;
+  void FindBestSplitsFromHistograms(const std::vector<int8_t>& is_feature_used, bool use_subtract, const Tree* tree) override;
   void Split(Tree* tree, int best_Leaf, int* left_leaf, int* right_leaf) override;
 
   inline data_size_t GetGlobalDataCountInLeaf(int leaf_idx) const override {
@@ -66,7 +72,7 @@ protected:
     }
   }
 
-private:
+ private:
   /*! \brief Rank of local machine */
   int rank_;
   /*! \brief Number of machines of this parallel task */
@@ -100,16 +106,17 @@ private:
 */
 template <typename TREELEARNER_T>
 class VotingParallelTreeLearner: public TREELEARNER_T {
-public:
+ public:
   explicit VotingParallelTreeLearner(const Config* config);
   ~VotingParallelTreeLearner() { }
   void Init(const Dataset* train_data, bool is_constant_hessian) override;
   void ResetConfig(const Config* config) override;
-protected:
+
+ protected:
   void BeforeTrain() override;
   bool BeforeFindBestSplit(const Tree* tree, int left_leaf, int right_leaf) override;
-  void FindBestSplits() override;
-  void FindBestSplitsFromHistograms(const std::vector<int8_t>& is_feature_used, bool use_subtract) override;
+  void FindBestSplits(const Tree* tree) override;
+  void FindBestSplitsFromHistograms(const std::vector<int8_t>& is_feature_used, bool use_subtract, const Tree* tree) override;
   void Split(Tree* tree, int best_Leaf, int* left_leaf, int* right_leaf) override;
 
   inline data_size_t GetGlobalDataCountInLeaf(int leaf_idx) const override {
@@ -135,7 +142,7 @@ protected:
   void CopyLocalHistogram(const std::vector<int>& smaller_top_features,
     const std::vector<int>& larger_top_features);
 
-private:
+ private:
   /*! \brief Tree config used in local mode */
   Config local_config_;
   /*! \brief Voting size */
@@ -175,8 +182,8 @@ private:
   /*! \brief Store global histogram for larger leaf  */
   std::unique_ptr<FeatureHistogram[]> larger_leaf_histogram_array_global_;
 
-  std::vector<HistogramBinEntry> smaller_leaf_histogram_data_;
-  std::vector<HistogramBinEntry> larger_leaf_histogram_data_;
+  std::vector<hist_t> smaller_leaf_histogram_data_;
+  std::vector<hist_t> larger_leaf_histogram_data_;
   std::vector<FeatureMetainfo> feature_metas_;
 };
 
@@ -186,7 +193,7 @@ inline void SyncUpGlobalBestSplit(char* input_buffer_, char* output_buffer_, Spl
   int size = SplitInfo::Size(max_cat_threshold);
   smaller_best_split->CopyTo(input_buffer_);
   larger_best_split->CopyTo(input_buffer_ + size);
-  Network::Allreduce(input_buffer_, size * 2, size, output_buffer_, 
+  Network::Allreduce(input_buffer_, size * 2, size, output_buffer_,
                      [] (const char* src, char* dst, int size, comm_size_t len) {
     comm_size_t used_size = 0;
     LightSplitInfo p1, p2;

@@ -11,7 +11,7 @@ lgb.Dataset.create.valid(dataset, data, info = list(), ...)
 
 \item{data}{a \code{matrix} object, a \code{dgCMatrix} object or a character representing a filename}
 
-\item{info}{a list of information of the lgb.Dataset object}
+\item{info}{a list of information of the \code{lgb.Dataset} object}
 
 \item{...}{other information to pass to \code{info}.}
 }
@@ -22,8 +22,7 @@ constructed dataset
 Construct validation data according to training data
 }
 \examples{
-\dontrun{
-library(lightgbm)
+\donttest{
 data(agaricus.train, package = "lightgbm")
 train <- agaricus.train
 dtrain <- lgb.Dataset(train$data, label = train$label)
@@ -31,5 +30,4 @@ data(agaricus.test, package = "lightgbm")
 test <- agaricus.test
 dtest <- lgb.Dataset.create.valid(dtrain, test$data, label = test$label)
 }
-
 }

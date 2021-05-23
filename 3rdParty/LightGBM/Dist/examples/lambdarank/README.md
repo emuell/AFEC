@@ -3,21 +3,16 @@ LambdaRank Example
 
 Here is an example for LightGBM to run lambdarank task.
 
-***You should copy executable file to this folder first.***
+***You must follow the [installation instructions](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html)
+for the following commands to work. The `lightgbm` binary must be built and available at the root of this project.***
 
 Training
 --------
 
-For Windows, by running following command in this folder:
+Run the following command in this folder:
 
-```
-lightgbm.exe config=train.conf
-```
-
-For Linux, by running following command in this folder:
-
-```
-./lightgbm config=train.conf
+```bash
+"../../lightgbm" config=train.conf
 ```
 
 Prediction
@@ -25,14 +20,14 @@ Prediction
 
 You should finish training first.
 
-For Windows, by running following command in this folder:
+Run the following command in this folder:
 
-```
-lightgbm.exe config=predict.conf
+```bash
+"../../lightgbm" config=predict.conf
 ```
 
-For Linux, by running following command in this folder:
+Data Format
+-----------
 
-```
-./lightgbm config=predict.conf
-```
+To learn more about the query format used in this example, check out the 
+[query data format](https://lightgbm.readthedocs.io/en/latest/Parameters.html#query-data).

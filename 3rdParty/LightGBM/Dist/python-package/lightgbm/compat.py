@@ -1,71 +1,28 @@
 # coding: utf-8
-# pylint: disable = C0103
-"""Compatibility"""
-from __future__ import absolute_import
-
-import inspect
-import sys
-
-import numpy as np
-
-is_py3 = (sys.version_info[0] == 3)
-
-"""compatibility between python2 and python3"""
-if is_py3:
-    string_type = str
-    numeric_types = (int, float, bool)
-    integer_types = (int, )
-    range_ = range
-
-    def argc_(func):
-        """return number of arguments of a function"""
-        return len(inspect.signature(func).parameters)
-
-    def decode_string(bytestring):
-        return bytestring.decode('utf-8')
-else:
-    string_type = basestring
-    numeric_types = (int, long, float, bool)
-    integer_types = (int, long)
-    range_ = xrange
-
-    def argc_(func):
-        """return number of arguments of a function"""
-        return len(inspect.getargspec(func).args)
-
-    def decode_string(bytestring):
-        return bytestring
-
-"""json"""
-try:
-    import simplejson as json
-except (ImportError, SyntaxError):
-    # simplejson does not support Python 3.2, it throws a SyntaxError
-    # because of u'...' Unicode literals.
-    import json
-
-
-def json_default_with_numpy(obj):
-    if isinstance(obj, (np.integer, np.floating, np.bool_)):
-        return obj.item()
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
-    else:
-        return obj
-
+"""Compatibility library."""
 
 """pandas"""
 try:
-    from pandas import Series, DataFrame
+    from pandas import DataFrame as pd_DataFrame
+    from pandas import Series as pd_Series
+    from pandas import concat
+    from pandas.api.types import is_sparse as is_dtype_sparse
     PANDAS_INSTALLED = True
 except ImportError:
     PANDAS_INSTALLED = False
 
-    class Series(object):
+    class pd_Series:  # type: ignore
+        """Dummy class for pandas.Series."""
+
         pass
 
-    class DataFrame(object):
+    class pd_DataFrame:  # type: ignore
+        """Dummy class for pandas.DataFrame."""
+
         pass
+
+    concat = None
+    is_dtype_sparse = None
 
 """matplotlib"""
 try:
@@ -81,20 +38,46 @@ try:
 except ImportError:
     GRAPHVIZ_INSTALLED = False
 
+"""datatable"""
+try:
+    import datatable
+    if hasattr(datatable, "Frame"):
+        dt_DataTable = datatable.Frame
+    else:
+        dt_DataTable = datatable.DataTable
+    DATATABLE_INSTALLED = True
+except ImportError:
+    DATATABLE_INSTALLED = False
+
+    class dt_DataTable:  # type: ignore
+        """Dummy class for datatable.DataTable."""
+
+        pass
+
+
 """sklearn"""
 try:
-    from sklearn.base import BaseEstimator
-    from sklearn.base import RegressorMixin, ClassifierMixin
+    from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
     from sklearn.preprocessing import LabelEncoder
     from sklearn.utils.class_weight import compute_sample_weight
     from sklearn.utils.multiclass import check_classification_targets
-    from sklearn.utils.validation import check_X_y, check_array, check_consistent_length
+    from sklearn.utils.validation import assert_all_finite, check_array, check_X_y
     try:
-        from sklearn.model_selection import StratifiedKFold, GroupKFold
         from sklearn.exceptions import NotFittedError
+        from sklearn.model_selection import GroupKFold, StratifiedKFold
     except ImportError:
-        from sklearn.cross_validation import StratifiedKFold, GroupKFold
+        from sklearn.cross_validation import GroupKFold, StratifiedKFold
         from sklearn.utils.validation import NotFittedError
+    try:
+        from sklearn.utils.validation import _check_sample_weight
+    except ImportError:
+        from sklearn.utils.validation import check_consistent_length
+
+        # dummy function to support older version of scikit-learn
+        def _check_sample_weight(sample_weight, X, dtype=None):
+            check_consistent_length(sample_weight, X)
+            return sample_weight
+
     SKLEARN_INSTALLED = True
     _LGBMModelBase = BaseEstimator
     _LGBMRegressorBase = RegressorMixin
@@ -105,7 +88,8 @@ try:
     _LGBMGroupKFold = GroupKFold
     _LGBMCheckXY = check_X_y
     _LGBMCheckArray = check_array
-    _LGBMCheckConsistentLength = check_consistent_length
+    _LGBMCheckSampleWeight = _check_sample_weight
+    _LGBMAssertAllFinite = assert_all_finite
     _LGBMCheckClassificationTargets = check_classification_targets
     _LGBMComputeSampleWeight = compute_sample_weight
 except ImportError:
@@ -119,11 +103,37 @@ except ImportError:
     _LGBMGroupKFold = None
     _LGBMCheckXY = None
     _LGBMCheckArray = None
-    _LGBMCheckConsistentLength = None
+    _LGBMCheckSampleWeight = None
+    _LGBMAssertAllFinite = None
     _LGBMCheckClassificationTargets = None
     _LGBMComputeSampleWeight = None
 
+"""dask"""
+try:
+    from dask import delayed
+    from dask.array import Array as dask_Array
+    from dask.dataframe import DataFrame as dask_DataFrame
+    from dask.dataframe import Series as dask_Series
+    from dask.distributed import Client, default_client, wait
+    DASK_INSTALLED = True
+except ImportError:
+    DASK_INSTALLED = False
+    delayed = None
+    Client = object
+    default_client = None
+    wait = None
 
-# DeprecationWarning is not shown by default, so let's create our own with higher level
-class LGBMDeprecationWarning(UserWarning):
-    pass
+    class dask_Array:  # type: ignore
+        """Dummy class for dask.array.Array."""
+
+        pass
+
+    class dask_DataFrame:  # type: ignore
+        """Dummy class for dask.dataframe.DataFrame."""
+
+        pass
+
+    class dask_Series:  # type: ignore
+        """Dummy class for dask.dataframe.Series."""
+
+        pass

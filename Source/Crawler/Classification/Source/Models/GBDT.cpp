@@ -63,6 +63,7 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   params.emplace("objective", (NumberOfClasses > 2) ? "multiclass_ova" : "multiclass");
   params.emplace("metric", "multi_error");
   params.emplace("boosting", "gbdt");
+  params.emplace("verbose", "1"); // suppress debug messages
 
   // training data and report metrics
   params.emplace("num_class", std::to_string(NumberOfClasses));
@@ -70,6 +71,8 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   params.emplace("valid_data", std::string(TestDataFileName.CString()));
   params.emplace("metric_freq", "1");
   params.emplace("train_metric", "true");
+  params.emplace("deterministic", "true");
+  params.emplace("force_col_wise", "true");
 
   // multi-class bin & leaves setup (tweaked for "OneShot-Categories")
   if (NumberOfClasses > 2)
@@ -78,6 +81,7 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
     const int MaxBin = 32;
     const int MinDataInBin = MMin(12, MMax(1, NumberOfTrainSamples / MaxBin));
     const int MinDataInLeaf = MMin(32, MMax(1, NumberOfTrainSamples / MaxBin));
+    // params.emplace("extra_trees", "true");
     params.emplace("max_bin", std::to_string(MaxBin));
     params.emplace("min_data_in_bin", std::to_string(MinDataInBin));
     params.emplace("min_data_in_leaf", std::to_string(MinDataInLeaf));
@@ -107,8 +111,8 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   }
 
   // common iterations and early-stopping setup 
-  params.emplace("num_iterations", "1200");
-  params.emplace("early_stopping", "500");
+  params.emplace("num_iterations", "800");
+  params.emplace("early_stopping", "100");
   params.emplace("learning_rate", "0.06");
 
   // check for aliases
@@ -155,7 +159,7 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
 
   // ... Initialize datasets
 
-  if (mpConfig->is_parallel_find_bin || mpConfig->is_parallel)
+  if (mpConfig->is_parallel)
   {
     throw TReadableException("is_parallel (network) options not supported");
   }
@@ -176,8 +180,7 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   const int Rank = 0;
   const int NumberOfMachines = 1;
   mpTrainDataset.reset(DatasetLoader.LoadFromFile(
-    mpConfig->data.c_str(), mpConfig->initscore_filename.c_str(), 
-  Rank, NumberOfMachines));
+    mpConfig->data.c_str(), Rank, NumberOfMachines));
 
   // create training metric
   if (mpConfig->is_provide_training_metric)
@@ -209,7 +212,6 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
       auto pNewDataset = std::unique_ptr<LightGBM::Dataset>(
         TrainDatasetLoader.LoadFromFileAlignWithOtherDataset(
           mpConfig->valid[i].c_str(),
-          mpConfig->valid_data_initscores[i].c_str(),
           mpTrainDataset.get())
         );
 
@@ -292,8 +294,10 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   LightGBM::PredictionEarlyStopInstance EarlyStop = 
     LightGBM::CreatePredictionEarlyStopInstance("multiclass", EarlyStopConfig);
 
+  const int StartIteration = 0;
+  const int NumberOfIterations = -1;
   const bool PredictFeatureContribution = false;
-  mpBoosting->InitPredict(-1, PredictFeatureContribution);
+  mpBoosting->InitPredict(StartIteration, NumberOfIterations, PredictFeatureContribution);
 
   // evaluate and convert LightGBM predictions to shark::Data<shark::RealVector>
   int CurrentRow = 0;
@@ -347,8 +351,10 @@ TList<float> TGbdtClassificationModel::OnEvaluate(
   LightGBM::PredictionEarlyStopInstance EarlyStop =
     LightGBM::CreatePredictionEarlyStopInstance("multiclass", EarlyStopConfig);
 
+  const int StartIteration = 0;
+  const int NumberOfIterations = -1;
   const bool PredictFeatureContribution = false;
-  mpBoosting->InitPredict(-1, PredictFeatureContribution);
+  mpBoosting->InitPredict(StartIteration , NumberOfIterations, PredictFeatureContribution);
 
   const int NumberOfClasses = NumberOfOutputClasses();
   std::vector<double> Outputs(NumberOfClasses);
@@ -399,9 +405,12 @@ void TGbdtClassificationModel::OnSaveModel(
 {
   MAssert(mpBoosting, "Need to train or load a model first");
 
-  // serialze the boosting model to a string
+  // serialize the boosting model to a string
+  const int StartIteration = 0;
   const int NumberOfIterations = -1;
-  const std::string ModelString = mpBoosting->SaveModelToString(NumberOfIterations);
+  const int FeatureImportance = 0; // 0: split, 1: gain
+  const std::string ModelString = mpBoosting->SaveModelToString(
+    StartIteration, NumberOfIterations, FeatureImportance);
   
   TArray<TInt8> ModelByteArray((int)ModelString.size());
   TMemory::Copy(ModelByteArray.FirstWrite(), 

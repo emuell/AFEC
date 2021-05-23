@@ -1,9 +1,15 @@
+/*!
+ * Copyright (c) 2016 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #ifndef LIGHTGBM_OBJECTIVE_FUNCTION_H_
 #define LIGHTGBM_OBJECTIVE_FUNCTION_H_
 
-#include <LightGBM/meta.h>
 #include <LightGBM/config.h>
 #include <LightGBM/dataset.h>
+#include <LightGBM/meta.h>
+
+#include <string>
 #include <functional>
 
 namespace LightGBM {
@@ -11,7 +17,7 @@ namespace LightGBM {
 * \brief The interface of Objective Function.
 */
 class ObjectiveFunction {
-public:
+ public:
   /*! \brief virtual destructor */
   virtual ~ObjectiveFunction() {}
 
@@ -37,12 +43,14 @@ public:
 
   virtual bool IsRenewTreeOutput() const { return false; }
 
-  virtual double RenewTreeOutput(double ori_output, const double*,
+  virtual double RenewTreeOutput(double ori_output, std::function<double(const label_t*, int)>,
                                  const data_size_t*,
                                  const data_size_t*,
                                  data_size_t) const { return ori_output; }
 
-  virtual double BoostFromScore() const { return 0.0f; }
+  virtual double BoostFromScore(int /*class_id*/) const { return 0.0; }
+
+  virtual bool ClassNeedTrain(int /*class_id*/) const { return true; }
 
   virtual bool SkipEmptyClass() const { return false; }
 
@@ -52,6 +60,9 @@ public:
 
   /*! \brief The prediction should be accurate or not. True will disable early stopping for prediction. */
   virtual bool NeedAccuratePrediction() const { return true; }
+
+  /*! \brief Return the number of positive samples. Return 0 if no binary classification tasks.*/
+  virtual data_size_t NumPositiveData() const { return 0; }
 
   virtual void ConvertOutput(const double* input, double* output) const {
     output[0] = input[0];

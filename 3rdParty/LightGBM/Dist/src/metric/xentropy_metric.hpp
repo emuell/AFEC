@@ -1,16 +1,19 @@
+/*!
+ * Copyright (c) 2017 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #ifndef LIGHTGBM_METRIC_XENTROPY_METRIC_HPP_
 #define LIGHTGBM_METRIC_XENTROPY_METRIC_HPP_
 
 #include <LightGBM/meta.h>
-
-#include <LightGBM/utils/log.h>
-#include <LightGBM/utils/common.h>
-
 #include <LightGBM/metric.h>
+#include <LightGBM/utils/common.h>
+#include <LightGBM/utils/log.h>
 
+#include <string>
 #include <algorithm>
-#include <vector>
 #include <sstream>
+#include <vector>
 
 /*
  * Implements three related metrics:
@@ -66,12 +69,12 @@ namespace LightGBM {
 // CrossEntropyMetric : "xentropy" : (optional) weights are used linearly
 //
 class CrossEntropyMetric : public Metric {
-public:
-	explicit CrossEntropyMetric(const Config&) {}
+ public:
+  explicit CrossEntropyMetric(const Config&) {}
   virtual ~CrossEntropyMetric() {}
 
   void Init(const Metadata& metadata, data_size_t num_data) override {
-    name_.emplace_back("xentropy");
+    name_.emplace_back("cross_entropy");
     num_data_ = num_data;
     label_ = metadata.label();
     weights_ = metadata.weights();
@@ -87,7 +90,7 @@ public:
       sum_weights_ = static_cast<double>(num_data_);
     } else {
       label_t minw;
-      Common::ObtainMinMaxSum(weights_, num_data_, &minw, (label_t*)nullptr, &sum_weights_);
+      Common::ObtainMinMaxSum(weights_, num_data_, &minw, static_cast<label_t*>(nullptr), &sum_weights_);
       if (minw < 0.0f) {
         Log::Fatal("[%s:%s]: (metric) weights not allowed to be negative", GetName()[0].c_str(), __func__);
       }
@@ -106,12 +109,12 @@ public:
       if (weights_ == nullptr) {
         #pragma omp parallel for schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
-          sum_loss += XentLoss(label_[i], score[i]); // NOTE: does not work unless score is a probability
+          sum_loss += XentLoss(label_[i], score[i]);  // NOTE: does not work unless score is a probability
         }
       } else {
         #pragma omp parallel for schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
-          sum_loss += XentLoss(label_[i], score[i]) * weights_[i]; // NOTE: does not work unless score is a probability
+          sum_loss += XentLoss(label_[i], score[i]) * weights_[i];  // NOTE: does not work unless score is a probability
         }
       }
     } else {
@@ -140,10 +143,10 @@ public:
   }
 
   double factor_to_bigger_better() const override {
-    return -1.0f; // negative means smaller loss is better, positive means larger loss is better
+    return -1.0f;  // negative means smaller loss is better, positive means larger loss is better
   }
 
-private:
+ private:
   /*! \brief Number of data points */
   data_size_t num_data_;
   /*! \brief Pointer to label */
@@ -161,12 +164,12 @@ private:
 // ATTENTION: Supposed to be used when the objective also is "xentlambda"
 //
 class CrossEntropyLambdaMetric : public Metric {
-public:
+ public:
   explicit CrossEntropyLambdaMetric(const Config&) {}
   virtual ~CrossEntropyLambdaMetric() {}
 
   void Init(const Metadata& metadata, data_size_t num_data) override {
-    name_.emplace_back("xentlambda");
+    name_.emplace_back("cross_entropy_lambda");
     num_data_ = num_data;
     label_ = metadata.label();
     weights_ = metadata.weights();
@@ -178,12 +181,11 @@ public:
     // check all weights are strictly positive; throw error if not
     if (weights_ != nullptr) {
       label_t minw;
-      Common::ObtainMinMaxSum(weights_, num_data_, &minw, (label_t*)nullptr, (label_t*)nullptr);
+      Common::ObtainMinMaxSum(weights_, num_data_, &minw, static_cast<label_t*>(nullptr), static_cast<label_t*>(nullptr));
       if (minw <= 0.0f) {
         Log::Fatal("[%s:%s]: (metric) all weights must be positive", GetName()[0].c_str(), __func__);
       }
     }
-
   }
 
   std::vector<double> Eval(const double* score, const ObjectiveFunction* objective) const override {
@@ -192,13 +194,13 @@ public:
       if (weights_ == nullptr) {
         #pragma omp parallel for schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
-          double hhat = std::log(1.0f + std::exp(score[i])); // auto-convert
+          double hhat = std::log(1.0f + std::exp(score[i]));  // auto-convert
           sum_loss += XentLambdaLoss(label_[i], 1.0f, hhat);
         }
       } else {
         #pragma omp parallel for schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
-          double hhat = std::log(1.0f + std::exp(score[i])); // auto-convert
+          double hhat = std::log(1.0f + std::exp(score[i]));  // auto-convert
           sum_loss += XentLambdaLoss(label_[i], weights_[i], hhat);
         }
       }
@@ -207,14 +209,14 @@ public:
         #pragma omp parallel for schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           double hhat = 0;
-          objective->ConvertOutput(&score[i], &hhat); // NOTE: this only works if objective = "xentlambda"
+          objective->ConvertOutput(&score[i], &hhat);  // NOTE: this only works if objective = "xentlambda"
           sum_loss += XentLambdaLoss(label_[i], 1.0f, hhat);
         }
       } else {
         #pragma omp parallel for schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           double hhat = 0;
-          objective->ConvertOutput(&score[i], &hhat); // NOTE: this only works if objective = "xentlambda"
+          objective->ConvertOutput(&score[i], &hhat);  // NOTE: this only works if objective = "xentlambda"
           sum_loss += XentLambdaLoss(label_[i], weights_[i], hhat);
         }
       }
@@ -230,7 +232,7 @@ public:
     return -1.0f;
   }
 
-private:
+ private:
   /*! \brief Number of data points */
   data_size_t num_data_;
   /*! \brief Pointer to label */
@@ -245,12 +247,12 @@ private:
 // KullbackLeiblerDivergence : "kldiv" : (optional) weights are used linearly
 //
 class KullbackLeiblerDivergence : public Metric {
-public:
+ public:
   explicit KullbackLeiblerDivergence(const Config&) {}
   virtual ~KullbackLeiblerDivergence() {}
 
   void Init(const Metadata& metadata, data_size_t num_data) override {
-    name_.emplace_back("kldiv");
+    name_.emplace_back("kullback_leibler");
     num_data_ = num_data;
     label_ = metadata.label();
     weights_ = metadata.weights();
@@ -263,7 +265,7 @@ public:
       sum_weights_ = static_cast<double>(num_data_);
     } else {
       label_t minw;
-      Common::ObtainMinMaxSum(weights_, num_data_, &minw, (label_t*)nullptr, &sum_weights_);
+      Common::ObtainMinMaxSum(weights_, num_data_, &minw, static_cast<label_t*>(nullptr), &sum_weights_);
       if (minw < 0.0f) {
         Log::Fatal("[%s:%s]: (metric) at least one weight is negative", GetName()[0].c_str(), __func__);
       }
@@ -279,12 +281,10 @@ public:
     // evaluate offset term
     presum_label_entropy_ = 0.0f;
     if (weights_ == nullptr) {
-    //  #pragma omp parallel for schedule(static)
       for (data_size_t i = 0; i < num_data; ++i) {
         presum_label_entropy_ += YentLoss(label_[i]);
       }
     } else {
-    //  #pragma omp parallel for schedule(static)
       for (data_size_t i = 0; i < num_data; ++i) {
         presum_label_entropy_ += YentLoss(label_[i]) * weights_[i];
       }
@@ -301,12 +301,12 @@ public:
       if (weights_ == nullptr) {
         #pragma omp parallel for schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
-          sum_loss += XentLoss(label_[i], score[i]); // NOTE: does not work unless score is a probability
+          sum_loss += XentLoss(label_[i], score[i]);  // NOTE: does not work unless score is a probability
         }
       } else {
         #pragma omp parallel for schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
-          sum_loss += XentLoss(label_[i], score[i]) * weights_[i]; // NOTE: does not work unless score is a probability
+          sum_loss += XentLoss(label_[i], score[i]) * weights_[i];  // NOTE: does not work unless score is a probability
         }
       }
     } else {
@@ -338,7 +338,7 @@ public:
     return -1.0f;
   }
 
-private:
+ private:
   /*! \brief Number of data points */
   data_size_t num_data_;
   /*! \brief Pointer to label */
@@ -353,6 +353,6 @@ private:
   std::vector<std::string> name_;
 };
 
-} // end namespace LightGBM
+}  // end namespace LightGBM
 
-#endif // end #ifndef LIGHTGBM_METRIC_XENTROPY_METRIC_HPP_
+#endif  // end #ifndef LIGHTGBM_METRIC_XENTROPY_METRIC_HPP_

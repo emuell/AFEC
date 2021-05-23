@@ -207,6 +207,36 @@
     <ClInclude Include="..\Dist\include\LightGBM\json11.hpp">
       <Filter>include\LightGBM\utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\Dist\src\treelearner\col_sampler.hpp">
+      <Filter>src\treelearner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\treelearner\cost_effective_gradient_boosting.hpp">
+      <Filter>src\treelearner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\treelearner\cuda_kernel_launcher.h">
+      <Filter>src\treelearner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\treelearner\cuda_tree_learner.h">
+      <Filter>src\treelearner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\treelearner\gpu_tree_learner.h">
+      <Filter>src\treelearner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\treelearner\linear_tree_learner.h">
+      <Filter>src\treelearner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\treelearner\monotone_constraints.hpp">
+      <Filter>src\treelearner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\network\ifaddrs_patch.h">
+      <Filter>src\network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\multi_val_dense_bin.hpp">
+      <Filter>src\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dist\src\io\multi_val_sparse_bin.hpp">
+      <Filter>src\io</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Dist\src\application\application.cpp">
@@ -296,5 +326,25 @@
     <ClCompile Include="..\Dist\src\io\config_auto.cpp">
       <Filter>src\io</Filter>
     </ClCompile>
+    <ClCompile Include="..\Dist\src\treelearner\cuda_tree_learner.cpp">
+      <Filter>src\treelearner</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\treelearner\gpu_tree_learner.cpp">
+      <Filter>src\treelearner</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\treelearner\linear_tree_learner.cpp">
+      <Filter>src\treelearner</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\network\ifaddrs_patch.cpp">
+      <Filter>src\network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dist\src\io\train_share_states.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Dist\src\treelearner\cuda_kernel_launcher.cu">
+      <Filter>src\treelearner</Filter>
+    </None>
   </ItemGroup>
 </Project>

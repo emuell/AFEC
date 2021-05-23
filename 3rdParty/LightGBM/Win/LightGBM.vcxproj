@@ -103,7 +103,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\Dist\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen</AdditionalIncludeDirectories>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -125,7 +125,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\Dist\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen</AdditionalIncludeDirectories>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -148,7 +148,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <OmitFramePointers>false</OmitFramePointers>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <AdditionalIncludeDirectories>..\Dist\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -177,7 +177,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <OmitFramePointers>false</OmitFramePointers>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <AdditionalIncludeDirectories>..\Dist\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -231,6 +231,8 @@
     <ClInclude Include="..\Dist\src\boosting\score_updater.hpp" />
     <ClInclude Include="..\Dist\src\io\dense_bin.hpp" />
     <ClInclude Include="..\Dist\src\io\dense_nbits_bin.hpp" />
+    <ClInclude Include="..\Dist\src\io\multi_val_dense_bin.hpp" />
+    <ClInclude Include="..\Dist\src\io\multi_val_sparse_bin.hpp" />
     <ClInclude Include="..\Dist\src\io\ordered_sparse_bin.hpp" />
     <ClInclude Include="..\Dist\src\io\parser.hpp" />
     <ClInclude Include="..\Dist\src\io\sparse_bin.hpp" />
@@ -240,6 +242,7 @@
     <ClInclude Include="..\Dist\src\metric\regression_metric.hpp" />
     <ClInclude Include="..\Dist\src\metric\multiclass_metric.hpp" />
     <ClInclude Include="..\Dist\src\metric\xentropy_metric.hpp" />
+    <ClInclude Include="..\Dist\src\network\ifaddrs_patch.h" />
     <ClInclude Include="..\Dist\src\network\linkers.h" />
     <ClInclude Include="..\Dist\src\network\socket_wrapper.hpp" />
     <ClInclude Include="..\Dist\src\objective\binary_objective.hpp" />
@@ -247,9 +250,16 @@
     <ClInclude Include="..\Dist\src\objective\regression_objective.hpp" />
     <ClInclude Include="..\Dist\src\objective\multiclass_objective.hpp" />
     <ClInclude Include="..\Dist\src\objective\xentropy_objective.hpp" />
+    <ClInclude Include="..\Dist\src\treelearner\col_sampler.hpp" />
+    <ClInclude Include="..\Dist\src\treelearner\cost_effective_gradient_boosting.hpp" />
+    <ClInclude Include="..\Dist\src\treelearner\cuda_kernel_launcher.h" />
+    <ClInclude Include="..\Dist\src\treelearner\cuda_tree_learner.h" />
     <ClInclude Include="..\Dist\src\treelearner\data_partition.hpp" />
     <ClInclude Include="..\Dist\src\treelearner\feature_histogram.hpp" />
+    <ClInclude Include="..\Dist\src\treelearner\gpu_tree_learner.h" />
     <ClInclude Include="..\Dist\src\treelearner\leaf_splits.hpp" />
+    <ClInclude Include="..\Dist\src\treelearner\linear_tree_learner.h" />
+    <ClInclude Include="..\Dist\src\treelearner\monotone_constraints.hpp" />
     <ClInclude Include="..\Dist\src\treelearner\parallel_tree_learner.h" />
     <ClInclude Include="..\Dist\src\treelearner\serial_tree_learner.h" />
     <ClInclude Include="..\Dist\src\treelearner\split_info.hpp" />
@@ -271,19 +281,27 @@
     <ClCompile Include="..\Dist\src\io\json11.cpp" />
     <ClCompile Include="..\Dist\src\io\metadata.cpp" />
     <ClCompile Include="..\Dist\src\io\parser.cpp" />
+    <ClCompile Include="..\Dist\src\io\train_share_states.cpp" />
     <ClCompile Include="..\Dist\src\io\tree.cpp" />
     <ClCompile Include="..\Dist\src\metric\dcg_calculator.cpp" />
     <ClCompile Include="..\Dist\src\metric\metric.cpp" />
+    <ClCompile Include="..\Dist\src\network\ifaddrs_patch.cpp" />
     <ClCompile Include="..\Dist\src\network\network.cpp" />
     <ClCompile Include="..\Dist\src\network\linkers_mpi.cpp" />
     <ClCompile Include="..\Dist\src\network\linkers_socket.cpp" />
     <ClCompile Include="..\Dist\src\network\linker_topo.cpp" />
     <ClCompile Include="..\Dist\src\objective\objective_function.cpp" />
+    <ClCompile Include="..\Dist\src\treelearner\cuda_tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\data_parallel_tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\feature_parallel_tree_learner.cpp" />
+    <ClCompile Include="..\Dist\src\treelearner\gpu_tree_learner.cpp" />
+    <ClCompile Include="..\Dist\src\treelearner\linear_tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\serial_tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\voting_parallel_tree_learner.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Dist\src\treelearner\cuda_kernel_launcher.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

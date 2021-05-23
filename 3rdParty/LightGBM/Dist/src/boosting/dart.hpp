@@ -1,21 +1,27 @@
+/*!
+ * Copyright (c) 2016 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #ifndef LIGHTGBM_BOOSTING_DART_H_
 #define LIGHTGBM_BOOSTING_DART_H_
 
 #include <LightGBM/boosting.h>
-#include "score_updater.hpp"
-#include "gbdt.h"
 
-#include <cstdio>
-#include <vector>
 #include <string>
+#include <algorithm>
+#include <cstdio>
 #include <fstream>
+#include <vector>
+
+#include "gbdt.h"
+#include "score_updater.hpp"
 
 namespace LightGBM {
 /*!
 * \brief DART algorithm implementation. including Training, prediction, bagging.
 */
 class DART: public GBDT {
-public:
+ public:
   /*!
   * \brief Constructor
   */
@@ -79,7 +85,12 @@ public:
     return train_score_updater_->score();
   }
 
-private:
+  bool EvalAndCheckEarlyStopping() override {
+    GBDT::OutputMetric(iter_);
+    return false;
+  }
+
+ private:
   /*!
   * \brief drop trees based on drop_rate
   */
@@ -160,8 +171,8 @@ private:
           train_score_updater_->AddScore(models_[curr_tree].get(), cur_tree_id);
         }
         if (!config_->uniform_drop) {
-          sum_weight_ -= tree_weight_[i] * (1.0f / (k + 1.0f));
-          tree_weight_[i] *= (k / (k + 1.0f));
+          sum_weight_ -= tree_weight_[i - num_init_iteration_] * (1.0f / (k + 1.0f));
+          tree_weight_[i - num_init_iteration_] *= (k / (k + 1.0f));
         }
       }
     } else {
@@ -178,8 +189,8 @@ private:
           train_score_updater_->AddScore(models_[curr_tree].get(), cur_tree_id);
         }
         if (!config_->uniform_drop) {
-          sum_weight_ -= tree_weight_[i] * (1.0f / (k + config_->learning_rate));;
-          tree_weight_[i] *= (k / (k + config_->learning_rate));
+          sum_weight_ -= tree_weight_[i - num_init_iteration_] * (1.0f / (k + config_->learning_rate));;
+          tree_weight_[i - num_init_iteration_] *= (k / (k + config_->learning_rate));
         }
       }
     }

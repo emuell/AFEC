@@ -1,14 +1,18 @@
+/*!
+ * Copyright (c) 2016 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #ifndef LIGHTGBM_METRIC_BINARY_METRIC_HPP_
 #define LIGHTGBM_METRIC_BINARY_METRIC_HPP_
 
-#include <LightGBM/utils/log.h>
-#include <LightGBM/utils/common.h>
-
 #include <LightGBM/metric.h>
+#include <LightGBM/utils/common.h>
+#include <LightGBM/utils/log.h>
 
+#include <string>
 #include <algorithm>
-#include <vector>
 #include <sstream>
+#include <vector>
 
 namespace LightGBM {
 
@@ -18,13 +22,11 @@ namespace LightGBM {
 */
 template<typename PointWiseLossCalculator>
 class BinaryMetric: public Metric {
-public:
+ public:
   explicit BinaryMetric(const Config&) {
-
   }
 
   virtual ~BinaryMetric() {
-
   }
 
   void Init(const Metadata& metadata, data_size_t num_data) override {
@@ -94,7 +96,7 @@ public:
     return std::vector<double>(1, loss);
   }
 
-private:
+ private:
   /*! \brief Number of data */
   data_size_t num_data_;
   /*! \brief Pointer of label */
@@ -111,7 +113,7 @@ private:
 * \brief Log loss metric for binary classification task.
 */
 class BinaryLoglossMetric: public BinaryMetric<BinaryLoglossMetric> {
-public:
+ public:
   explicit BinaryLoglossMetric(const Config& config) :BinaryMetric<BinaryLoglossMetric>(config) {}
 
   inline static double LossOnPoint(label_t label, double prob) {
@@ -135,7 +137,7 @@ public:
 * \brief Error rate metric for binary classification task.
 */
 class BinaryErrorMetric: public BinaryMetric<BinaryErrorMetric> {
-public:
+ public:
   explicit BinaryErrorMetric(const Config& config) :BinaryMetric<BinaryErrorMetric>(config) {}
 
   inline static double LossOnPoint(label_t label, double prob) {
@@ -155,9 +157,8 @@ public:
 * \brief Auc Metric for binary classification task.
 */
 class AUCMetric: public Metric {
-public:
+ public:
   explicit AUCMetric(const Config&) {
-
   }
 
   virtual ~AUCMetric() {
@@ -249,7 +250,128 @@ public:
     return std::vector<double>(1, auc);
   }
 
-private:
+ private:
+  /*! \brief Number of data */
+  data_size_t num_data_;
+  /*! \brief Pointer of label */
+  const label_t* label_;
+  /*! \brief Pointer of weighs */
+  const label_t* weights_;
+  /*! \brief Sum weights */
+  double sum_weights_;
+  /*! \brief Name of test set */
+  std::vector<std::string> name_;
+};
+
+
+/*!
+* \brief Average Precision Metric for binary classification task.
+*/
+class AveragePrecisionMetric: public Metric {
+ public:
+  explicit AveragePrecisionMetric(const Config&) {
+  }
+
+  virtual ~AveragePrecisionMetric() {
+  }
+
+  const std::vector<std::string>& GetName() const override {
+    return name_;
+  }
+
+  double factor_to_bigger_better() const override {
+    return 1.0f;
+  }
+
+  void Init(const Metadata& metadata, data_size_t num_data) override {
+    name_.emplace_back("average_precision");
+
+    num_data_ = num_data;
+    // get label
+    label_ = metadata.label();
+    // get weights
+    weights_ = metadata.weights();
+
+    if (weights_ == nullptr) {
+      sum_weights_ = static_cast<double>(num_data_);
+    } else {
+      sum_weights_ = 0.0f;
+      for (data_size_t i = 0; i < num_data; ++i) {
+        sum_weights_ += weights_[i];
+      }
+    }
+  }
+
+  std::vector<double> Eval(const double* score, const ObjectiveFunction*) const override {
+    // get indices sorted by score, descending order
+    std::vector<data_size_t> sorted_idx;
+    for (data_size_t i = 0; i < num_data_; ++i) {
+      sorted_idx.emplace_back(i);
+    }
+    Common::ParallelSort(sorted_idx.begin(), sorted_idx.end(), [score](data_size_t a, data_size_t b) {return score[a] > score[b]; });
+    // temp sum of postive label
+    double cur_actual_pos = 0.0f;
+    // total sum of postive label
+    double sum_actual_pos = 0.0f;
+    // total sum of predicted positive
+    double sum_pred_pos = 0.0f;
+    // accumulated precision
+    double accum_prec = 1.0f;
+    // accumlated pr-auc
+    double accum = 0.0f;
+    // temp sum of negative label
+    double cur_neg = 0.0f;
+    double threshold = score[sorted_idx[0]];
+    if (weights_ == nullptr) {  // no weights
+      for (data_size_t i = 0; i < num_data_; ++i) {
+        const label_t cur_label = label_[sorted_idx[i]];
+        const double cur_score = score[sorted_idx[i]];
+        // new threshold
+        if (cur_score != threshold) {
+          threshold = cur_score;
+          // accumulate
+          sum_actual_pos += cur_actual_pos;
+          sum_pred_pos += cur_actual_pos + cur_neg;
+          accum_prec = sum_actual_pos / sum_pred_pos;
+          accum += cur_actual_pos * accum_prec;
+          // reset
+          cur_neg = cur_actual_pos = 0.0f;
+        }
+        cur_neg += (cur_label <= 0);
+        cur_actual_pos += (cur_label > 0);
+      }
+    } else {  // has weights
+      for (data_size_t i = 0; i < num_data_; ++i) {
+        const label_t cur_label = label_[sorted_idx[i]];
+        const double cur_score = score[sorted_idx[i]];
+        const label_t cur_weight = weights_[sorted_idx[i]];
+        // new threshold
+        if (cur_score != threshold) {
+          threshold = cur_score;
+          // accmulate
+          sum_actual_pos += cur_actual_pos;
+          sum_pred_pos += cur_actual_pos + cur_neg;
+          accum_prec = sum_actual_pos / sum_pred_pos;
+          accum += cur_actual_pos * accum_prec;
+          // reset
+          cur_neg = cur_actual_pos = 0.0f;
+        }
+        cur_neg += (cur_label <= 0) * cur_weight;
+        cur_actual_pos += (cur_label > 0) * cur_weight;
+      }
+    }
+    sum_actual_pos += cur_actual_pos;
+    sum_pred_pos += cur_actual_pos + cur_neg;
+    accum_prec = sum_actual_pos / sum_pred_pos;
+    accum += cur_actual_pos * accum_prec;
+    double ap = 1.0f;
+    if (sum_actual_pos > 0.0f && sum_actual_pos != sum_weights_) {
+      ap = accum / sum_actual_pos;
+    }
+    return std::vector<double>(1, ap);
+  }
+
+ private:
   /*! \brief Number of data */
   data_size_t num_data_;
   /*! \brief Pointer of label */

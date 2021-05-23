@@ -33,7 +33,7 @@ After installing the drivers you need to restart the server.
 
 After about 30 seconds, the server should be up again.
 
-If you are using a AMD GPU, you should download and install the `AMDGPU-Pro`_ driver and also install package ``ocl-icd-libopencl1`` and ``ocl-icd-opencl-dev``.
+If you are using an AMD GPU, you should download and install the `AMDGPU-Pro`_ driver and also install package ``ocl-icd-libopencl1`` and ``ocl-icd-opencl-dev``.
 
 Build LightGBM
 --------------
@@ -57,9 +57,10 @@ Now we are ready to checkout LightGBM and compile it with GPU support:
 
 ::
 
-    git clone --recursive https://github.com/Microsoft/LightGBM
+    git clone --recursive https://github.com/microsoft/LightGBM
     cd LightGBM
-    mkdir build ; cd build
+    mkdir build
+    cd build
     cmake -DUSE_GPU=1 .. 
     # if you have installed NVIDIA CUDA to a customized location, you should specify paths to OpenCL headers and library like the following:
     # cmake -DUSE_GPU=1 -DOpenCL_LIBRARY=/usr/local/cuda/lib64/libOpenCL.so -DOpenCL_INCLUDE_DIR=/usr/local/cuda/include/ ..
@@ -118,7 +119,6 @@ Now we create a configuration file for LightGBM by running the following command
     min_data_in_leaf = 1
     min_sum_hessian_in_leaf = 100
     ndcg_eval_at = 1,3,5,10
-    sparse_threshold = 1.0
     device = gpu
     gpu_platform_id = 0
     gpu_device_id = 0
@@ -188,13 +188,13 @@ Reference
 
 Please kindly cite the following article in your publications if you find the GPU acceleration useful:
 
-Huan Zhang, Si Si and Cho-Jui Hsieh. "`GPU Acceleration for Large-scale Tree Boosting`_." arXiv:1706.08359, 2017.
+Huan Zhang, Si Si and Cho-Jui Hsieh. "`GPU Acceleration for Large-scale Tree Boosting`_." SysML Conference, 2018.
 
 .. _Microsoft Azure cloud computing platform: https://azure.microsoft.com/
 
-.. _AMDGPU-Pro: http://support.amd.com/en-us/download/linux
+.. _AMDGPU-Pro: https://www.amd.com/en/support
 
-.. _Python-package Examples: https://github.com/Microsoft/LightGBM/tree/master/examples/python-guide
+.. _Python-package Examples: https://github.com/microsoft/LightGBM/tree/master/examples/python-guide
 
 .. _GPU Acceleration for Large-scale Tree Boosting: https://arxiv.org/abs/1706.08359
 
