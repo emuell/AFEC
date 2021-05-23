@@ -25,7 +25,7 @@ if %ERRORLEVEL% GTR 0 goto :Crawler_Error
 if %ERRORLEVEL% GTR 0 goto :ModelTester_Error
 
 :: copy results: NB: assumes GBDT is the default model
-xcopy /s /y "%~dp0..\..\Projects\Crawler\XModelTester\Resources\Results\GBDT\*" "%CLASSIFICATION_FOLDER%"
+xcopy /s /y "%~dp0..\..\Source\Crawler\XModelTester\Resources\Results\GBDT\*" "%CLASSIFICATION_FOLDER%"
 
 goto :end
 
@@ -35,7 +35,7 @@ echo.
 echo *** Missing or invalid argument: Can't find classification data set folder at
 echo *** %CLASSIFICATION_FOLDER%
 echo *** You can download the classification packs via:
-echo *** `git clone --depth 1 https://git.renoise.com/afec/classification-packs.git "AFEC-Classifiers"`
+echo *** `git clone https://github.com/emuell/AFEC-Classifiers "AFEC-Classifiers"`
 goto :end
 
 :: ------------------------------------------------------------------------------------------------

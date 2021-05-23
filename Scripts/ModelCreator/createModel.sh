@@ -15,7 +15,7 @@ CLASSIFICATION_FOLDER=`realpath $1`
 if [ ! -d "$CLASSIFICATION_FOLDER" ]; then
   echo "*** Missing or invalid argument: Can't find classification data set folder at '$1'"
   echo "*** It's expected next to this 'afec' repository. You can download the classification packs via:"
-  echo "*** git clone --depth 1 https://git.renoise.com/afec/classification-packs.git \"afec-classifiers\""
+  echo "*** git clone https://github.com/emuell/AFEC-Classifiers"
   exit 1
 fi
 

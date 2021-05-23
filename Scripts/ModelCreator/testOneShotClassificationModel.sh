@@ -3,4 +3,4 @@
 SCRIPT_DIR=`dirname -- "$0"`
 cd "$SCRIPT_DIR"
 
-./testModel.sh "./../../../afec-classifiers/OneShot-Categories"
+./testModel.sh "./../../../AFEC-Classifiers/OneShot-Categories"

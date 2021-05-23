@@ -35,7 +35,7 @@ echo.
 echo *** Missing or invalid argument: Can't find classification data set folder at 
 echo *** `%CLASSIFICATION_FOLDER%`
 echo *** You can download the classification packs with:
-echo *** `git clone --depth 1 https://git.renoise.com/afec/classification-packs.git "AFEC-Classifiers"`
+echo *** `git clone https://github.com/emuell/AFEC-Classifiers`
 goto :end
 
 :: ------------------------------------------------------------------------------------------------
