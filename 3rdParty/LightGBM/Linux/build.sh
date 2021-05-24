@@ -10,18 +10,18 @@ mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 
 # configure
-cmake $DIST_DIR -DUSE_OPENMP=OFF || {
+cmake $DIST_DIR -DBUILD_STATIC_LIB=on -DUSE_OPENMP=OFF || {
   echo "** configure FAILED"; exit 1
 }
 
 # build
-# export VERBOSE=1
-make __lightgbm || {
+export VERBOSE=1
+make _lightgbm -j4 || {
   echo "** make FAILED"; exit 1
 }
 
 # harvest results
-cp $DIST_DIR/lib__lightgbm.a $SCRIPT_DIR/libLightGBM_.a || {
+cp $DIST_DIR/lib_lightgbm.a $SCRIPT_DIR/libLightGBM_.a || {
   echo "** cp liblightgbm FAILED"; exit 1
 }
 
