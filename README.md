@@ -332,17 +332,20 @@ Just like for high-level features, the column name ending specifies the data typ
 ### Windows
 
 * cmake 3.2 or later
+* git-lfs (download at https://git-lfs.github.com/)
 * VisualStudio 2015 or later with C++ support (C++14)
 
 ### OSX
 
 * cmake 3.2 or later
+* git-lfs (download at https://git-lfs.github.com/)
 * OSX 10.9 or later
 * XCode with command line tools
 
 ### Linux
 
 * cmake 3.2 or later (`apt-get install cmake` on Ubuntu)
+* git-lfs (`apt-get install git-lfs` on Ubuntu)
 * gcc-7.4 (ubuntu 16.04's default compiler, `apt-get install build-essentials` on Ubuntu).
 * PkgConfig and Threads (usually already installed)
 * libmpg123 headers and library (`apt-get install libmpg123-dev` on Ubuntu)
@@ -375,7 +378,7 @@ AFEC uses the following third-party libraries, which are bundled in the `3rdPart
 
 ## How to Build
 
-The precompiled 3rd party libraries are stored via git lfs, so first make sure they are checked out: 
+The precompiled 3rd party libraries are stored via git lfs, so please ensure the lfs files are checked out: 
 
 ```bash
 git lfs pull 
