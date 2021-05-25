@@ -33,6 +33,11 @@
 *.icns  binary
 *.ai    binary
 
+# Set audio files as binary by default.
+*.wav   binary
+*.aif   binary
+*.mp3   binary
+
 # Set video files as binary by default.
 *.mp4   binary
 *.mov   binary
@@ -58,3 +63,5 @@
 *.tar.bz2 binary
 *.tar.xz  binary
 
+# Set AFEC model files as binary by default.
+*.model	binary
