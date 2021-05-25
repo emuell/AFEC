@@ -1,12 +1,18 @@
 ###################################################################################################
 
 # Global cmake config
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 2.8)
 
 # Set CMAKE module path
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
     "${CMAKE_SOURCE_DIR}/../Build/CMakeModules")
+
+# Set policies
+if(POLICY CMP0063)
+  # use new CMAKE_CXX_VISIBILITY_PRESET behavior
+  cmake_policy(SET CMP0063 NEW)
+endif()
 
 if(WIN32)
   # ensure Windows 8.1 Desktop SDKs is used in Visual CPP solutions

@@ -331,20 +331,20 @@ Just like for high-level features, the column name ending specifies the data typ
 
 ### Windows
 
-* cmake 3.2 or later
+* cmake 2.8 or later
 * git-lfs (download at https://git-lfs.github.com/)
 * VisualStudio 2015 or later with C++ support (C++14)
 
 ### OSX
 
-* cmake 3.2 or later
+* cmake 2.8 or later
 * git-lfs (download at https://git-lfs.github.com/)
 * OSX 10.11 or later
 * XCode 7 or later with OSX 10.11 SDK and command line tools installed
 
 ### Linux
 
-* cmake 3.2 or later (`apt-get install cmake` on Ubuntu)
+* cmake 2.8 or later (`apt-get install cmake` on Ubuntu)
 * git-lfs (`apt-get install git-lfs` on Ubuntu)
 * gcc-7.4 (ubuntu 18.04's default compiler, `apt-get install build-essentials` on Ubuntu).
 * PkgConfig and Threads (usually already installed)
