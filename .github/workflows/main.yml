@@ -23,7 +23,7 @@ jobs:
             name: "Windows", artifact: "Windows.tar.xz",
             os: windows-latest,
             build_type: "Release", cc: "cl", cxx: "cl",
-            build_script: "build.bat",
+            build_script: "build.cmd",
           }
         - {
             name: "Ubuntu", artifact: "Linux.tar.xz",
