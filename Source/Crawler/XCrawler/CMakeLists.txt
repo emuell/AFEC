@@ -51,7 +51,12 @@ project_copy_executable(XCrawler)
 
 # copy default models to "Dist" directory
 set(SRC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Models)
-set(TARGET_PATH ${CMAKE_SOURCE_DIR}/../Dist/${CMAKE_CFG_INTDIR}/Models)
+if (CMAKE_GENERATOR MATCHES "^Visual Studio" OR
+    CMAKE_GENERATOR MATCHES "^Xcode")
+  set(TARGET_PATH ${CMAKE_SOURCE_DIR}/../Dist/${CMAKE_CFG_INTDIR}/Models)
+else()
+  set(TARGET_PATH ${CMAKE_SOURCE_DIR}/../Dist/${CMAKE_BUILD_TYPE}/Models)
+endif()
 add_custom_command(TARGET XCrawler POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${TARGET_PATH}
     COMMAND ${CMAKE_COMMAND} -E echo \"copy ${SRC_PATH} -> ${TARGET_PATH}\"
