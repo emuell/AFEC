@@ -1,5 +1,7 @@
 # AFEC
 
+[![Build Matrix](https://github.com/emuell/AFEC/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/emuell/AFEC/actions/workflows/main.yml)
+
 
 ## Audio Feature Extraction
 
