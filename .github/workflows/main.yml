@@ -33,7 +33,7 @@ jobs:
           }
         - {
             name: "macOS", artifact: "macOS.tar.xz",
-            os: macos-10.13,
+            os: macos-10.15,
             build_type: "Release", cc: "clang", cxx: "clang++",
             build_script: "build.sh",
           }
@@ -44,7 +44,7 @@ jobs:
       if: ${{ matrix.config.name == 'Ubuntu' }}
 
     - name: Setup (OSX)
-      run: sudo xcode-select -switch /Applications/Xcode_8.3.3.app
+      run: sudo xcode-select -switch /Applications/Xcode_10.3.app
       if: ${{ matrix.config.name == 'macOS' }}
 
     - name: Checkout
