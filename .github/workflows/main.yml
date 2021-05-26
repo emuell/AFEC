@@ -8,9 +8,9 @@ on:
     branches:
     - master
 
-  # allows to run the workflow manually from the Actions tab
+  # allows to run the workflow manually from the actions tab
   workflow_dispatch:
-    
+      
 jobs:
   build:
     name: ${{ matrix.config.name }}
@@ -24,7 +24,6 @@ jobs:
             os: windows-latest,
             build_type: "Release", cc: "cl", cxx: "cl",
             build_script: "build.bat",
-            environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           }
         - {
             name: "Ubuntu", artifact: "Linux.tar.xz",
@@ -41,35 +40,24 @@ jobs:
           }
 
     steps:
-    - uses: actions/checkout@v1
+    - name: Setup
+      run: sudo apt update && sudo apt install -y cmake ninja-build libmpg123-dev
+      if: '${{ matrix.config.name == "Ubuntu" }}'
+
+    - name: Checkout
+      uses: actions/checkout@v2
+    
     - name: Build
       working-directory: ./Build
-      run: |
-        set(ENV{CC} ${{ matrix.config.cc }})
-        set(ENV{CXX} ${{ matrix.config.cxx }})
-
-        if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
-          execute_process(
-            COMMAND "${{ matrix.config.environment_script }}"
-          )
-        endif()
-
-        if ("${{ runner.os }}" STREQUAL "macOS" AND NOT "x${{ matrix.config.developer_dir }}" STREQUAL "x")
-          set(ENV{DEVELOPER_DIR} ${{ matrix.config.developer_dir }})
-        endif()
-        
-        execute_process(
-          COMMAND ./${{ matrix.config.build_script }}
-          RESULT_VARIABLE result
-        )
-        if (NOT result EQUAL 0)
-          message(FATAL_ERROR "Bad exit status")
-        endif()
-
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+        developer_dir: ${{ matrix.config.developer_dir }}
+      run: ./${{ matrix.config.build_script }}
 
     - name: Pack
       working-directory: ./Dist/${{ matrix.config.build_type }}
-      run: cmake -E tar cJfv ../Build/${{ matrix.config.artifact }} .
+      run: cmake -E tar cJfv ../../Build/${{ matrix.config.artifact }} .
 
     - name: Upload
       uses: actions/upload-artifact@v1
