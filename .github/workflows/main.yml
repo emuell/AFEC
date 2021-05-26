@@ -23,7 +23,7 @@ jobs:
             name: "Windows", artifact: "Windows.tar.xz",
             os: windows-latest,
             build_type: "Release", cc: "cl", cxx: "cl",
-            build_script: "build.bat",
+            build_script: "build.cmd",
           }
         - {
             name: "Ubuntu", artifact: "Linux.tar.xz",
@@ -33,26 +33,30 @@ jobs:
           }
         - {
             name: "macOS", artifact: "macOS.tar.xz",
-            os: macos-11,
+            os: macos-10.15,
             build_type: "Release", cc: "clang", cxx: "clang++",
             build_script: "build.sh",
-            developer_dir: "/Applications/Xcode_12.app/Contents/Developer"
           }
 
     steps:
-    - name: Setup
+    - name: Setup (Linux)
       run: sudo apt update && sudo apt install -y cmake ninja-build libmpg123-dev
-      if: ${{ matrix.config.name ==  "Ubuntu" }} 
+      if: ${{ matrix.config.name == 'Ubuntu' }}
+
+    - name: Setup (OSX)
+      run: sudo xcode-select -switch /Applications/Xcode_10.3.app
+      if: ${{ matrix.config.name == 'macOS' }}
 
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        lfs: true
     
     - name: Build
       working-directory: ./Build
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
-        developer_dir: ${{ matrix.config.developer_dir }}
       run: ./${{ matrix.config.build_script }}
 
     - name: Pack
@@ -62,5 +66,5 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v1
       with:
-        path: ../Build/${{ matrix.config.artifact }}
+        path: ./Build/${{ matrix.config.artifact }}
         name: ${{ matrix.config.artifact }}
