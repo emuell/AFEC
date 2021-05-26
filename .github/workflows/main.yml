@@ -1,0 +1,66 @@
+name: Build Matrix
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+  # allows to run the workflow manually from the actions tab
+  workflow_dispatch:
+      
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Windows", artifact: "Windows.tar.xz",
+            os: windows-latest,
+            build_type: "Release", cc: "cl", cxx: "cl",
+            build_script: "build.bat",
+          }
+        - {
+            name: "Ubuntu", artifact: "Linux.tar.xz",
+            os: ubuntu-18.04,
+            build_type: "Release", cc: "gcc", cxx: "g++",
+            build_script: "build.sh",
+          }
+        - {
+            name: "macOS", artifact: "macOS.tar.xz",
+            os: macos-11,
+            build_type: "Release", cc: "clang", cxx: "clang++",
+            build_script: "build.sh",
+            developer_dir: "/Applications/Xcode_12.app/Contents/Developer"
+          }
+
+    steps:
+    - name: Setup
+      run: sudo apt update && sudo apt install -y cmake ninja-build libmpg123-dev
+      if: ${{ matrix.config.name ==  "Ubuntu" }} 
+
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Build
+      working-directory: ./Build
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+        developer_dir: ${{ matrix.config.developer_dir }}
+      run: ./${{ matrix.config.build_script }}
+
+    - name: Pack
+      working-directory: ./Dist/${{ matrix.config.build_type }}
+      run: cmake -E tar cJfv ../../Build/${{ matrix.config.artifact }} .
+
+    - name: Upload
+      uses: actions/upload-artifact@v1
+      with:
+        path: ../Build/${{ matrix.config.artifact }}
+        name: ${{ matrix.config.artifact }}
