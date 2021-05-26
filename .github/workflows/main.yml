@@ -42,7 +42,7 @@ jobs:
     steps:
     - name: Setup
       run: sudo apt update && sudo apt install -y cmake ninja-build libmpg123-dev
-      if: ${{ matrix.config.name }} == "Ubuntu"
+      if: ${{ matrix.config.name == 'Ubuntu' }}
 
     - name: Checkout
       uses: actions/checkout@v2
