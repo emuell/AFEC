@@ -347,6 +347,7 @@ Just like for high-level features, the column name ending specifies the data typ
 ### Linux
 
 * cmake 2.8 or later (`apt-get install cmake` on Ubuntu)
+* ninja build system (`apt-get install ninja-build` on Ubuntu)
 * git-lfs (`apt-get install git-lfs` on Ubuntu)
 * gcc-7.4 (ubuntu 18.04's default compiler, `apt-get install build-essentials` on Ubuntu).
 * PkgConfig and Threads (usually already installed)

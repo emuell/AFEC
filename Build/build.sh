@@ -6,16 +6,8 @@
 
 SCRIPT_DIR=`dirname -- "$0"`
 
-OUT_DIR=$SCRIPT_DIR/Out
-if [[ ! -e "$OUT_DIR" ]]; then
-  mkdir "$OUT_DIR" || {
-    echo "*** build failed"; exit 1
-  }
-fi
+#### process options
 
-cd "$OUT_DIR"
-
-# process options
 BUILD_CONFIG="Release"
 CLEAN_FLAGS=""
 
@@ -37,13 +29,37 @@ do
   esac
 done
 
-# configure
+### create out dir
+
+OUT_DIR=""
+PROJECTS_DIR=""
+if [ "$(uname)" == "Darwin" ]; then
+  OUT_DIR="$SCRIPT_DIR/Out"
+  SOURCE_DIR="../../Source"
+else
+  OUT_DIR="$SCRIPT_DIR/Out/$BUILD_CONFIG"
+  SOURCE_DIR="../../../Source"
+fi
+
+if [[ ! -e "$OUT_DIR" ]]; then
+  mkdir -p "$OUT_DIR" || {
+    echo "*** build failed"; exit 1
+  }
+fi
+
+### configure and build
+
 CMAKE_TARGET_OPTIONS="-DBUILD_CRAWLER=ON -DBUILD_TESTS=ON"
-SOURCE_DIR="../../Source"
+
+cd $OUT_DIR || {
+  echo "*** can't cd into out dir"; exit 1
+}
 
 if [ "$(uname)" == "Darwin" ]; then
+  # force compiling x86_64 on Apple M1 systems
+  CMAKE_TARGET_OPTIONS="$CMAKE_TARGET_OPTIONS -DCMAKE_APPLE_SILICON_PROCESSOR=x86_64"
   # generate xcode projects on darwin
-  cmake $SOURCE_DIR -G Xcode $CMAKE_TARGET_OPTIONS || { 
+  cmake -G Xcode $CMAKE_TARGET_OPTIONS $SOURCE_DIR || { 
     echo "*** cmake configure failed"; exit 1
   }
   # build
@@ -51,8 +67,8 @@ if [ "$(uname)" == "Darwin" ]; then
     echo "*** build failed"; exit 1
   }
 else
-   # else makefiles with the specified build config
-  cmake $SOURCE_DIR -DCMAKE_BUILD_TYPE=$BUILD_CONFIG $CMAKE_TARGET_OPTIONS || {
+  # use ninja on all other platforms
+  cmake -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_CONFIG $CMAKE_TARGET_OPTIONS $SOURCE_DIR || {
     echo "*** cmake configure failed"; exit 1
   }
   # build
