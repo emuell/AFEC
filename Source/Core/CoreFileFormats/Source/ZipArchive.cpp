@@ -47,7 +47,7 @@ namespace {
 
   void* ZLibAlloc(void* opaque, TZLib::uInt items, TZLib::uInt size)
   {
-    return TMemory::Alloc("#ZipArchive", items * size);
+    return TMemory::Alloc("#ZipArchive", (size_t)items * size);
   }
 
   // -----------------------------------------------------------------------------------------------

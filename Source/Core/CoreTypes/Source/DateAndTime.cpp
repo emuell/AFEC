@@ -17,9 +17,14 @@
 
 TDayTime TDayTime::SCreateFromStatTime(time_t Time)
 {
-  if (tm* pTm = ::localtime(&Time))
+  tm LocalTime;
+#if defined(MWindows)
+  if (::localtime_s(&LocalTime, &Time) == 0)
+#else
+  if (::localtime_r(&Time, &LocalTime) != NULL)
+#endif
   {
-    return TDayTime(pTm->tm_hour, pTm->tm_min, pTm->tm_sec);
+    return TDayTime(LocalTime.tm_hour, LocalTime.tm_min, LocalTime.tm_sec);
   }
   else
   {
@@ -34,9 +39,10 @@ TDayTime TDayTime::SCurrentDayTime()
 {
   #if defined(MMac) || defined(MLinux)
     time_t Time = ::time(NULL);
-    if (tm* pTm = ::localtime(&Time))
+    tm LocalTime;
+    if (::localtime_r(&Time, &LocalTime) != NULL)
     {
-      return TDayTime(pTm->tm_hour, pTm->tm_min, pTm->tm_sec);
+      return TDayTime(LocalTime.tm_hour, LocalTime.tm_min, LocalTime.tm_sec);
     }
     else
     {
@@ -80,9 +86,14 @@ TDayTime::TDayTime(int Hours, int Minutes, int Seconds)
 
 TDate TDate::SCreateFromStatTime(time_t Time)
 {
-  if (tm* pTm = ::localtime(&Time))
+  tm LocalTime;
+#if defined(MWindows)
+  if (::localtime_s(&LocalTime, &Time) == 0)
+#else
+  if (::localtime_r(&Time, &LocalTime) != NULL)
+#endif
   {
-    return TDate(pTm->tm_mday, pTm->tm_mon + 1, pTm->tm_year + 1900);
+    return TDate(LocalTime.tm_mday, LocalTime.tm_mon + 1, LocalTime.tm_year + 1900);
   }
   else
   {
@@ -97,10 +108,10 @@ TDate TDate::SCurrentDate()
 {
   #if defined(MMac) || defined(MLinux)
     time_t Time = ::time(NULL);
-    
-    if (tm* pTm = ::localtime(&Time))
+    tm LocalTime;
+    if (::localtime_r(&Time, &LocalTime) != NULL)
     {
-      return TDate(pTm->tm_mday, pTm->tm_mon + 1, pTm->tm_year + 1900);
+      return TDate(LocalTime.tm_mday, LocalTime.tm_mon + 1, LocalTime.tm_year + 1900);
     }
     else
     {

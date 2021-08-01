@@ -125,7 +125,7 @@ TClassificationTestResults TDnnClassificationModel::OnTrain(
   const tiny_dnn::float_t DropoutRate = 0.0;
   const tiny_dnn::float_t DropoutRate2 = 0.5;
 
-  const uint32_t NumInputs = InputFeaturesSize.mX * InputFeaturesSize.mY;
+  const uint32_t NumInputs = (uint32_t)InputFeaturesSize.mX * InputFeaturesSize.mY;
   const uint32_t NumOutputs = NumberOfClasses;
   const uint32_t NumHidden = 3 * (int)::sqrt(NumInputs + NumOutputs) + NumOutputs;
 

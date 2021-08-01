@@ -488,11 +488,11 @@ void TOnsetDetector::CalculateOnsetFunction(const TOnsetFftProcessor::TPolarBuff
           
           if (Rectify)
           {
-            TotalDeviation += ::fabs(Deviation * TMathT<float>::Abs(pBuffer->mBin[i].mMagn));
+            TotalDeviation += ::fabs((double)Deviation * TMathT<float>::Abs(pBuffer->mBin[i].mMagn));
           }
           else
           {
-            TotalDeviation += ::fabs(Deviation);
+            TotalDeviation += ::fabs((double)Deviation);
           }
         }
       }
