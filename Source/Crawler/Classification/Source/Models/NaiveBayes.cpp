@@ -26,7 +26,7 @@ TNaiveBayesClassificationModel::TSharkModelType*
     int                                 NumberOfClasses)
 {
   return new shark::NBClassifier<>(
-    NumberOfClasses, InputFeaturesSize.mX * InputFeaturesSize.mY);
+    NumberOfClasses, (size_t)InputFeaturesSize.mX * InputFeaturesSize.mY);
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ TNaiveBayesClassificationModel::TSharkModelType*
     int                                 NumberOfClasses)
 {
   TOwnerPtr< shark::NBClassifier<> > pModel(new shark::NBClassifier<>(
-    NumberOfClasses, InputFeaturesSize.mX * InputFeaturesSize.mY));
+    NumberOfClasses, (size_t)InputFeaturesSize.mX * InputFeaturesSize.mY));
 
   shark::NBClassifierTrainer<> trainer;
   trainer.train(*pModel, TrainData);

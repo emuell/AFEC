@@ -305,7 +305,7 @@ TRbmClassificationModel::TSharkModelType*
   // ... network setup 
 
   // layers
-  const size_t numInputs = InputFeaturesSize.mX * InputFeaturesSize.mY;
+  const size_t numInputs = (size_t)InputFeaturesSize.mX * InputFeaturesSize.mY;
   const size_t numOutputs = NumberOfClasses;
   const size_t numHidden = 3 * (size_t)::sqrt(numInputs + numOutputs) + numOutputs;
 

@@ -2017,7 +2017,7 @@ bool TAudioFileStream::OnSeekTo(long long Frame)
     TAudioFile::SNumBitsFromSampleType(SampleType()) / 8;
   
   const bool Succeeded = mpFile->SetPosition(
-    (size_t)(mSampleDataOffset + BytesPerSampleFrame * NumChannels() * Frame));
+    (size_t)(mSampleDataOffset + (long long)BytesPerSampleFrame * NumChannels() * Frame));
   
   return Succeeded;
 }
@@ -2041,27 +2041,27 @@ void TAudioFileStream::OnReadBuffer(
   {
   case TAudioFile::k8BitSigned:
   case TAudioFile::k8BitUnsigned:
-    mpFile->Read((char*)pDestBuffer, NumberOfSampleFrames * NumChannels());
+    mpFile->Read((char*)pDestBuffer, (size_t)NumberOfSampleFrames * NumChannels());
     break;
 
   case TAudioFile::k16Bit:
-    mpFile->Read((TInt16*)pDestBuffer, NumberOfSampleFrames * NumChannels());
+    mpFile->Read((TInt16*)pDestBuffer, (size_t)NumberOfSampleFrames * NumChannels());
     break;
 
   case TAudioFile::k24Bit:
-    mpFile->Read((T24*)pDestBuffer, NumberOfSampleFrames * NumChannels());
+    mpFile->Read((T24*)pDestBuffer, (size_t)NumberOfSampleFrames * NumChannels());
     break;
 
   case TAudioFile::k32BitInt:
   case TAudioFile::k32BitFloat:
     MStaticAssert(sizeof(TInt32) == sizeof(float));
     MStaticAssert(sizeof(TInt32) == 4);
-    mpFile->Read((TInt32*)pDestBuffer, NumberOfSampleFrames * NumChannels());
+    mpFile->Read((TInt32*)pDestBuffer, (size_t)NumberOfSampleFrames * NumChannels());
     break;
 
   case TAudioFile::k64BitFloat:
     MStaticAssert(sizeof(double) == 8);
-    mpFile->Read((double*)pDestBuffer, NumberOfSampleFrames * NumChannels());
+    mpFile->Read((double*)pDestBuffer, (size_t)NumberOfSampleFrames * NumChannels());
     break;
 
   default:
@@ -2089,32 +2089,32 @@ void TAudioFileStream::OnWriteBuffer(
   {
   case TAudioFile::k8BitUnsigned:
   case TAudioFile::k8BitSigned:
-    mpFile->Write((const char*)pSrcBuffer, NumberOfSampleFrames * NumChannels());
-    mBytesWritten += sizeof(char) * NumberOfSampleFrames * NumChannels();
+    mpFile->Write((const char*)pSrcBuffer, (size_t)NumberOfSampleFrames * NumChannels());
+    mBytesWritten += sizeof(char) * (long long)NumberOfSampleFrames * NumChannels();
     break;
 
   case TAudioFile::k16Bit:
-    mpFile->Write((const short*)pSrcBuffer, NumberOfSampleFrames * NumChannels());
-    mBytesWritten += sizeof(short) * NumberOfSampleFrames * NumChannels();
+    mpFile->Write((const short*)pSrcBuffer, (size_t)NumberOfSampleFrames * NumChannels());
+    mBytesWritten += sizeof(short) * (long long)NumberOfSampleFrames * NumChannels();
     break;
 
   case TAudioFile::k24Bit:
-    mpFile->Write((const T24*)pSrcBuffer, NumberOfSampleFrames * NumChannels());
-    mBytesWritten += sizeof(T24) * NumberOfSampleFrames * NumChannels();
+    mpFile->Write((const T24*)pSrcBuffer, (size_t)NumberOfSampleFrames * NumChannels());
+    mBytesWritten += sizeof(T24) * (long long)NumberOfSampleFrames * NumChannels();
     break;
 
   case TAudioFile::k32BitInt:
   case TAudioFile::k32BitFloat:
     MStaticAssert(sizeof(TInt32) == sizeof(float));
     MStaticAssert(sizeof(TInt32) == 4);
-    mpFile->Write((const TInt32*)pSrcBuffer, NumberOfSampleFrames * NumChannels());
-    mBytesWritten += sizeof(TInt32) * NumberOfSampleFrames * NumChannels();
+    mpFile->Write((const TInt32*)pSrcBuffer, (size_t)NumberOfSampleFrames * NumChannels());
+    mBytesWritten += sizeof(TInt32) * (long long)NumberOfSampleFrames * NumChannels();
     break;
 
   case TAudioFile::k64BitFloat:
     MStaticAssert(sizeof(double) == 8);
-    mpFile->Write((const double*)pSrcBuffer, NumberOfSampleFrames * NumChannels());
-    mBytesWritten += sizeof(double) * NumberOfSampleFrames * NumChannels();
+    mpFile->Write((const double*)pSrcBuffer, (size_t)NumberOfSampleFrames * NumChannels());
+    mBytesWritten += sizeof(double) * (long long)NumberOfSampleFrames * NumChannels();
     break;
 
   default:

@@ -60,7 +60,7 @@ TAnnClassificationModel::OnCreateTrainedModel(
   const double regularisation = 0.002;
   const double stopAtTrainError = -1.0; // don't stop
 
-  const size_t numInputs = InputFeaturesSize.mX * InputFeaturesSize.mY;
+  const size_t numInputs = (size_t)InputFeaturesSize.mX * InputFeaturesSize.mY;
   const size_t numOutputs = NumberOfClasses;
   const size_t numHidden = 2 * (size_t)::sqrt(numInputs + numOutputs) + numOutputs;
 
