@@ -1,7 +1,8 @@
 @echo off
 
-:: create a codeql database and run "cpp-code-scanning" queries on the entire source-tree
-:: requires codeql-cli from https://github.com/github/codeql-cli-binaries/releases
+:: Create a codeql database and run "cpp-code-scanning" queries on the entire source-tree.
+:: Requires a codeql repository clone and codeql-cli binaries, see 
+:: https://codeql.github.com/docs/codeql-cli/getting-started-with-the-codeql-cli/ for more info.
 
 SET CODEQL=%HOME%/bin/codeql/codeql.exe
 IF NOT EXIST "%CODEQL%" GOTO :CODEQL_Error
