@@ -13,6 +13,7 @@ cmake-build-debug
 
 # /Build/
 /Build/Out
+/Build/codeql-results.sarif
 
 # /Source/
 /Source/html
