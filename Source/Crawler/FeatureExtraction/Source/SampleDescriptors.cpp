@@ -100,10 +100,12 @@ TSampleDescriptors::TSampleDescriptors()
     mHighLevelBrightness("brightness", HighLevelDescriptorFlags),
     mHighLevelNoisiness("noisiness", HighLevelDescriptorFlags),
     mHighLevelHarmonicity("harmonicity", HighLevelDescriptorFlags),
-    // high level extended assets
     mHighLevelSpectrumSignature("spectrum_signature", HighLevelDescriptorFlags),
-    mHighLevelSpectrumFeatures("spectrum_features", HighLevelDescriptorFlags),
-    mHighLevelTristimulus("tristimulus", HighLevelDescriptorFlags),
+    mHighLevelSpectralFlatness("spectral_flatness", HighLevelDescriptorFlags),
+    mHighLevelSpectralFlux("spectral_flux", HighLevelDescriptorFlags),
+    mHighLevelSpectralComplexity("spectral_complexity", HighLevelDescriptorFlags),
+    mHighLevelSpectralContrast("spectral_contrast", HighLevelDescriptorFlags),
+    mHighLevelSpectralInharmonicity("spectral_inharmonicity", HighLevelDescriptorFlags),
     mHighLevelPitch("pitch", HighLevelDescriptorFlags),
     mHighLevelPitchConfidence("pitch_confidence", HighLevelDescriptorFlags),
     mHighLevelPeak("peak", HighLevelDescriptorFlags)
@@ -219,8 +221,11 @@ TList<TSampleDescriptors::TDescriptor*>
     Ret.Append(&mHighLevelNoisiness);
     Ret.Append(&mHighLevelHarmonicity);
     Ret.Append(&mHighLevelSpectrumSignature);
-    Ret.Append(&mHighLevelSpectrumFeatures);
-    Ret.Append(&mHighLevelTristimulus);
+    Ret.Append(&mHighLevelSpectralFlatness);
+    Ret.Append(&mHighLevelSpectralFlux);
+    Ret.Append(&mHighLevelSpectralComplexity);
+    Ret.Append(&mHighLevelSpectralContrast);
+    Ret.Append(&mHighLevelSpectralInharmonicity);
     Ret.Append(&mHighLevelPitch);
     Ret.Append(&mHighLevelPitchConfidence);
     Ret.Append(&mHighLevelPeak);

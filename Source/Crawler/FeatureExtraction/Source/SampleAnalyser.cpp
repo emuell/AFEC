@@ -1500,64 +1500,11 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
   const double SpectrumInharmonicity = SpectralInharmonicity.IsEmpty() ? 0.0 :
     TStatistics::Mean(SpectralInharmonicity.FirstRead(), SpectralInharmonicity.Size());
 
-  mpResults->mHighLevelSpectrumFeatures.mValues = MakeList<double>(
-    SpectrumFlatness, SpectrumFlux, SpectrumContrast, SpectrumComplexity, SpectrumInharmonicity);
-
-
-  // ... Tristimulus (confident ones only)
-
-  mpResults->mHighLevelTristimulus.mValues.ClearEntries();
-  mpResults->mHighLevelTristimulus.mValues.PreallocateSpace(
-    mpResults->mTristimulus1.mValues.Size());
-
-  MAssert(mpResults->mTristimulus1.mValues.Size() == mpResults->mTristimulus2.mValues.Size() &&
-    mpResults->mTristimulus1.mValues.Size() == mpResults->mTristimulus3.mValues.Size(), "");
-
-  MAssert(mpResults->mTristimulus1.mValues.Size() == mpResults->mF0.mValues.Size() &&
-    mpResults->mTristimulus1.mValues.Size() == mpResults->mF0Confidence.mValues.Size(), "");
-
-  // look-ahead to find confident first tristimulus values 
-  double LastTristimulusValues[3] = { 0.0, 0.0, 0.0 };
-  if (mpResults->mTristimulus1.mValues.Size() > 1)
-  {
-    for (int i = 0; i <= MMax(1, mpResults->mTristimulus1.mValues.Size() / 4); ++i)
-    {
-      if (mSpectrumFrameIsAudible[i] && IsConfidentPitch(
-            mpResults->mF0.mValues[i], mpResults->mF0Confidence.mValues[i]))
-      {
-        LastTristimulusValues[0] = mpResults->mTristimulus1.mValues[i];
-        LastTristimulusValues[1] = mpResults->mTristimulus2.mValues[i];
-        LastTristimulusValues[2] = mpResults->mTristimulus3.mValues[i];
-        break;
-      }
-    }
-  }
-
-  for (int i = 0; i < mpResults->mTristimulus1.mValues.Size(); ++i)
-  {
-    // skip silence & tristimulus values with low confident pitch
-    if (mSpectrumFrameIsAudible[i] && IsConfidentPitch(mpResults->mF0.mValues[i],
-          mpResults->mF0Confidence.mValues[i]))
-    {
-      mpResults->mHighLevelTristimulus.mValues.Append(
-        MakeList<double>(
-          mpResults->mTristimulus1.mValues[i],
-          mpResults->mTristimulus2.mValues[i],
-          mpResults->mTristimulus3.mValues[i])
-        );
-
-      LastTristimulusValues[0] = mpResults->mTristimulus1.mValues[i];
-      LastTristimulusValues[1] = mpResults->mTristimulus2.mValues[i];
-      LastTristimulusValues[2] = mpResults->mTristimulus3.mValues[i];
-    }
-    else
-    {
-      mpResults->mTristimulus1.mValues[i] = LastTristimulusValues[0];
-      mpResults->mTristimulus2.mValues[i] = LastTristimulusValues[1];
-      mpResults->mTristimulus3.mValues[i] = LastTristimulusValues[2];
-    }
-  }
-
+  mpResults->mHighLevelSpectralFlatness.mValue = SpectrumFlatness;
+  mpResults->mHighLevelSpectralFlux.mValue = SpectrumFlux;
+  mpResults->mHighLevelSpectralContrast.mValue = SpectrumContrast;
+  mpResults->mHighLevelSpectralComplexity.mValue = SpectrumComplexity;
+  mpResults->mHighLevelSpectralInharmonicity.mValue = SpectrumInharmonicity;
 
   // ... Pitch
 
