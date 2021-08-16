@@ -211,20 +211,30 @@ The column name ending specifies the data type (except for the first 3 columns):
 * `harmonicity_R` *(REAL)*:<br/>
   Overal sound's harmonicity level, calculated from the auto correlation, pitch confidence and spectral flatness.
 
-#### Spectum Arrays
+#### Spectral Features
+* `spectral_flatness_R` *(REAL)*:<br/>
+  Mean of audible low level spectral_flatness_VR (spectral [flatness](https://www.audiocontentanalysis.org/code/audio-features/spectral-flatness/))
+* `spectral_flux_R` *(REAL)*:<br/>
+  Mean of audible low level spectral_flux_VR (spectral [flux](https://www.audiocontentanalysis.org/code/audio-features/spectral-flux/))
+* `spectral_complexity_R` *(REAL)*:<br/>
+  Mean of audible low level spectral_complexity_VR (spectral [complexity](https://essentia.upf.edu/reference/streaming_SpectralComplexity.html) measure based on a sharpened spectrum)
+* `spectral_contrast_R` *(REAL)*:<br/>
+  Mean of audible low level spectral_contrast_VR (spectral [contrast](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.583.7201&rep=rep1&type=pdf))
+* `spectral_inharmonicity_R` *(REAL)*:<br/>
+  Mean of audible low level spectral_inharmonicity_VR ([inharmonicity](https://essentia.upf.edu/reference/streaming_Inharmonicity.html) based on a sharpened spectrum)
+
+#### Spectrum Band Array
 * `spectrum_signature_VVR` *(TEXT: JSON_NUMBER_ARRAY_ARRAY)*:<br/>
-  JSON array of an array of real numbers. 14 bands for 64 time frames (resampled), which can be used an iconic signature alike
-  view of the entire audio file's spectrum.<br/>
-* `spectrum_features_VR` *(TEXT: JSON_NUMBER_ARRAY)*:<br/>
-  JSON array of an array of real numbers. 14 bands for each fft time frame (NOT resampled unlike the *spectrum_signature*)<br/>
+  JSON array of an array of real numbers. 14 bands for 64 time frames (resampled), which can be used an iconic signature alike view of the entire audio file's spectrum.<br/>
   The 14 spectral bands end at 50, 100, 200, 400, 630, 920, 1270, 1720, 2320, 3150, 4400, 6400.0, 9500, 15500 HZ<br/>
-* `tristimulus_VVR` *(TEXT: JSON_NUMBER_ARRAY_ARRAY)*:<br/>
-  JSON array of an array of real numbers. 3 tristimulus values for for each fft time frame. Very fuzzy - should be used in 
-  combination with the overall `base_note_confidence` or  `harmonicity` value only.<br/>
+
+#### Pitch Array
 * `pitch_VR` *(TEXT: JSON_NUMBER_ARRAY)*:<br/>
   JSON array of real numbers. Cleaned pitch note values for for each fft time frame.
 * `pitch_confidence_R` *(REAL)*:<br/>
   Mean value of all pitch note value detection confidences.
+
+#### Peak Array
 * `peak_VR` *(TEXT: JSON_NUMBER_ARRAY)*:<br/>
   JSON array of real numbers. Peak value in dB for for each fft time frame.
 

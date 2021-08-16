@@ -497,18 +497,19 @@ public:
   //@}
 
 
-  //@{ ... High-Level Similarity Aspect Data ("Sound characteristics" for similarity searches)
+  //@{ ... High-Level Similarity Aspect Data ("Sound characteristics")
 
   // spectrum
   enum { kNumberOfHighLevelSpectrumBandFrames = 64 };
   enum { kNumberOfHighLevelSpectrumBands = 14 };
   TVectorVectorData<double> mHighLevelSpectrumSignature; // [64][14]
-  // Flatness, Flux, Complexity, Contrast, Inharmonicity
-  TVectorData<double> mHighLevelSpectrumFeatures; // [5]
-
-  // timbre
-  TVectorVectorData<double> mHighLevelTristimulus; // [frame][3]
-  // TODO: TScalarData<double> mHighLevelTristimulusConfidence;
+  
+  // spectrum features
+  TScalarData<double> mHighLevelSpectralFlatness;
+  TScalarData<double> mHighLevelSpectralFlux;
+  TScalarData<double> mHighLevelSpectralComplexity;
+  TScalarData<double> mHighLevelSpectralContrast;
+  TScalarData<double> mHighLevelSpectralInharmonicity;
 
   // pitch
   TVectorData<double> mHighLevelPitch;
