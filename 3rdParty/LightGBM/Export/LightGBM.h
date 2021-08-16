@@ -16,6 +16,12 @@
   #pragma clang diagnostic ignored "-Wunknown-pragmas"
 #endif
 
+#if defined(MWindows)
+  #ifdef SIZE // defined in OpenBLAS
+    #undef SIZE
+  #endif
+#endif
+
 #include <LightGBM/utils/common.h>
 #include <LightGBM/utils/text_reader.h>
 

@@ -1,11 +1,15 @@
+/*!
+ * Copyright (c) 2016 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #include <LightGBM/network.h>
 
 #include <LightGBM/utils/common.h>
 
-#include "linkers.h"
-
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
+
+#include "linkers.h"
 
 namespace LightGBM {
 
@@ -63,7 +67,7 @@ void Network::Dispose() {
 
 void Network::Allreduce(char* input, comm_size_t input_size, int type_size, char* output, const ReduceFunction& reducer) {
   if (num_machines_ <= 1) {
-    Log::Fatal("Please initilize the network interface first");
+    Log::Fatal("Please initialize the network interface first");
   }
   comm_size_t count = input_size / type_size;
   // if small package or small count , do it by all gather.(reduce the communication times.)
@@ -90,7 +94,7 @@ void Network::Allreduce(char* input, comm_size_t input_size, int type_size, char
 
 void Network::AllreduceByAllGather(char* input, comm_size_t input_size, int type_size, char* output, const ReduceFunction& reducer) {
   if (num_machines_ <= 1) {
-    Log::Fatal("Please initilize the network interface first");
+    Log::Fatal("Please initialize the network interface first");
   }
   // assign blocks
   comm_size_t all_size = input_size * num_machines_;
@@ -116,9 +120,9 @@ void Network::AllreduceByAllGather(char* input, comm_size_t input_size, int type
 
 void Network::Allgather(char* input, comm_size_t send_size, char* output) {
   if (num_machines_ <= 1) {
-    Log::Fatal("Please initilize the network interface first");
+    Log::Fatal("Please initialize the network interface first");
+    return;
   }
-  if (num_machines_ <= 1) { return; }
   // assign blocks
   block_start_[0] = 0;
   block_len_[0] = send_size;
@@ -132,12 +136,12 @@ void Network::Allgather(char* input, comm_size_t send_size, char* output) {
 
 void Network::Allgather(char* input, const comm_size_t* block_start, const comm_size_t* block_len, char* output, comm_size_t all_size) {
   if (num_machines_ <= 1) {
-    Log::Fatal("Please initilize the network interface first");
+    Log::Fatal("Please initialize the network interface first");
   }
   if (allgather_ext_fun_ != nullptr) {
     return allgather_ext_fun_(input, block_len[rank_], block_start, block_len, num_machines_, output, all_size);
   }
-  const comm_size_t kRingThreshold = 10 * 1024 * 1024; // 10MB
+  const comm_size_t kRingThreshold = 10 * 1024 * 1024;  // 10MB
   const int kRingNodeThreshold = 64;
   if (all_size > kRingThreshold && num_machines_ < kRingNodeThreshold) {
     // when num_machines is small and data is large
@@ -229,12 +233,12 @@ void Network::ReduceScatter(char* input, comm_size_t input_size, int type_size,
                             const comm_size_t* block_start, const comm_size_t* block_len, char* output,
                             comm_size_t output_size, const ReduceFunction& reducer) {
   if (num_machines_ <= 1) {
-    Log::Fatal("Please initilize the network interface first");
+    Log::Fatal("Please initialize the network interface first");
   }
   if (reduce_scatter_ext_fun_ != nullptr) {
     return reduce_scatter_ext_fun_(input, input_size, type_size, block_start, block_len, num_machines_, output, output_size, reducer);
   }
-  const comm_size_t kRingThreshold = 10 * 1024 * 1024; // 10MB
+  const comm_size_t kRingThreshold = 10 * 1024 * 1024;  // 10MB
   if (recursive_halving_map_.is_power_of_2 || input_size < kRingThreshold) {
     ReduceScatterRecursiveHalving(input, input_size, type_size, block_start, block_len, output, output_size, reducer);
   } else {

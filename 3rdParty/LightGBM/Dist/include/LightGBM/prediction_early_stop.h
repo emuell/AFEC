@@ -1,10 +1,14 @@
+/*!
+ * Copyright (c) 2017 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #ifndef LIGHTGBM_PREDICTION_EARLY_STOP_H_
 #define LIGHTGBM_PREDICTION_EARLY_STOP_H_
 
-#include <functional>
-#include <string>
-
 #include <LightGBM/export.h>
+
+#include <string>
+#include <functional>
 
 namespace LightGBM {
 
@@ -29,4 +33,4 @@ LIGHTGBM_EXPORT PredictionEarlyStopInstance CreatePredictionEarlyStopInstance(co
 
 }   // namespace LightGBM
 
-#endif // LIGHTGBM_PREDICTION_EARLY_STOP_H_
+#endif  // LIGHTGBM_PREDICTION_EARLY_STOP_H_

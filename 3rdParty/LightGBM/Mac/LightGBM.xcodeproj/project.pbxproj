@@ -7,13 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		34630C0E265CE4D600517663 /* cuda_tree_learner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34630C02265CE4D600517663 /* cuda_tree_learner.cpp */; };
+		34630C0F265CE4D600517663 /* linear_tree_learner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34630C07265CE4D600517663 /* linear_tree_learner.cpp */; };
+		34630C15265CE4F800517663 /* ifaddrs_patch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34630C13265CE4F800517663 /* ifaddrs_patch.cpp */; };
+		34630C19265CE51200517663 /* train_share_states.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34630C18265CE51200517663 /* train_share_states.cpp */; };
 		34D083CF20EE6326001167ED /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0838620EE6326001167ED /* application.cpp */; };
 		34D083D020EE6326001167ED /* boosting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0838920EE6326001167ED /* boosting.cpp */; };
 		34D083D120EE6326001167ED /* gbdt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0838B20EE6326001167ED /* gbdt.cpp */; };
 		34D083D220EE6326001167ED /* gbdt_model_text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0838D20EE6326001167ED /* gbdt_model_text.cpp */; };
 		34D083D320EE6326001167ED /* gbdt_prediction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0838E20EE6326001167ED /* gbdt_prediction.cpp */; };
 		34D083D420EE6326001167ED /* prediction_early_stop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0839020EE6326001167ED /* prediction_early_stop.cpp */; };
-		34D083D520EE6326001167ED /* c_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0839320EE6326001167ED /* c_api.cpp */; };
 		34D083D620EE6326001167ED /* bin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0839520EE6326001167ED /* bin.cpp */; };
 		34D083D720EE6326001167ED /* config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0839620EE6326001167ED /* config.cpp */; };
 		34D083D820EE6326001167ED /* config_auto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 34D0839720EE6326001167ED /* config_auto.cpp */; };
@@ -40,6 +43,19 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		34630BFE265CE4D600517663 /* col_sampler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = col_sampler.hpp; sourceTree = "<group>"; };
+		34630BFF265CE4D600517663 /* cost_effective_gradient_boosting.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = cost_effective_gradient_boosting.hpp; sourceTree = "<group>"; };
+		34630C01265CE4D600517663 /* cuda_kernel_launcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cuda_kernel_launcher.h; sourceTree = "<group>"; };
+		34630C02265CE4D600517663 /* cuda_tree_learner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cuda_tree_learner.cpp; sourceTree = "<group>"; };
+		34630C03265CE4D600517663 /* cuda_tree_learner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cuda_tree_learner.h; sourceTree = "<group>"; };
+		34630C07265CE4D600517663 /* linear_tree_learner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = linear_tree_learner.cpp; sourceTree = "<group>"; };
+		34630C08265CE4D600517663 /* linear_tree_learner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linear_tree_learner.h; sourceTree = "<group>"; };
+		34630C09265CE4D600517663 /* monotone_constraints.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = monotone_constraints.hpp; sourceTree = "<group>"; };
+		34630C13265CE4F800517663 /* ifaddrs_patch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ifaddrs_patch.cpp; sourceTree = "<group>"; };
+		34630C14265CE4F800517663 /* ifaddrs_patch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ifaddrs_patch.h; sourceTree = "<group>"; };
+		34630C16265CE51200517663 /* multi_val_dense_bin.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = multi_val_dense_bin.hpp; sourceTree = "<group>"; };
+		34630C17265CE51200517663 /* multi_val_sparse_bin.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = multi_val_sparse_bin.hpp; sourceTree = "<group>"; };
+		34630C18265CE51200517663 /* train_share_states.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = train_share_states.cpp; sourceTree = "<group>"; };
 		34D0836720EE6313001167ED /* application.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = application.h; sourceTree = "<group>"; };
 		34D0836820EE6313001167ED /* bin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bin.h; sourceTree = "<group>"; };
 		34D0836920EE6313001167ED /* boosting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = boosting.h; sourceTree = "<group>"; };
@@ -80,7 +96,6 @@
 		34D0839020EE6326001167ED /* prediction_early_stop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = prediction_early_stop.cpp; sourceTree = "<group>"; };
 		34D0839120EE6326001167ED /* rf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = rf.hpp; sourceTree = "<group>"; };
 		34D0839220EE6326001167ED /* score_updater.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = score_updater.hpp; sourceTree = "<group>"; };
-		34D0839320EE6326001167ED /* c_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = c_api.cpp; sourceTree = "<group>"; };
 		34D0839520EE6326001167ED /* bin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bin.cpp; sourceTree = "<group>"; };
 		34D0839620EE6326001167ED /* config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = config.cpp; sourceTree = "<group>"; };
 		34D0839720EE6326001167ED /* config_auto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = config_auto.cpp; sourceTree = "<group>"; };
@@ -199,7 +214,6 @@
 			children = (
 				34D0838520EE6326001167ED /* application */,
 				34D0838820EE6326001167ED /* boosting */,
-				34D0839320EE6326001167ED /* c_api.cpp */,
 				34D0839420EE6326001167ED /* io */,
 				34D083A620EE6326001167ED /* metric */,
 				34D083AF20EE6326001167ED /* network */,
@@ -239,6 +253,9 @@
 		34D0839420EE6326001167ED /* io */ = {
 			isa = PBXGroup;
 			children = (
+				34630C16265CE51200517663 /* multi_val_dense_bin.hpp */,
+				34630C17265CE51200517663 /* multi_val_sparse_bin.hpp */,
+				34630C18265CE51200517663 /* train_share_states.cpp */,
 				34D0839520EE6326001167ED /* bin.cpp */,
 				34D0839620EE6326001167ED /* config.cpp */,
 				34D0839720EE6326001167ED /* config_auto.cpp */,
@@ -276,6 +293,8 @@
 		34D083AF20EE6326001167ED /* network */ = {
 			isa = PBXGroup;
 			children = (
+				34630C13265CE4F800517663 /* ifaddrs_patch.cpp */,
+				34630C14265CE4F800517663 /* ifaddrs_patch.h */,
 				34D083B020EE6326001167ED /* linker_topo.cpp */,
 				34D083B120EE6326001167ED /* linkers.h */,
 				34D083B220EE6326001167ED /* linkers_mpi.cpp */,
@@ -302,6 +321,14 @@
 		34D083BD20EE6326001167ED /* treelearner */ = {
 			isa = PBXGroup;
 			children = (
+				34630BFE265CE4D600517663 /* col_sampler.hpp */,
+				34630BFF265CE4D600517663 /* cost_effective_gradient_boosting.hpp */,
+				34630C01265CE4D600517663 /* cuda_kernel_launcher.h */,
+				34630C02265CE4D600517663 /* cuda_tree_learner.cpp */,
+				34630C03265CE4D600517663 /* cuda_tree_learner.h */,
+				34630C07265CE4D600517663 /* linear_tree_learner.cpp */,
+				34630C08265CE4D600517663 /* linear_tree_learner.h */,
+				34630C09265CE4D600517663 /* monotone_constraints.hpp */,
 				34D083BE20EE6326001167ED /* data_parallel_tree_learner.cpp */,
 				34D083BF20EE6326001167ED /* data_partition.hpp */,
 				34D083C020EE6326001167ED /* feature_histogram.hpp */,
@@ -395,22 +422,25 @@
 				34D083DB20EE6326001167ED /* file_io.cpp in Sources */,
 				34D083DC20EE6326001167ED /* json11.cpp in Sources */,
 				34D083D020EE6326001167ED /* boosting.cpp in Sources */,
+				34630C15265CE4F800517663 /* ifaddrs_patch.cpp in Sources */,
 				34D083D320EE6326001167ED /* gbdt_prediction.cpp in Sources */,
+				34630C0E265CE4D600517663 /* cuda_tree_learner.cpp in Sources */,
 				34D083D820EE6326001167ED /* config_auto.cpp in Sources */,
 				34D083DE20EE6326001167ED /* parser.cpp in Sources */,
 				34D083D220EE6326001167ED /* gbdt_model_text.cpp in Sources */,
 				34D083CF20EE6326001167ED /* application.cpp in Sources */,
 				34D083E920EE6326001167ED /* data_parallel_tree_learner.cpp in Sources */,
 				34D083E820EE6326001167ED /* objective_function.cpp in Sources */,
+				34630C19265CE51200517663 /* train_share_states.cpp in Sources */,
 				34D083EA20EE6326001167ED /* feature_parallel_tree_learner.cpp in Sources */,
 				34D083EF20EE6326001167ED /* serial_tree_learner.cpp in Sources */,
 				34D083E220EE6326001167ED /* dcg_calculator.cpp in Sources */,
 				34D083EB20EE6326001167ED /* gpu_tree_learner.cpp in Sources */,
 				34D083DA20EE6326001167ED /* dataset_loader.cpp in Sources */,
 				34D083E620EE6326001167ED /* linkers_socket.cpp in Sources */,
+				34630C0F265CE4D600517663 /* linear_tree_learner.cpp in Sources */,
 				34D083D120EE6326001167ED /* gbdt.cpp in Sources */,
 				34D083D920EE6326001167ED /* dataset.cpp in Sources */,
-				34D083D520EE6326001167ED /* c_api.cpp in Sources */,
 				34D083E720EE6326001167ED /* network.cpp in Sources */,
 				34D083D720EE6326001167ED /* config.cpp in Sources */,
 			);
@@ -422,26 +452,24 @@
 		04E05A8266584F4D99DAD485 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/../Library/Mac";
 				EXECUTABLE_PREFIX = lib;
 				EXECUTABLE_SUFFIX = .a;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					USE_SOCKET,
+					"MM_MALLOC=1",
+					"USE_SOCKET=1",
 					"NDEBUG=1",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../Dist/include";
-				INSTALL_PATH = "";
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../Dist/include",
+					"$(PROJECT_DIR)/../Dist/external_libs/eigen",
+				);
 				LIBRARY_STYLE = STATIC;
-				OTHER_LIBTOOLFLAGS = " ";
-				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = LightGBM_;
-				SECTORDER_FLAGS = "";
-				USE_HEADERMAP = NO;
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -454,12 +482,15 @@
 		3FD29E83A31B4C32B864BB15 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
 				CLANG_CXX_LIBRARY = "libc++";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"MM_MALLOC=1",
+					"USE_SOCKET=1",
+				);
 				OBJROOT = ../../../Temp;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = macosx10.9;
+				SDKROOT = macosx10.11;
 				SYMROOT = ../Library;
 			};
 			name = Debug;
@@ -467,26 +498,24 @@
 		64E6C6D18C8E4C66A0D24B5A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/../Library/Mac";
 				EXECUTABLE_PREFIX = lib;
 				EXECUTABLE_SUFFIX = .a;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					USE_SOCKET,
+					"MM_MALLOC=1",
+					"USE_SOCKET=1",
 					"DEBUG=1",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../Dist/include";
-				INSTALL_PATH = "";
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../Dist/include",
+					"$(PROJECT_DIR)/../Dist/external_libs/eigen",
+				);
 				LIBRARY_STYLE = STATIC;
-				OTHER_LIBTOOLFLAGS = " ";
-				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = LightGBM_;
-				SECTORDER_FLAGS = "";
-				USE_HEADERMAP = NO;
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -499,12 +528,15 @@
 		799D1B50A65C40369F40473B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
 				CLANG_CXX_LIBRARY = "libc++";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"MM_MALLOC=1",
+					"USE_SOCKET=1",
+				);
 				OBJROOT = ../../../Temp;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = macosx10.9;
+				SDKROOT = macosx10.11;
 				SYMROOT = ../Library;
 			};
 			name = Release;

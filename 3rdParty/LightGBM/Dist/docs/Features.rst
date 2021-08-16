@@ -28,7 +28,7 @@ LightGBM uses histogram-based algorithms\ `[4, 5, 6] <#references>`__, which buc
 
    -  No need to store additional information for pre-sorting feature values
 
--  **Reduce communication cost for parallel learning**
+-  **Reduce communication cost for distributed learning**
 
 Sparse Optimization
 -------------------
@@ -45,6 +45,7 @@ Most decision tree learning algorithms grow trees by level (depth)-wise, like th
 
 .. image:: ./_static/images/level-wise.png
    :align: center
+   :alt: A diagram depicting level wise tree growth in which the best possible node is split one level down. The strategy results in a symmetric tree, where every node in a level has child nodes resulting in an additional layer of depth.
 
 LightGBM grows trees leaf-wise (best-first)\ `[7] <#references>`__. It will choose the leaf with max delta loss to grow.
 Holding ``#leaf`` fixed, leaf-wise algorithms tend to achieve lower loss than level-wise algorithms.
@@ -53,6 +54,7 @@ Leaf-wise may cause over-fitting when ``#data`` is small, so LightGBM includes t
 
 .. image:: ./_static/images/leaf-wise.png
    :align: center
+   :alt: A diagram depicting leaf wise tree growth in which only the node with the highest loss change is split and not bother with the rest of the nodes in the same level. This results in an asymmetrical tree where subsequent splitting is happening only on one side of the tree.
 
 Optimal Split for Categorical Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,14 +70,16 @@ More specifically, LightGBM sorts the histogram (for a categorical feature) acco
 Optimization in Network Communication
 -------------------------------------
 
-It only needs to use some collective communication algorithms, like "All reduce", "All gather" and "Reduce scatter", in parallel learning of LightGBM.
-LightGBM implement state-of-art algorithms\ `[9] <#references>`__.
+It only needs to use some collective communication algorithms, like "All reduce", "All gather" and "Reduce scatter", in distributed learning of LightGBM.
+LightGBM implements state-of-art algorithms\ `[9] <#references>`__.
 These collective communication algorithms can provide much better performance than point-to-point communication.
 
-Optimization in Parallel Learning
----------------------------------
+.. _Optimization in Parallel Learning:
 
-LightGBM provides the following parallel learning algorithms.
+Optimization in Distributed Learning
+------------------------------------
+
+LightGBM provides the following distributed learning algorithms.
 
 Feature Parallel
 ~~~~~~~~~~~~~~~~
@@ -85,15 +89,15 @@ Traditional Algorithm
 
 Feature parallel aims to parallelize the "Find Best Split" in the decision tree. The procedure of traditional feature parallel is:
 
-1. Partition data vertically (different machines have different feature set)
+1. Partition data vertically (different machines have different feature set).
 
-2. Workers find local best split point {feature, threshold} on local feature set
+2. Workers find local best split point {feature, threshold} on local feature set.
 
-3. Communicate local best splits with each other and get the best one
+3. Communicate local best splits with each other and get the best one.
 
-4. Worker with best split to perform split, then send the split result of data to other workers
+4. Worker with best split to perform split, then send the split result of data to other workers.
 
-5. Other workers split data according received data
+5. Other workers split data according to received data.
 
 The shortcomings of traditional feature parallel:
 
@@ -111,11 +115,11 @@ And ``#data`` won't be larger, so it is reasonable to hold the full data in ever
 
 The procedure of feature parallel in LightGBM:
 
-1. Workers find local best split point {feature, threshold} on local feature set
+1. Workers find local best split point {feature, threshold} on local feature set.
 
-2. Communicate local best splits with each other and get the best one
+2. Communicate local best splits with each other and get the best one.
 
-3. Perform best split
+3. Perform best split.
 
 However, this feature parallel algorithm still suffers from computation overhead for "split" when ``#data`` is large.
 So it will be better to use data parallel when ``#data`` is large.
@@ -128,13 +132,13 @@ Traditional Algorithm
 
 Data parallel aims to parallelize the whole decision learning. The procedure of data parallel is:
 
-1. Partition data horizontally
+1. Partition data horizontally.
 
-2. Workers use local data to construct local histograms
+2. Workers use local data to construct local histograms.
 
-3. Merge global histograms from all local histograms
+3. Merge global histograms from all local histograms.
 
-4. Find best split from merged global histograms, then perform splits
+4. Find best split from merged global histograms, then perform splits.
 
 The shortcomings of traditional data parallel:
 
@@ -147,7 +151,7 @@ Data Parallel in LightGBM
 
 We reduce communication cost of data parallel in LightGBM:
 
-1. Instead of "Merge global histograms from all local histograms", LightGBM use "Reduce Scatter" to merge histograms of different (non-overlapping) features for different workers.
+1. Instead of "Merge global histograms from all local histograms", LightGBM uses "Reduce Scatter" to merge histograms of different (non-overlapping) features for different workers.
    Then workers find the local best split on local merged histograms and sync up the global best split.
 
 2. As aforementioned, LightGBM uses histogram subtraction to speed up training.
@@ -201,9 +205,13 @@ LightGBM supports the following metrics:
 
 -  MAP
 
--  Multi class log loss
+-  Multi-class log loss
 
--  Multi class error rate
+-  Multi-class error rate
+
+-  AUC-mu ``(new in v3.0.0)``
+
+-  Average precision ``(new in v3.1.0)``
 
 -  Fair
 
@@ -244,9 +252,9 @@ Other Features
 
 -  Validation metric output during training
 
--  Multi validation data
+-  Multiple validation data
 
--  Multi metrics
+-  Multiple metrics
 
 -  Early stopping (both training and prediction)
 
@@ -257,7 +265,7 @@ For more details, please refer to `Parameters <./Parameters.rst>`__.
 References
 ----------
 
-[1] Guolin Ke, Qi Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei Ye, and Tie-Yan Liu. "`LightGBM\: A Highly Efficient Gradient Boosting Decision Tree`_." In Advances in Neural Information Processing Systems (NIPS), pp. 3149-3157. 2017.
+[1] Guolin Ke, Qi Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei Ye, Tie-Yan Liu. "`LightGBM\: A Highly Efficient Gradient Boosting Decision Tree`_." Advances in Neural Information Processing Systems 30 (NIPS 2017), pp. 3149-3157.
 
 [2] Mehta, Manish, Rakesh Agrawal, and Jorma Rissanen. "SLIQ: A fast scalable classifier for data mining." International Conference on Extending Database Technology. Springer Berlin Heidelberg, 1996.
 
@@ -267,23 +275,23 @@ References
 
 [5] Machado, F. P. "Communication and memory efficient parallel decision tree construction." (2003).
 
-[6] Li, Ping, Qiang Wu, and Christopher J. Burges. "Mcrank: Learning to rank using multiple classification and gradient boosting." Advances in neural information processing systems. 2007.
+[6] Li, Ping, Qiang Wu, and Christopher J. Burges. "Mcrank: Learning to rank using multiple classification and gradient boosting." Advances in Neural Information Processing Systems 20 (NIPS 2007).
 
 [7] Shi, Haijian. "Best-first decision tree learning." Diss. The University of Waikato, 2007.
 
 [8] Walter D. Fisher. "`On Grouping for Maximum Homogeneity`_." Journal of the American Statistical Association. Vol. 53, No. 284 (Dec., 1958), pp. 789-798.
 
-[9] Thakur, Rajeev, Rolf Rabenseifner, and William Gropp. "`Optimization of collective communication operations in MPICH`_." International Journal of High Performance Computing Applications 19.1 (2005): 49-66.
+[9] Thakur, Rajeev, Rolf Rabenseifner, and William Gropp. "`Optimization of collective communication operations in MPICH`_." International Journal of High Performance Computing Applications 19.1 (2005), pp. 49-66.
 
-[10] Qi Meng, Guolin Ke, Taifeng Wang, Wei Chen, Qiwei Ye, Zhi-Ming Ma, Tieyan Liu. "`A Communication-Efficient Parallel Algorithm for Decision Tree`_." Advances in Neural Information Processing Systems 29 (NIPS 2016).
+[10] Qi Meng, Guolin Ke, Taifeng Wang, Wei Chen, Qiwei Ye, Zhi-Ming Ma, Tie-Yan Liu. "`A Communication-Efficient Parallel Algorithm for Decision Tree`_." Advances in Neural Information Processing Systems 29 (NIPS 2016), pp. 1279-1287.
 
-[11] Huan Zhang, Si Si and Cho-Jui Hsieh. "`GPU Acceleration for Large-scale Tree Boosting`_." arXiv:1706.08359, 2017.
+[11] Huan Zhang, Si Si and Cho-Jui Hsieh. "`GPU Acceleration for Large-scale Tree Boosting`_." SysML Conference, 2018.
 
 .. _LightGBM\: A Highly Efficient Gradient Boosting Decision Tree: https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree.pdf
 
-.. _On Grouping for Maximum Homogeneity: https://www.researchgate.net/publication/242580910_On_Grouping_for_Maximum_Homogeneity
+.. _On Grouping for Maximum Homogeneity: https://www.tandfonline.com/doi/abs/10.1080/01621459.1958.10501479
 
-.. _Optimization of collective communication operations in MPICH: http://wwwi10.lrr.in.tum.de/~gerndt/home/Teaching/HPCSeminar/mpich_multi_coll.pdf
+.. _Optimization of collective communication operations in MPICH: https://www.mcs.anl.gov/~thakur/papers/ijhpca-coll.pdf
 
 .. _A Communication-Efficient Parallel Algorithm for Decision Tree: http://papers.nips.cc/paper/6381-a-communication-efficient-parallel-algorithm-for-decision-tree
 

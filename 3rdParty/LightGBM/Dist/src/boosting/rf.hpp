@@ -1,33 +1,39 @@
+/*!
+ * Copyright (c) 2017 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #ifndef LIGHTGBM_BOOSTING_RF_H_
 #define LIGHTGBM_BOOSTING_RF_H_
 
 #include <LightGBM/boosting.h>
 #include <LightGBM/metric.h>
-#include "score_updater.hpp"
-#include "gbdt.h"
 
-#include <cstdio>
-#include <vector>
 #include <string>
+#include <cstdio>
 #include <fstream>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "gbdt.h"
+#include "score_updater.hpp"
 
 namespace LightGBM {
 /*!
-* \brief Rondom Forest implementation
+* \brief Random Forest implementation
 */
-class RF: public GBDT {
-public:
-
-  RF() : GBDT() { 
+class RF : public GBDT {
+ public:
+  RF() : GBDT() {
     average_output_ = true;
   }
 
   ~RF() {}
 
   void Init(const Config* config, const Dataset* train_data, const ObjectiveFunction* objective_function,
-            const std::vector<const Metric*>& training_metrics) override {
+    const std::vector<const Metric*>& training_metrics) override {
     CHECK(config->bagging_freq > 0 && config->bagging_fraction < 1.0f && config->bagging_fraction > 0.0f);
-    CHECK(config->feature_fraction < 1.0f && config->feature_fraction > 0.0f);
+    CHECK(config->feature_fraction <= 1.0f && config->feature_fraction > 0.0f);
     GBDT::Init(config, train_data, objective_function, training_metrics);
 
     if (num_init_iteration_ > 0) {
@@ -35,103 +41,120 @@ public:
         MultiplyScore(cur_tree_id, 1.0f / num_init_iteration_);
       }
     } else {
-      CHECK(train_data->metadata().init_score() == nullptr);
+      CHECK_EQ(train_data->metadata().init_score(), nullptr);
     }
-    // cannot use RF for multi-class. 
-    CHECK(num_tree_per_iteration_ == 1);
+    CHECK_EQ(num_tree_per_iteration_, num_class_);
     // not shrinkage rate for the RF
     shrinkage_rate_ = 1.0f;
     // only boosting one time
     Boosting();
     if (is_use_subset_ && bag_data_cnt_ < num_data_) {
-      size_t total_size = static_cast<size_t>(num_data_) * num_tree_per_iteration_;
-      tmp_grad_.resize(total_size);
-      tmp_hess_.resize(total_size);
+      tmp_grad_.resize(num_data_);
+      tmp_hess_.resize(num_data_);
     }
   }
 
   void ResetConfig(const Config* config) override {
     CHECK(config->bagging_freq > 0 && config->bagging_fraction < 1.0f && config->bagging_fraction > 0.0f);
-    CHECK(config->feature_fraction < 1.0f && config->feature_fraction > 0.0f);
+    CHECK(config->feature_fraction <= 1.0f && config->feature_fraction > 0.0f);
     GBDT::ResetConfig(config);
     // not shrinkage rate for the RF
     shrinkage_rate_ = 1.0f;
   }
 
   void ResetTrainingData(const Dataset* train_data, const ObjectiveFunction* objective_function,
-                         const std::vector<const Metric*>& training_metrics) override {
+    const std::vector<const Metric*>& training_metrics) override {
     GBDT::ResetTrainingData(train_data, objective_function, training_metrics);
     if (iter_ + num_init_iteration_ > 0) {
       for (int cur_tree_id = 0; cur_tree_id < num_tree_per_iteration_; ++cur_tree_id) {
         train_score_updater_->MultiplyScore(1.0f / (iter_ + num_init_iteration_), cur_tree_id);
       }
     }
-    // cannot use RF for multi-class.
-    CHECK(num_tree_per_iteration_ == 1);
+    CHECK_EQ(num_tree_per_iteration_, num_class_);
     // only boosting one time
     Boosting();
     if (is_use_subset_ && bag_data_cnt_ < num_data_) {
-      size_t total_size = static_cast<size_t>(num_data_) * num_tree_per_iteration_;
-      tmp_grad_.resize(total_size);
-      tmp_hess_.resize(total_size);
+      tmp_grad_.resize(num_data_);
+      tmp_hess_.resize(num_data_);
     }
   }
 
   void Boosting() override {
     if (objective_function_ == nullptr) {
-      Log::Fatal("No object function provided");
+      Log::Fatal("RF mode do not support custom objective function, please use built-in objectives.");
     }
-    std::vector<double> tmp_score(num_tree_per_iteration_ * num_data_, 0.0f);
+    init_scores_.resize(num_tree_per_iteration_, 0.0);
+    for (int cur_tree_id = 0; cur_tree_id < num_tree_per_iteration_; ++cur_tree_id) {
+      init_scores_[cur_tree_id] = BoostFromAverage(cur_tree_id, false);
+    }
+    size_t total_size = static_cast<size_t>(num_data_) * num_tree_per_iteration_;
+    std::vector<double> tmp_scores(total_size, 0.0f);
+    #pragma omp parallel for schedule(static)
+    for (int j = 0; j < num_tree_per_iteration_; ++j) {
+      size_t offset = static_cast<size_t>(j)* num_data_;
+      for (data_size_t i = 0; i < num_data_; ++i) {
+        tmp_scores[offset + i] = init_scores_[j];
+      }
+    }
     objective_function_->
-      GetGradients(tmp_score.data(), gradients_.data(), hessians_.data());
+      GetGradients(tmp_scores.data(), gradients_.data(), hessians_.data());
   }
 
   bool TrainOneIter(const score_t* gradients, const score_t* hessians) override {
     // bagging logic
     Bagging(iter_);
-    if (gradients == nullptr || hessians == nullptr) {
-      gradients = gradients_.data();
-      hessians = hessians_.data();
-    }
+    CHECK_EQ(gradients, nullptr);
+    CHECK_EQ(hessians, nullptr);
 
+    gradients = gradients_.data();
+    hessians = hessians_.data();
     for (int cur_tree_id = 0; cur_tree_id < num_tree_per_iteration_; ++cur_tree_id) {
-      std::unique_ptr<Tree> new_tree(new Tree(2));
+      std::unique_ptr<Tree> new_tree(new Tree(2, false, false));
+      size_t offset = static_cast<size_t>(cur_tree_id)* num_data_;
       if (class_need_train_[cur_tree_id]) {
-        size_t bias = static_cast<size_t>(cur_tree_id)* num_data_;
-
-        auto grad = gradients + bias;
-        auto hess = hessians + bias;
+        auto grad = gradients + offset;
+        auto hess = hessians + offset;
 
         // need to copy gradients for bagging subset.
         if (is_use_subset_ && bag_data_cnt_ < num_data_) {
           for (int i = 0; i < bag_data_cnt_; ++i) {
-            tmp_grad_[bias + i] = grad[bag_data_indices_[i]];
-            tmp_hess_[bias + i] = hess[bag_data_indices_[i]];
+            tmp_grad_[i] = grad[bag_data_indices_[i]];
+            tmp_hess_[i] = hess[bag_data_indices_[i]];
           }
-          grad = tmp_grad_.data() + bias;
-          hess = tmp_hess_.data() + bias;
+          grad = tmp_grad_.data();
+          hess = tmp_hess_.data();
         }
 
-        new_tree.reset(tree_learner_->Train(grad, hess, is_constant_hessian_,
-                       forced_splits_json_));
+        new_tree.reset(tree_learner_->Train(grad, hess, false));
       }
 
       if (new_tree->num_leaves() > 1) {
+        double pred = init_scores_[cur_tree_id];
+        auto residual_getter = [pred](const label_t* label, int i) {return static_cast<double>(label[i]) - pred; };
+        tree_learner_->RenewTreeOutput(new_tree.get(), objective_function_, residual_getter,
+          num_data_, bag_data_indices_.data(), bag_data_cnt_);
+        if (std::fabs(init_scores_[cur_tree_id]) > kEpsilon) {
+          new_tree->AddBias(init_scores_[cur_tree_id]);
+        }
         // update score
         MultiplyScore(cur_tree_id, (iter_ + num_init_iteration_));
-        ConvertTreeOutput(new_tree.get());
         UpdateScore(new_tree.get(), cur_tree_id);
         MultiplyScore(cur_tree_id, 1.0 / (iter_ + num_init_iteration_ + 1));
       } else {
         // only add default score one-time
-        if (!class_need_train_[cur_tree_id] && models_.size() < static_cast<size_t>(num_tree_per_iteration_)) {
-          double output = class_default_output_[cur_tree_id];
-          objective_function_->ConvertOutput(&output, &output);
-          new_tree->AsConstantTree(output);
-          train_score_updater_->AddScore(output, cur_tree_id);
-          for (auto& score_updater : valid_score_updater_) {
-            score_updater->AddScore(output, cur_tree_id);
+        if (models_.size() < static_cast<size_t>(num_tree_per_iteration_)) {
+          double output = 0.0;
+          if (!class_need_train_[cur_tree_id]) {
+            if (objective_function_ != nullptr) {
+              output = objective_function_->BoostFromScore(cur_tree_id);
+            } else {
+              output = init_scores_[cur_tree_id];
+            }
           }
+          new_tree->AsConstantTree(output);
+          MultiplyScore(cur_tree_id, (iter_ + num_init_iteration_));
+          UpdateScore(new_tree.get(), cur_tree_id);
+          MultiplyScore(cur_tree_id, 1.0 / (iter_ + num_init_iteration_ + 1));
         }
       }
       // add model
@@ -169,17 +192,8 @@ public:
     }
   }
 
-  void ConvertTreeOutput(Tree* tree) {
-    tree->Shrinkage(1.0f);
-    for (int i = 0; i < tree->num_leaves(); ++i) {
-      double output = tree->LeafOutput(i);
-      objective_function_->ConvertOutput(&output, &output);
-      tree->SetLeafOutput(i, output);
-    }
-  }
-
   void AddValidDataset(const Dataset* valid_data,
-                       const std::vector<const Metric*>& valid_metrics) override {
+    const std::vector<const Metric*>& valid_metrics) override {
     GBDT::AddValidDataset(valid_data, valid_metrics);
     if (iter_ + num_init_iteration_ > 0) {
       for (int cur_tree_id = 0; cur_tree_id < num_tree_per_iteration_; ++cur_tree_id) {
@@ -193,16 +207,11 @@ public:
     return true;
   };
 
-  std::vector<double> EvalOneMetric(const Metric* metric, const double* score) const override {
-    return metric->Eval(score, nullptr);
-  }
-
-private:
-
+ private:
   std::vector<score_t> tmp_grad_;
   std::vector<score_t> tmp_hess_;
-
+  std::vector<double> init_scores_;
 };
 
 }  // namespace LightGBM
-#endif   // LIGHTGBM_BOOSTING_RF_H_
+#endif  // LIGHTGBM_BOOSTING_RF_H_

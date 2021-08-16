@@ -1,19 +1,26 @@
-#include "gbdt.h"
-
-#include <LightGBM/utils/common.h>
-#include <LightGBM/objective_function.h>
+/*!
+ * Copyright (c) 2017 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
+#include <LightGBM/config.h>
 #include <LightGBM/metric.h>
+#include <LightGBM/objective_function.h>
+#include <LightGBM/utils/array_args.h>
+#include <LightGBM/utils/common.h>
 
-#include <sstream>
 #include <string>
+#include <sstream>
 #include <vector>
+
+#include "gbdt.h"
 
 namespace LightGBM {
 
-const std::string kModelVersion = "v2";
+const char* kModelVersion = "v3";
 
-std::string GBDT::DumpModel(int num_iteration) const {
+std::string GBDT::DumpModel(int start_iteration, int num_iteration, int feature_importance_type) const {
   std::stringstream str_buf;
+  Common::C_stringstream(str_buf);
 
   str_buf << "{";
   str_buf << "\"name\":\"" << SubModelName() << "\"," << '\n';
@@ -22,18 +29,65 @@ std::string GBDT::DumpModel(int num_iteration) const {
   str_buf << "\"num_tree_per_iteration\":" << num_tree_per_iteration_ << "," << '\n';
   str_buf << "\"label_index\":" << label_idx_ << "," << '\n';
   str_buf << "\"max_feature_idx\":" << max_feature_idx_ << "," << '\n';
+  if (objective_function_ != nullptr) {
+    str_buf << "\"objective\":\"" << objective_function_->ToString() << "\",\n";
+  }
 
-  str_buf << "\"feature_names\":[\""
-    << Common::Join(feature_names_, "\",\"") << "\"],"
-    << '\n';
+  str_buf << "\"average_output\":" << (average_output_ ? "true" : "false") << ",\n";
+
+  str_buf << "\"feature_names\":[\"" << CommonC::Join(feature_names_, "\",\"")
+          << "\"]," << '\n';
+
+  str_buf << "\"monotone_constraints\":["
+          << CommonC::Join(monotone_constraints_, ",") << "]," << '\n';
+
+  str_buf << "\"feature_infos\":" << "{";
+  bool first_obj = true;
+  for (size_t i = 0; i < feature_infos_.size(); ++i) {
+    std::stringstream json_str_buf;
+    Common::C_stringstream(json_str_buf);
+    auto strs = Common::Split(feature_infos_[i].c_str(), ":");
+    if (strs[0][0] == '[') {
+      strs[0].erase(0, 1);  // remove '['
+      strs[1].erase(strs[1].size() - 1);  // remove ']'
+      double max_, min_;
+      Common::Atof(strs[0].c_str(), &min_);
+      Common::Atof(strs[1].c_str(), &max_);
+      json_str_buf << std::setprecision(std::numeric_limits<double>::digits10 + 2);
+      json_str_buf << "{\"min_value\":" << Common::AvoidInf(min_) << ",";
+      json_str_buf << "\"max_value\":" << Common::AvoidInf(max_) << ",";
+      json_str_buf << "\"values\":[]}";
+    } else if (strs[0] != "none") {  // categorical feature
+      auto vals = CommonC::StringToArray<int>(feature_infos_[i], ':');
+      auto max_idx = ArrayArgs<int>::ArgMax(vals);
+      auto min_idx = ArrayArgs<int>::ArgMin(vals);
+      json_str_buf << "{\"min_value\":" << vals[min_idx] << ",";
+      json_str_buf << "\"max_value\":" << vals[max_idx] << ",";
+      json_str_buf << "\"values\":[" << CommonC::Join(vals, ",") << "]}";
+    } else {  // unused feature
+      continue;
+    }
+    if (!first_obj) {
+      str_buf << ",";
+    }
+    str_buf << "\"" << feature_names_[i] << "\":";
+    str_buf << json_str_buf.str();
+    first_obj = false;
+  }
+  str_buf << "}," << '\n';
 
   str_buf << "\"tree_info\":[";
   int num_used_model = static_cast<int>(models_.size());
+  int total_iteration = num_used_model / num_tree_per_iteration_;
+  start_iteration = std::max(start_iteration, 0);
+  start_iteration = std::min(start_iteration, total_iteration);
   if (num_iteration > 0) {
-    num_used_model = std::min(num_iteration * num_tree_per_iteration_, num_used_model);
+    int end_iteration = start_iteration + num_iteration;
+    num_used_model = std::min(end_iteration * num_tree_per_iteration_ , num_used_model);
   }
-  for (int i = 0; i < num_used_model; ++i) {
-    if (i > 0) {
+  int start_model = start_iteration * num_tree_per_iteration_;
+  for (int i = start_model; i < num_used_model; ++i) {
+    if (i > start_model) {
       str_buf << ",";
     }
     str_buf << "{";
@@ -41,7 +95,26 @@ std::string GBDT::DumpModel(int num_iteration) const {
     str_buf << models_[i]->ToJSON();
     str_buf << "}";
   }
-  str_buf << "]" << '\n';
+  str_buf << "]," << '\n';
+
+  std::vector<double> feature_importances = FeatureImportance(
+      num_iteration, feature_importance_type);
+  // store the importance first
+  std::vector<std::pair<size_t, std::string>> pairs;
+  for (size_t i = 0; i < feature_importances.size(); ++i) {
+    size_t feature_importances_int = static_cast<size_t>(feature_importances[i]);
+    if (feature_importances_int > 0) {
+      pairs.emplace_back(feature_importances_int, feature_names_[i]);
+    }
+  }
+  str_buf << '\n' << "\"feature_importances\":" << "{";
+  for (size_t i = 0; i < pairs.size(); ++i) {
+    if (i > 0) {
+      str_buf << ",";
+    }
+    str_buf << "\"" << pairs[i].second << "\":" << std::to_string(pairs[i].first);
+  }
+  str_buf << "}" << '\n';
 
   str_buf << "}" << '\n';
 
@@ -50,6 +123,7 @@ std::string GBDT::DumpModel(int num_iteration) const {
 
 std::string GBDT::ModelToIfElse(int num_iteration) const {
   std::stringstream str_buf;
+  Common::C_stringstream(str_buf);
 
   str_buf << "#include \"gbdt.h\"" << '\n';
   str_buf << "#include <LightGBM/utils/common.h>" << '\n';
@@ -84,6 +158,7 @@ std::string GBDT::ModelToIfElse(int num_iteration) const {
   str_buf << " };" << '\n' << '\n';
 
   std::stringstream pred_str_buf;
+  Common::C_stringstream(pred_str_buf);
 
   pred_str_buf << "\t" << "int early_stop_round_counter = 0;" << '\n';
   pred_str_buf << "\t" << "std::memset(output, 0, sizeof(double) * num_tree_per_iteration_);" << '\n';
@@ -115,6 +190,7 @@ std::string GBDT::ModelToIfElse(int num_iteration) const {
   str_buf << " };" << '\n' << '\n';
 
   std::stringstream pred_str_buf_map;
+  Common::C_stringstream(pred_str_buf_map);
 
   pred_str_buf_map << "\t" << "int early_stop_round_counter = 0;" << '\n';
   pred_str_buf_map << "\t" << "std::memset(output, 0, sizeof(double) * num_tree_per_iteration_);" << '\n';
@@ -143,7 +219,7 @@ std::string GBDT::ModelToIfElse(int num_iteration) const {
   str_buf << "\t\t\t" << "output[k] /= num_iteration_for_pred_;" << '\n';
   str_buf << "\t\t" << "}" << '\n';
   str_buf << "\t" << "}" << '\n';
-  str_buf << "\t" << "else if (objective_function_ != nullptr) {" << '\n';
+  str_buf << "\t" << "if (objective_function_ != nullptr) {" << '\n';
   str_buf << "\t\t" << "objective_function_->ConvertOutput(output, output);" << '\n';
   str_buf << "\t" << "}" << '\n';
   str_buf << "}" << '\n';
@@ -157,7 +233,7 @@ std::string GBDT::ModelToIfElse(int num_iteration) const {
   str_buf << "\t\t\t" << "output[k] /= num_iteration_for_pred_;" << '\n';
   str_buf << "\t\t" << "}" << '\n';
   str_buf << "\t" << "}" << '\n';
-  str_buf << "\t" << "else if (objective_function_ != nullptr) {" << '\n';
+  str_buf << "\t" << "if (objective_function_ != nullptr) {" << '\n';
   str_buf << "\t\t" << "objective_function_->ConvertOutput(output, output);" << '\n';
   str_buf << "\t" << "}" << '\n';
   str_buf << "}" << '\n';
@@ -185,7 +261,7 @@ std::string GBDT::ModelToIfElse(int num_iteration) const {
   str_buf << "\t" << "}" << '\n';
   str_buf << "}" << '\n';
 
-  //PredictLeafIndexByMap
+  // PredictLeafIndexByMap
   str_buf << "double (*PredictTreeLeafByMapPtr[])(const std::unordered_map<int, double>&) = { ";
   for (int i = 0; i < num_used_model; ++i) {
     if (i > 0) {
@@ -229,11 +305,12 @@ bool GBDT::SaveModelToIfElse(int num_iteration, const char* filename) const {
   ifs.close();
   output_file.close();
 
-  return (bool)output_file;
+  return static_cast<bool>(output_file);
 }
 
-std::string GBDT::SaveModelToString(int num_iteration) const {
+std::string GBDT::SaveModelToString(int start_iteration, int num_iteration, int feature_importance_type) const {
   std::stringstream ss;
+  Common::C_stringstream(ss);
 
   // output model type
   ss << SubModelName() << '\n';
@@ -254,34 +331,47 @@ std::string GBDT::SaveModelToString(int num_iteration) const {
     ss << "average_output" << '\n';
   }
 
-  ss << "feature_names=" << Common::Join(feature_names_, " ") << '\n';
+  ss << "feature_names=" << CommonC::Join(feature_names_, " ") << '\n';
 
-  ss << "feature_infos=" << Common::Join(feature_infos_, " ") << '\n';
+  if (monotone_constraints_.size() != 0) {
+    ss << "monotone_constraints=" << CommonC::Join(monotone_constraints_, " ")
+       << '\n';
+  }
+
+  ss << "feature_infos=" << CommonC::Join(feature_infos_, " ") << '\n';
 
   int num_used_model = static_cast<int>(models_.size());
+  int total_iteration = num_used_model / num_tree_per_iteration_;
+  start_iteration = std::max(start_iteration, 0);
+  start_iteration = std::min(start_iteration, total_iteration);
   if (num_iteration > 0) {
-    num_used_model = std::min(num_iteration * num_tree_per_iteration_, num_used_model);
+    int end_iteration = start_iteration + num_iteration;
+    num_used_model = std::min(end_iteration * num_tree_per_iteration_, num_used_model);
   }
 
-  std::vector<std::string> tree_strs(num_used_model);
-  std::vector<size_t> tree_sizes(num_used_model);
+  int start_model = start_iteration * num_tree_per_iteration_;
+
+  std::vector<std::string> tree_strs(num_used_model - start_model);
+  std::vector<size_t> tree_sizes(num_used_model - start_model);
   // output tree models
   #pragma omp parallel for schedule(static)
-  for (int i = 0; i < num_used_model; ++i) {
-    tree_strs[i] = "Tree=" + std::to_string(i) + '\n';
-    tree_strs[i] += models_[i]->ToString() + '\n';
-    tree_sizes[i] = tree_strs[i].size();
+  for (int i = start_model; i < num_used_model; ++i) {
+    const int idx = i - start_model;
+    tree_strs[idx] = "Tree=" + std::to_string(idx) + '\n';
+    tree_strs[idx] += models_[i]->ToString() + '\n';
+    tree_sizes[idx] = tree_strs[idx].size();
   }
 
-  ss << "tree_sizes=" << Common::Join(tree_sizes, " ") << '\n';
+  ss << "tree_sizes=" << CommonC::Join(tree_sizes, " ") << '\n';
   ss << '\n';
 
-  for (int i = 0; i < num_used_model; ++i) {
+  for (int i = 0; i < num_used_model - start_model; ++i) {
     ss << tree_strs[i];
     tree_strs[i].clear();
   }
-
-  std::vector<double> feature_importances = FeatureImportance(num_iteration, 0);
+  ss << "end of trees" << "\n";
+  std::vector<double> feature_importances = FeatureImportance(
+      num_iteration, feature_importance_type);
   // store the importance first
   std::vector<std::pair<size_t, std::string>> pairs;
   for (size_t i = 0; i < feature_importances.size(); ++i) {
@@ -291,31 +381,36 @@ std::string GBDT::SaveModelToString(int num_iteration) const {
     }
   }
   // sort the importance
-  std::sort(pairs.begin(), pairs.end(),
-            [](const std::pair<size_t, std::string>& lhs,
-               const std::pair<size_t, std::string>& rhs) {
+  std::stable_sort(pairs.begin(), pairs.end(),
+                   [](const std::pair<size_t, std::string>& lhs,
+                      const std::pair<size_t, std::string>& rhs) {
     return lhs.first > rhs.first;
   });
-  ss << '\n' << "feature importances:" << '\n';
+  ss << '\n' << "feature_importances:" << '\n';
   for (size_t i = 0; i < pairs.size(); ++i) {
     ss << pairs[i].second << "=" << std::to_string(pairs[i].first) << '\n';
   }
   if (config_ != nullptr) {
-    ss << "parameters:" << '\n';
+    ss << "\nparameters:" << '\n';
     ss << config_->ToString() << "\n";
+    ss << "end of parameters" << '\n';
+  } else if (!loaded_parameter_.empty()) {
+    ss << "\nparameters:" << '\n';
+    ss << loaded_parameter_ << "\n";
+    ss << "end of parameters" << '\n';
   }
   return ss.str();
 }
 
-bool GBDT::SaveModelToFile(int num_iteration, const char* filename) const {
+bool GBDT::SaveModelToFile(int start_iteration, int num_iteration, int feature_importance_type, const char* filename) const {
   /*! \brief File to write models */
-  std::ofstream output_file;
-  output_file.open(filename, std::ios::out | std::ios::binary);
-  std::string str_to_write = SaveModelToString(num_iteration);
-  output_file.write(str_to_write.c_str(), str_to_write.size());
-  output_file.close();
-
-  return (bool)output_file;
+  auto writer = VirtualFileWriter::Make(filename);
+  if (!writer->Init()) {
+    Log::Fatal("Model file %s is not available for writes", filename);
+  }
+  std::string str_to_write = SaveModelToString(start_iteration, num_iteration, feature_importance_type);
+  auto size = writer->Write(str_to_write.c_str(), str_to_write.size());
+  return size > 0;
 }
 
 bool GBDT::LoadModelFromString(const char* buffer, size_t len) {
@@ -327,26 +422,25 @@ bool GBDT::LoadModelFromString(const char* buffer, size_t len) {
   std::unordered_map<std::string, std::string> key_vals;
   while (p < end) {
     auto line_len = Common::GetLine(p);
-    std::string cur_line(p, line_len);
     if (line_len > 0) {
+      std::string cur_line(p, line_len);
       if (!Common::StartsWith(cur_line, "Tree=")) {
         auto strs = Common::Split(cur_line.c_str(), '=');
         if (strs.size() == 1) {
           key_vals[strs[0]] = "";
-        }
-        else if (strs.size() == 2) {
+        } else if (strs.size() == 2) {
           key_vals[strs[0]] = strs[1];
-        }
-        else if (strs.size() > 2) {
+        } else if (strs.size() > 2) {
           if (strs[0] == "feature_names") {
             key_vals[strs[0]] = cur_line.substr(std::strlen("feature_names="));
+          } else if (strs[0] == "monotone_constraints") {
+            key_vals[strs[0]] = cur_line.substr(std::strlen("monotone_constraints="));
           } else {
             // Use first 128 chars to avoid exceed the message buffer.
             Log::Fatal("Wrong line at model file: %s", cur_line.substr(0, std::min<size_t>(128, cur_line.size())).c_str());
           }
         }
-      }
-      else {
+      } else {
         break;
       }
     }
@@ -401,6 +495,15 @@ bool GBDT::LoadModelFromString(const char* buffer, size_t len) {
     return false;
   }
 
+  // get monotone_constraints
+  if (key_vals.count("monotone_constraints")) {
+    monotone_constraints_ = CommonC::StringToArray<int8_t>(key_vals["monotone_constraints"].c_str(), ' ');
+    if (monotone_constraints_.size() != static_cast<size_t>(max_feature_idx_ + 1)) {
+      Log::Fatal("Wrong size of monotone_constraints");
+      return false;
+    }
+  }
+
   if (key_vals.count("feature_infos")) {
     feature_infos_ = Common::Split(key_vals["feature_infos"].c_str(), ' ');
     if (feature_infos_.size() != static_cast<size_t>(max_feature_idx_ + 1)) {
@@ -414,29 +517,29 @@ bool GBDT::LoadModelFromString(const char* buffer, size_t len) {
 
   if (key_vals.count("objective")) {
     auto str = key_vals["objective"];
-    loaded_objective_.reset(ObjectiveFunction::CreateObjectiveFunction(str));
+    loaded_objective_.reset(ObjectiveFunction::CreateObjectiveFunction(ParseObjectiveAlias(str)));
     objective_function_ = loaded_objective_.get();
   }
+
   if (!key_vals.count("tree_sizes")) {
     while (p < end) {
       auto line_len = Common::GetLine(p);
-      std::string cur_line(p, line_len);
       if (line_len > 0) {
+        std::string cur_line(p, line_len);
         if (Common::StartsWith(cur_line, "Tree=")) {
           p += line_len;
           p = Common::SkipNewLine(p);
           size_t used_len = 0;
           models_.emplace_back(new Tree(p, &used_len));
           p += used_len;
-        }
-        else {
+        } else {
           break;
         }
       }
       p = Common::SkipNewLine(p);
     }
   } else {
-    std::vector<size_t> tree_sizes = Common::StringToArray<size_t>(key_vals["tree_sizes"].c_str(), ' ');
+    std::vector<size_t> tree_sizes = CommonC::StringToArray<size_t>(key_vals["tree_sizes"].c_str(), ' ');
     std::vector<size_t> tree_boundries(tree_sizes.size() + 1, 0);
     int num_trees = static_cast<int>(tree_sizes.size());
     for (int i = 0; i < num_trees; ++i) {
@@ -465,12 +568,36 @@ bool GBDT::LoadModelFromString(const char* buffer, size_t len) {
   num_iteration_for_pred_ = static_cast<int>(models_.size()) / num_tree_per_iteration_;
   num_init_iteration_ = num_iteration_for_pred_;
   iter_ = 0;
-
+  bool is_inparameter = false;
+  std::stringstream ss;
+  Common::C_stringstream(ss);
+  while (p < end) {
+    auto line_len = Common::GetLine(p);
+    if (line_len > 0) {
+      std::string cur_line(p, line_len);
+      if (cur_line == std::string("parameters:")) {
+        is_inparameter = true;
+      } else if (cur_line == std::string("end of parameters")) {
+        break;
+      } else if (is_inparameter) {
+        ss << cur_line << "\n";
+        if (Common::StartsWith(cur_line, "[linear_tree: ")) {
+          int is_linear = 0;
+          Common::Atoi(cur_line.substr(14, 1).c_str(), &is_linear);
+          linear_tree_ = static_cast<bool>(is_linear);
+        }
+      }
+    }
+    p += line_len;
+    p = Common::SkipNewLine(p);
+  }
+  if (!ss.str().empty()) {
+    loaded_parameter_ = ss.str();
+  }
   return true;
 }
 
 std::vector<double> GBDT::FeatureImportance(int num_iteration, int importance_type) const {
-
   int num_used_model = static_cast<int>(models_.size());
   if (num_iteration > 0) {
     num_iteration += 0;
@@ -482,6 +609,9 @@ std::vector<double> GBDT::FeatureImportance(int num_iteration, int importance_ty
     for (int iter = 0; iter < num_used_model; ++iter) {
       for (int split_idx = 0; split_idx < models_[iter]->num_leaves() - 1; ++split_idx) {
         if (models_[iter]->split_gain(split_idx) > 0) {
+#ifdef DEBUG
+          CHECK_GE(models_[iter]->split_feature(split_idx), 0);
+#endif
           feature_importances[models_[iter]->split_feature(split_idx)] += 1.0;
         }
       }
@@ -490,6 +620,9 @@ std::vector<double> GBDT::FeatureImportance(int num_iteration, int importance_ty
     for (int iter = 0; iter < num_used_model; ++iter) {
       for (int split_idx = 0; split_idx < models_[iter]->num_leaves() - 1; ++split_idx) {
         if (models_[iter]->split_gain(split_idx) > 0) {
+#ifdef DEBUG
+          CHECK_GE(models_[iter]->split_feature(split_idx), 0);
+#endif
           feature_importances[models_[iter]->split_feature(split_idx)] += models_[iter]->split_gain(split_idx);
         }
       }

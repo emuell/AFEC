@@ -1,25 +1,35 @@
+/*!
+ * Copyright (c) 2016 Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License. See LICENSE file in the project root for license information.
+ */
 #ifndef LIGHTGBM_OBJECTIVE_BINARY_OBJECTIVE_HPP_
 #define LIGHTGBM_OBJECTIVE_BINARY_OBJECTIVE_HPP_
 
+#include <LightGBM/network.h>
 #include <LightGBM/objective_function.h>
 
-#include <cstring>
+#include <string>
+#include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <vector>
 
 namespace LightGBM {
 /*!
 * \brief Objective function for binary classification
 */
 class BinaryLogloss: public ObjectiveFunction {
-public:
-  explicit BinaryLogloss(const Config& config, std::function<bool(label_t)> is_pos = nullptr) {
+ public:
+  explicit BinaryLogloss(const Config& config,
+                         std::function<bool(label_t)> is_pos = nullptr)
+      : deterministic_(config.deterministic) {
     sigmoid_ = static_cast<double>(config.sigmoid);
     if (sigmoid_ <= 0.0) {
       Log::Fatal("Sigmoid parameter %f should be greater than zero", sigmoid_);
     }
     is_unbalance_ = config.is_unbalance;
     scale_pos_weight_ = static_cast<double>(config.scale_pos_weight);
-    if(is_unbalance_ && std::fabs(scale_pos_weight_ - 1.0f) > 1e-6) {
+    if (is_unbalance_ && std::fabs(scale_pos_weight_ - 1.0f) > 1e-6) {
       Log::Fatal("Cannot set is_unbalance and scale_pos_weight at the same time");
     }
     is_pos_ = is_pos;
@@ -28,7 +38,8 @@ public:
     }
   }
 
-  explicit BinaryLogloss(const std::vector<std::string>& strs) {
+  explicit BinaryLogloss(const std::vector<std::string>& strs)
+      : deterministic_(false) {
     sigmoid_ = -1;
     for (auto str : strs) {
       auto tokens = Common::Split(str.c_str(), ':');
@@ -60,10 +71,16 @@ public:
         ++cnt_negative;
       }
     }
+    num_pos_data_ = cnt_positive;
+    if (Network::num_machines() > 1) {
+      cnt_positive = Network::GlobalSyncUpBySum(cnt_positive);
+      cnt_negative = Network::GlobalSyncUpBySum(cnt_negative);
+    }
+    need_train_ = true;
     if (cnt_negative == 0 || cnt_positive == 0) {
       Log::Warning("Contains only one class");
       // not need to boost.
-      num_data_ = 0;
+      need_train_ = false;
     }
     Log::Info("Number of positive: %d, number of negative: %d", cnt_positive, cnt_negative);
     // use -1 for negative class, and 1 for positive class
@@ -86,6 +103,9 @@ public:
   }
 
   void GetGradients(const double* score, score_t* gradients, score_t* hessians) const override {
+    if (!need_train_) {
+      return;
+    }
     if (weights_ == nullptr) {
       #pragma omp parallel for schedule(static)
       for (data_size_t i = 0; i < num_data_; ++i) {
@@ -114,28 +134,34 @@ public:
       }
     }
   }
-  
+
   // implement custom average to boost from (if enabled among options)
-  double BoostFromScore() const override {
+  double BoostFromScore(int) const override {
     double suml = 0.0f;
     double sumw = 0.0f;
     if (weights_ != nullptr) {
-      #pragma omp parallel for schedule(static) reduction(+:suml,sumw)
+      #pragma omp parallel for schedule(static) reduction(+:suml, sumw) if (!deterministic_)
       for (data_size_t i = 0; i < num_data_; ++i) {
-        suml += label_[i] * weights_[i];
+        suml += is_pos_(label_[i]) * weights_[i];
         sumw += weights_[i];
       }
     } else {
       sumw = static_cast<double>(num_data_);
-      #pragma omp parallel for schedule(static) reduction(+:suml)
+      #pragma omp parallel for schedule(static) reduction(+:suml) if (!deterministic_)
       for (data_size_t i = 0; i < num_data_; ++i) {
-        suml += label_[i];
+        suml += is_pos_(label_[i]);
       }
     }
     double pavg = suml / sumw;
+    pavg = std::min(pavg, 1.0 - kEpsilon);
+    pavg = std::max<double>(pavg, kEpsilon);
     double initscore = std::log(pavg / (1.0f - pavg)) / sigmoid_;
     Log::Info("[%s:%s]: pavg=%f -> initscore=%f",  GetName(), __func__, pavg, initscore);
     return initscore;
+  }
+
+  bool ClassNeedTrain(int /*class_id*/) const override {
+    return need_train_;
   }
 
   const char* GetName() const override {
@@ -157,9 +183,13 @@ public:
 
   bool NeedAccuratePrediction() const override { return false; }
 
-private:
+  data_size_t NumPositiveData() const override { return num_pos_data_; }
+
+ private:
   /*! \brief Number of data */
   data_size_t num_data_;
+  /*! \brief Number of positive samples */
+  data_size_t num_pos_data_;
   /*! \brief Pointer of label */
   const label_t* label_;
   /*! \brief True if using unbalance training */
@@ -174,6 +204,8 @@ private:
   const label_t* weights_;
   double scale_pos_weight_;
   std::function<bool(label_t)> is_pos_;
+  bool need_train_;
+  const bool deterministic_;
 };
 
 }  // namespace LightGBM
