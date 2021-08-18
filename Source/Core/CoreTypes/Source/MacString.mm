@@ -5,6 +5,11 @@
 
 // =================================================================================================
 
+// Assumed below when converting from NSString/CFString to TString and vice versa
+MStaticAssert(sizeof(UniChar) == sizeof(TUnicodeChar));
+
+// =================================================================================================
+
 // to let wrong use of the buffers crash as often as possible
 #if defined(MDebug)
   #define MCStringBufferReallocation
@@ -182,7 +187,7 @@ TString::TString(const char* pCString, TCStringEncoding Encoding)
       }
 
       ::CFStringGetCharacters(StrRef, ::CFRangeMake(0, NumDestChars - 1),
-        mpStringBuffer->ReadWritePtr());
+        (UniChar*)mpStringBuffer->ReadWritePtr());
 
       mpStringBuffer->ReadWritePtr()[NumDestChars - 1] = '\0';
 
@@ -202,7 +207,7 @@ void TString::CreateCStringArray(
     const int StrLen = Size();
 
     const CFStringRef StringRef = ::CFStringCreateWithCharactersNoCopy(
-      NULL, Chars(), StrLen, kCFAllocatorNull);
+      NULL, (UniChar*)Chars(), StrLen, kCFAllocatorNull);
 
     CFIndex FilledBytes;
 
@@ -318,7 +323,7 @@ TString& TString::SetFromCStringArray(
     }
 
     ::CFStringGetCharacters(StrRef, ::CFRangeMake(0, NumDestChars - 1),
-      mpStringBuffer->ReadWritePtr());
+      (UniChar*)mpStringBuffer->ReadWritePtr());
 
     mpStringBuffer->ReadWritePtr()[NumDestChars - 1] = '\0';
 
@@ -338,7 +343,7 @@ TString& TString::SetFromCStringArray(
 
 CFStringRef gCreateCFString(const TString& String)
 {
-  return ::CFStringCreateWithCharacters(NULL, String.Chars(), String.Size());
+  return ::CFStringCreateWithCharacters(NULL, (UniChar*)String.Chars(), String.Size());
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -350,7 +355,7 @@ TString gCreateStringFromCFString(CFStringRef StringRef)
     TArray<TUnicodeChar> StringBuffer((int)Length + 1);
 
     ::CFStringGetCharacters(StringRef, ::CFRangeMake(0, Length),
-      StringBuffer.FirstWrite());
+      (UniChar*)StringBuffer.FirstWrite());
 
     StringBuffer[(int)Length] = '\0';
 
@@ -366,7 +371,7 @@ TString gCreateStringFromCFString(CFStringRef StringRef)
 
 NSString* gCreateNSString(const TString& String)
 {
-  return [NSString stringWithCharacters:String.Chars() length:String.Size()];
+  return [NSString stringWithCharacters:(UniChar*)String.Chars() length:String.Size()];
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -375,4 +380,3 @@ TString gCreateStringFromNSString(NSString* pNsString)
 {
   return gCreateStringFromCFString((CFStringRef)pNsString);
 }
-
