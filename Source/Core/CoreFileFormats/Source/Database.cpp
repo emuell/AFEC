@@ -203,8 +203,11 @@ void TDatabase::Execute(const TString& StatementString)
   
   char* pErrorMessage = NULL;
   
+  const std::string StatementCString = 
+    StatementString.StdCString(TString::kUtf8);
+
   const int Result = ::sqlite3_exec(mpSqliteDatabase, 
-    StatementString.CString(TString::kUtf8), NULL, NULL, &pErrorMessage);
+    StatementCString.c_str(), NULL, NULL, &pErrorMessage);
 
   TString ErrorMessage;
   
@@ -339,7 +342,7 @@ int TDatabase::Open(const TString& DbPath, bool ThrowOnError)
     if ( JournalMode != "wal" )
     {
       TLog::SLog()->AddLine( "Database", "FAILED to set journal_mode to WAL: "
-        "using journal_mode '%s' instead", JournalMode.CString());
+        "using journal_mode '%s' instead", JournalMode.StdCString().c_str());
 
       MInvalid( "Failed to set database journal_mode" );
     }
@@ -461,8 +464,10 @@ int TDatabase::TStatement::ParameterCount()const
 
 int TDatabase::TStatement::ParameterIndex(const TString& ParameterString)
 {
-  return ::sqlite3_bind_parameter_index(
-    mpSqliteStatement, ParameterString.CString(TString::kUtf8));
+  const std::string ParameterCString = 
+    ParameterString.StdCString(TString::kUtf8);
+
+  return ::sqlite3_bind_parameter_index(mpSqliteStatement, ParameterCString.c_str());
 }
 
 // -------------------------------------------------------------------------------------------------

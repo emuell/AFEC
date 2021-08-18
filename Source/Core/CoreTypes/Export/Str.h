@@ -12,13 +12,15 @@
 #include "CoreTypes/Export/Array.h"
 #include "CoreTypes/Export/List.h"
 
+#include <string>
+
 // =================================================================================================
 
 #if defined(MCompiler_VisualCPP)
   typedef wchar_t TUnicodeChar;
 
 #elif defined(MCompiler_GCC)
-  typedef unsigned short TUnicodeChar;
+  typedef char16_t TUnicodeChar;
 
 #else
   #error "Unknown Compiler"
@@ -98,9 +100,9 @@ public:
   TString(const TString& Other);
 
   //! move string data from one string to another
-  #if defined(MCompiler_Has_RValue_References)
-    TString(TString&& Other);
-  #endif
+#if defined(MCompiler_Has_RValue_References)
+  TString(TString&& Other);
+#endif
 
   //! create a string from Unicode chars
   TString(const TUnicodeChar* pChars);
@@ -125,11 +127,11 @@ public:
   
   TString& operator= (const TString& Other);
   TString& operator= (const TUnicodeChar* pChars);
-  
+
   #if defined(MCompiler_Has_RValue_References)
     TString& operator= (TString&& Other);
   #endif
-
+  
   #if defined(MCompiler_GCC)
     TString& operator= (const wchar_t* pChars);
   #endif
@@ -251,12 +253,10 @@ public:
   //! const access to the char buffer. Will always return a valid pointer,
   //! even if the string is empty.
   const TUnicodeChar* Chars()const;
-  
-  //! return a temporary, converted copy of this wide char string into
-  //! a single byte c_str. Do NOT hold/store the pointer some where,
-  //! because the returned pointer will be autoreleased as soon as it goes out  
-  //! of scope! If you need a persistent copy of the string, make a copy!
-  const char* CString(TCStringEncoding Encoding = kPlatformEncoding)const;
+
+  //! return a copy of this wide char string into a single byte std::string
+  //! with the given encoding.
+  std::string StdCString(TCStringEncoding Encoding = kPlatformEncoding)const;
   //@}
   
 
@@ -312,7 +312,7 @@ public:
   TString& ToUpper();
   //@}
   
-  
+
   //@{ ... Append, Prepend, Insert, Replace or Delete Chars/Substrings
   
   //! prepend a string or character
@@ -458,9 +458,6 @@ private:
   };
 
   // ===============================================================================================
-
-  static void SInitPlatformString();
-  static void SExitPlatformString();
 
   //! release the current buffer and create a new buffer with the same content
   void MakeStringBufferUnique();
@@ -709,8 +706,8 @@ TString operator+ (const TString& First, const TUnicodeChar* pSecond);
   TString operator+ (const TString& First, const wchar_t* pSecond);
 #endif
 #if defined(MCompiler_Has_RValue_References)
-  TString operator+ (TString&& First, const TString& Second);
-  TString operator+ (TString&& First, const TUnicodeChar* pSecond);
+TString operator+ (TString&& First, const TString& Second);
+TString operator+ (TString&& First, const TUnicodeChar* pSecond);
   #if defined(MCompiler_GCC)
     TString operator+ (TString&& First, const wchar_t* pSecond);
   #endif

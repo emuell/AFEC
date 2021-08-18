@@ -94,7 +94,7 @@ int gMain(const TList<TString>& Arguments)
   }
   catch (const TReadableException& Exception)
   {
-    std::cerr << Exception.Message().CString();
+    std::cerr << Exception.what();
     return boost::exit_exception_failure;
   }
 
@@ -116,7 +116,7 @@ int gMain(const TList<TString>& Arguments)
   }
   catch (const TReadableException& Exception)
   {
-    std::cerr << Exception.Message().CString();
+    std::cerr << Exception.what();
     return boost::exit_exception_failure;
   }
 
@@ -162,7 +162,7 @@ void TCrawlerTests::Crawler()
 
     const TString ColumnType = DbStatement.ColumnTypeString(ColumnIndex);
     const TString ColumnName = DbStatement.ColumnName(ColumnIndex);
-    BOOST_TEST_CONTEXT("column: " << ColumnName.CString())
+    BOOST_TEST_CONTEXT("column: " << ColumnName.StdCString())
     {
       int RawColumnContentSize = 0;
       const void* pRawColumnContent = DbStatement.ColumnBlob(
@@ -192,9 +192,10 @@ void TCrawlerTests::Crawler()
         }
 
         // create a string stream for boost property_tree
-        const char* pConlumnContentCString = ColumnContent.CString(TString::kUtf8);
+        const std::string ConlumnContentCString = ColumnContent.StdCString(TString::kUtf8);
+
         boost::iostreams::stream<boost::iostreams::array_source> ColumnContentStream(
-          pConlumnContentCString, ::strlen(pConlumnContentCString));
+          ConlumnContentCString.c_str(), ConlumnContentCString.size());
 
         if (ColumnName.EndsWith("_S"))
         {
@@ -210,7 +211,7 @@ void TCrawlerTests::Crawler()
         else if (ColumnName.EndsWith("_R"))
         {
           // check if the content is a valid number
-          BOOST_CHECK_NO_THROW(std::stod(pConlumnContentCString));
+          BOOST_CHECK_NO_THROW(std::stod(ConlumnContentCString));
         }
         else if (ColumnName.EndsWith("_VR"))
         {
@@ -562,7 +563,7 @@ void TCrawlerTests::ClassificationModel()
       BOOST_CHECK_EQUAL(DbStatement.ColumnName(1), "classes_VS");
       {
         std::stringstream TempStream; 
-        TempStream << DbStatement.ColumnText(1).CString();
+        TempStream << DbStatement.ColumnText(1).StdCString();
         
         boost::property_tree::ptree PredictedClassesTree;
         BOOST_CHECK_NO_THROW(boost::property_tree::read_json(
@@ -575,15 +576,15 @@ void TCrawlerTests::ClassificationModel()
       BOOST_CHECK_EQUAL(DbStatement.ColumnName(2), "categories_VS");
       {
         std::stringstream TempStream; 
-        TempStream << DbStatement.ColumnText(2).CString();
+        TempStream << DbStatement.ColumnText(2).StdCString();
         
         boost::property_tree::ptree PredictedCategoriesTree;
         BOOST_CHECK_NO_THROW(boost::property_tree::read_json(
           TempStream, PredictedCategoriesTree));
         
         const TString PredictedCategory = (PredictedCategoriesTree.size()) ?
-          PredictedCategoriesTree.front().second.get_value<std::string>().c_str() : 
-          "";
+          TString(PredictedCategoriesTree.front().second.get_value<std::string>().c_str(), TString::kUtf8) : 
+          TString();
         
         if (!FileName.StartsWith(PredictedCategory))
         {

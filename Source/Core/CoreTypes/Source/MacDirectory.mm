@@ -1005,7 +1005,7 @@ TDirectory gApplicationResourceDir()
     }
 
     TLog::SLog()->AddLine("System", "Using '%s' as resource base directory...", 
-      TString(sResourcesBaseDir.c_str()).CString());
+      sResourcesBaseDir.c_str());
   }
   
   return TString(sResourcesBaseDir.c_str(), TString::kUtf8);

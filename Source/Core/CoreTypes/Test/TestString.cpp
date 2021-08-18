@@ -183,8 +183,8 @@ void TCoreTypesTest::String()
   // Unicode/Utf8 conversion
   const wchar_t UniChar[] = L"UnicodeMess:\u00c4\u00Dc\u3487\u1234\u2345End";
   
-  BOOST_CHECK_EQUAL(TString(UniChar), TString(TString(UniChar).CString(
-    TString::kUtf8), TString::kUtf8));
+  BOOST_CHECK_EQUAL(TString(UniChar), TString(TString(UniChar).StdCString(
+    TString::kUtf8).c_str(), TString::kUtf8));
   
   TArray<char> CUtf8Array;
   TString(UniChar).CreateCStringArray(CUtf8Array, TString::kUtf8);
@@ -198,8 +198,8 @@ void TCoreTypesTest::String()
   // Unicode/FileSystem conversion
   const wchar_t FileSystemChars[] = L"NoUnicodeChars.)(!%/\\\"";
   
-  BOOST_CHECK_EQUAL(TString(FileSystemChars), TString(TString(FileSystemChars).CString(
-    TString::kFileSystemEncoding), TString::kFileSystemEncoding));
+  BOOST_CHECK_EQUAL(TString(FileSystemChars), TString(TString(FileSystemChars).StdCString(
+    TString::kFileSystemEncoding).c_str(), TString::kFileSystemEncoding));
   
   TArray<char> CFileSystemArray;
   TString(FileSystemChars).CreateCStringArray(CFileSystemArray, TString::kFileSystemEncoding);
@@ -213,8 +213,8 @@ void TCoreTypesTest::String()
   // Unicode/PlatformCodePage conversion
   const wchar_t AsciiChars[] = L"NoUnicodeChars.)(!%/\\\"";
   
-  BOOST_CHECK_EQUAL(TString(AsciiChars), TString(TString(AsciiChars).CString(
-    TString::kPlatformEncoding), TString::kPlatformEncoding));
+  BOOST_CHECK_EQUAL(TString(AsciiChars), TString(TString(AsciiChars).StdCString(
+    TString::kPlatformEncoding).c_str(), TString::kPlatformEncoding));
   
   TArray<char> CPlatformArray;
   TString(AsciiChars).CreateCStringArray(CPlatformArray, TString::kPlatformEncoding);
@@ -226,8 +226,8 @@ void TCoreTypesTest::String()
 
   
   // Unicode/Ascii conversion
-  BOOST_CHECK_EQUAL(TString(AsciiChars), TString(TString(AsciiChars).CString(
-    TString::kAscii), TString::kAscii));
+  BOOST_CHECK_EQUAL(TString(AsciiChars), TString(TString(AsciiChars).StdCString(
+    TString::kAscii).c_str(), TString::kAscii));
   
   TArray<char> CStringArray;
   TString(AsciiChars).CreateCStringArray(CStringArray, TString::kAscii);

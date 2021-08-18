@@ -46,9 +46,9 @@ TAnnClassificationModel::OnCreateTrainedModel(
 
 #if 1
   const TString SourceLayerFileName = ModelDir().Path() + "Source_Layer";
-
+  
   shark::exportFiltersToPGMGrid(
-    SourceLayerFileName.CString(TString::kFileSystemEncoding),
+    SourceLayerFileName.StdCString(TString::kFileSystemEncoding),
     TrainData.inputs(), InputFeaturesSize.mX, InputFeaturesSize.mY);
 #endif
 

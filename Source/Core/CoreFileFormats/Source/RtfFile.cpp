@@ -1243,7 +1243,8 @@ void TRtfFile::WriteParagraphs(const TList<TString>& Paragraphs)
 
     if (CurrentLine.IsPureAscii())
     {
-      MWriteCString(CurrentLine.CString());
+      const std::string CurrentLineCString = CurrentLine.StdCString();
+      MWriteCString(CurrentLineCString.c_str());
     }
     else
     {
@@ -1253,8 +1254,10 @@ void TRtfFile::WriteParagraphs(const TList<TString>& Paragraphs)
         
         if (Char >= 127)
         {
-          const TString Escaped = "\\u" + ToString((int)Char, "%d?");
-          MWriteCString(Escaped.CString());
+          const std::string EscapedCharacter = 
+            ("\\u" + ToString((int)Char, "%d?")).StdCString();
+
+          MWriteCString(EscapedCharacter.c_str());
         }
         else
         {

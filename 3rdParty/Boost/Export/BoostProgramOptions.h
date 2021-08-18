@@ -34,7 +34,7 @@ static inline boost::program_options::command_line_parser
   static std::vector<std::string> ArgumentCStrings(Arguments.Size());
   for (int i = 0; i < Arguments.Size(); ++i)
   {
-    ArgumentCStrings[i] = Arguments[i].CString(TString::kUtf8);
+    ArgumentCStrings[i] = Arguments[i].StdCString(TString::kUtf8);
     ppArgs[i] = ArgumentCStrings[i].c_str();
   }
 

@@ -34,7 +34,7 @@ class TReadableException : public std::exception
 {
 public:
   explicit TReadableException(const TString& Message)
-    : mMessage(Message)
+    : mMessage(Message.StdCString(TString::kUtf8))
   {
     WriteIntoLog();
   }
@@ -42,15 +42,20 @@ public:
   virtual ~TReadableException() throw () { }
 
   // return the exception message
-  const TString& Message()const throw () { return mMessage; }
+  TString Message()const 
+  { 
+    return TString(mMessage.c_str(), TString::kUtf8); 
+  }
+
+  virtual const char* what() const throw ()
+  {
+    return mMessage.c_str();
+  }
 
 private:
-  // implement std::exception. Private, because clients should use Message()
-  virtual const char* what() const throw () { return mMessage.CString(); }
-  
   void WriteIntoLog() throw ();
 
-  TString mMessage;
+  const std::string mMessage;
 };
 
 // =================================================================================================

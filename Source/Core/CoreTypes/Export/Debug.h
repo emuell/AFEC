@@ -60,9 +60,6 @@ extern bool gEnableFloatingPointExceptions; // true
   #define MTrace8(FormatText, Var1, Var2, Var3, Var4, Var5, Var6, Var7, Var8) \
     gTraceVar(FormatText, Var1, Var2, Var3, Var4, Var5, Var6, Var7, Var8);
 
-  #define MTraceValue(Variable) \
-    gTraceVar(#Variable ": %s", ToString(Variable).CString());
-
 #elif defined(MRelease)
   #define MAssert(Expression, Text) 
   #define MInvalid(Text)
@@ -77,8 +74,6 @@ extern bool gEnableFloatingPointExceptions; // true
   #define MTrace6(FormatText, Var1, Var2, Var3, Var4, Var5, Var6)
   #define MTrace7(FormatText, Var1, Var2, Var3, Var4, Var5, Var6, Var7)
   #define MTrace8(FormatText, Var1, Var2, Var3, Var4, Var5, Var6, Var7, Var8)
-
-  #define MTraceValue(Variable)
   
 #endif
 

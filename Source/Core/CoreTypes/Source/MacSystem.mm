@@ -632,7 +632,7 @@ TList<TSystem::TArchInfo> TSystem::ExecutableArchitectures(const TString& FileNa
   }
   catch (const TReadableException& Exception)
   {
-    MInvalid(Exception.Message().CString()); MUnused(Exception);
+    MInvalid(Exception.what()); MUnused(Exception);
     return TList<TArchInfo>();
   }
 }
@@ -755,7 +755,7 @@ int TSystem::LaunchProcess(
     DebugString += " " + Args[i];
   }
   DebugString += "'";
-  TLog::SLog()->AddLineNoVarArgs("System", DebugString.CString());
+  TLog::SLog()->AddLineNoVarArgs("System", DebugString.StdCString().c_str());
   
   // fork
   int ProcessId = ::fork();

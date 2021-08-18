@@ -112,9 +112,10 @@ int gMain(const TList<TString>& Arguments)
 
   // ... Parse program options
 
+  const std::string ProgramName = gCutPath(Arguments[0]).StdCString();
   const std::string Usage = std::string() + "Usage:\n" +
-    "  " + gCutPath(Arguments[0]).CString() + " [options] <input.db>\n" +
-    "  " + gCutPath(Arguments[0]).CString() + " --help";
+    "  " + ProgramName.c_str() + " [options] <input.db>\n" +
+    "  " + ProgramName.c_str() + " --help";
 
   boost::program_options::options_description CommandLineOptions("Options");
   CommandLineOptions.add_options()
@@ -183,7 +184,7 @@ int gMain(const TList<TString>& Arguments)
           !TFile(gCutExtension(SourceDatabasePathAndName) + ".shark").Exists())
       {
         std::cerr << "ERROR: src_database is not a valid low level database file: "
-          << SourceDatabasePathAndName.CString() << std::endl;
+          << SourceDatabasePathAndName.StdCString() << std::endl;
 
         std::cerr << Usage << "\n\n" << CommandLineOptions << "\n";
         return EXIT_FAILURE;
@@ -218,7 +219,7 @@ int gMain(const TList<TString>& Arguments)
   }
   catch (const TReadableException& Exception)
   {
-    std::cerr << Exception.Message().CString();
+    std::cerr << Exception.what();
     return EXIT_FAILURE;
   }
 
@@ -245,7 +246,7 @@ int gMain(const TList<TString>& Arguments)
          !TFile(SourceDatabasePathAndName).Exists()))
     {
       TClassificationTester::STraceResults("Loading data set from '%s'",
-        TestDataSetFilename.CString());
+        TestDataSetFilename.StdCString().c_str());
 
       pTestSet = TOwnerPtr<TClassificationTestDataSet>(new TClassificationTestDataSet());
       pTestSet->LoadFromFile(TestDataSetFilename);
@@ -253,14 +254,14 @@ int gMain(const TList<TString>& Arguments)
     else
     {
       TClassificationTester::STraceResults("Creating data set from '%s'",
-        SourceDatabasePathAndName.CString());
+        SourceDatabasePathAndName.StdCString().c_str());
 
       const bool ReadOnlyPool = true;
       TSqliteSampleDescriptorPool Pool(TSampleDescriptors::kLowLevelDescriptors);
       if (!Pool.Open(SourceDatabasePathAndName, ReadOnlyPool))
       {
         throw TReadableException(
-          MText("Failed to open database: '%s'", SourceDatabasePathAndName.CString()));
+          MText("Failed to open database: '%s'", SourceDatabasePathAndName));
       }
 
       const int NumberOfSamples = Pool.NumberOfSamples();
@@ -290,7 +291,7 @@ int gMain(const TList<TString>& Arguments)
         new TClassificationTestDataSet(SourceDatabasePathAndName, Descriptors));
 
       TClassificationTester::STraceResults("Saving data set to '%s'", 
-        TestDataSetFilename.CString());
+        TestDataSetFilename.StdCString().c_str());
 
       // cache set, to quickly rerun next times
       pTestSet->SaveToFile(TestDataSetFilename);
@@ -358,7 +359,7 @@ int gMain(const TList<TString>& Arguments)
     }
 
     TClassificationTester::STraceResults(
-      "-> Best: '%s' Error: %g (Accuracy %.2f%%)", BestModel.CString(),
+      "-> Best: '%s' Error: %g (Accuracy %.2f%%)", BestModel.StdCString().c_str(),
       BestError, (1.0f - BestError)*100.0f);
   }
 
@@ -383,7 +384,7 @@ int gMain(const TList<TString>& Arguments)
   }
   catch (const TReadableException& Exception)
   {
-    ::perror(Exception.Message().CString());
+    ::perror(Exception.what());
     return EXIT_FAILURE;
   }
 
@@ -445,8 +446,8 @@ void TClassificationTester::SDumpPredictionErrors(
 
   if (!ResultFile.Open(TFile::kWrite))
   {
-    throw shark::Exception(
-      TString("Failed to open '" + ResultFile.FileName() + "' for writing").CString());
+    throw shark::Exception(std::string() +
+      "Failed to open '" + ResultFile.FileName().StdCString() + "' for writing");
   }
 
   // sort errors by name
@@ -527,8 +528,8 @@ void TClassificationTester::SDumpPredictionErrors(
 
       Content += ErrorRow;
 
-      // gTraceVar("  %s -> %s", Errors[i].mName.CString(),
-      //   ClassNames[Errors[i].mPredictedClass].CString());
+      // gTraceVar("  %s -> %s", Errors[i].mName.StdCString().c_str(),
+      //   ClassNames[Errors[i].mPredictedClass].StdCString().c_str());
     }
   }
 
@@ -551,8 +552,8 @@ void TClassificationTester::SDumpConfusionMatrix(
 
   if (!ResultFile.Open(TFile::kWrite))
   {
-    throw shark::Exception(
-      TString("Failed to open '" + ResultFile.FileName() + "' for writing").CString());
+    throw shark::Exception(std::string() +
+      "Failed to open '" + ResultFile.FileName().StdCString() + "' for writing");
   }
 
   TList<TString> CsvContent;
@@ -587,7 +588,7 @@ void TClassificationTester::SDumpConfusionMatrix(
     const float ClassAccuracy = SCalcClassAccuracy(ConfusionMatrix[c], c);
     Row += ", " + ToString(ClassAccuracy * 100.0f, "%.02f%%");
 
-    STraceResults("  %.02f%% - %s", ClassAccuracy, ClassNames[c].CString());
+    STraceResults("  %.02f%% - %s", ClassAccuracy, ClassNames[c].StdCString().c_str());
     CsvContent.Append(Row);
   }
 
@@ -603,7 +604,7 @@ float TClassificationTester::SRunTest(
   int                               RandomSeed)
 {
   TClassificationTester::STraceResults(
-    "Training %s model...", Model.Name().CString());
+    "Training %s model...", Model.Name().StdCString().c_str());
 
   float BestError = 1.0f;
   TList<float> Errors, SecondaryErrors;

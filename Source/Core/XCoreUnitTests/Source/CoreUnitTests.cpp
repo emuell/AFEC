@@ -149,7 +149,7 @@ int gMain(const TList<TString>& Arguments)
   }
   catch (const TReadableException& Exception)
   {
-    std::cerr << Exception.Message().CString();
+    std::cerr << Exception.what();
     return boost::exit_exception_failure;
   }
 
@@ -169,7 +169,7 @@ int gMain(const TList<TString>& Arguments)
   }
   catch (const TReadableException& Exception)
   {
-    std::cerr << Exception.Message().CString();
+    std::cerr << Exception.what();
     return boost::exit_exception_failure;
   }
 

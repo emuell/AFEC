@@ -21,26 +21,26 @@ class TObservableConstBaseType;
 inline std::ostream& operator<<( 
   std::ostream& stream, const TString& String )
 {
-  return stream << String.CString();
+  return stream << String.StdCString();
 }
 
 inline std::ostream& operator<<( 
   std::ostream& stream, const TDirectory& Directory )
 {
-  return stream << Directory.Path().CString();
+  return stream << Directory.Path().StdCString();
 }
 
 inline std::ostream& operator<<( 
   std::ostream& stream, const TProductVersion& Version )
 {
-  return stream << ToString(Version).CString();
+  return stream << ToString(Version).StdCString();
 }
 
 template <typename T1, typename T2>
 inline std::ostream& operator<<( 
   std::ostream& stream, const TPair<T1, T2>& Pair )
 {
-  return stream << ToString(Pair).CString();
+  return stream << ToString(Pair).StdCString();
 }
 
 template <typename T>
@@ -73,7 +73,7 @@ template <typename T>
 inline std::ostream& operator<<( 
   std::ostream& stream, const TObservableConstBaseType<T>& Observable )
 {
-  return stream << ToString(Observable).CString();
+  return stream << ToString(Observable).StdCString();
 }
 
 // =================================================================================================
@@ -147,18 +147,18 @@ inline std::ostream& operator<<(
             \
           if ( (Got1 && !Got2) || (!Got1 && Got2) || (ch1 != ch2) )  \
           { \
-            BOOST_TEST_ERROR((TString(Fname1) + " == " + TString(Fname2)).CString()); \
+            BOOST_TEST_ERROR((TString(Fname1) + " == " + TString(Fname2)).StdCString()); \
           } \
         } \
       } \
       else  \
       { \
-        BOOST_TEST_ERROR((TString(Fname2) + " does not exist").CString()); \
+        BOOST_TEST_ERROR((TString(Fname2) + " does not exist").StdCString()); \
       } \
     } \
     else  \
     { \
-      BOOST_TEST_ERROR((TString(Fname1) + " does not exist").CString()); \
+      BOOST_TEST_ERROR((TString(Fname1) + " does not exist").StdCString()); \
     } \
   }
 
