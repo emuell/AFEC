@@ -108,7 +108,7 @@ MStaticAssert(sizeof(double) == 8);
 
     const std::string FlagsCString = TString(pFlags).StdCString();
     
-    return ::freopen(Utf8FileName.c_str(), FlagsCString.s_str(), FileHandle);
+    return ::freopen(Utf8FileName.c_str(), FlagsCString.c_str(), FileHandle);
   }
 
   int uunlink(const TUnicodeChar* pFileName)
