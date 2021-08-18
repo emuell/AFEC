@@ -96,8 +96,9 @@ void TCoreAudioAudioDecoder::Open()
   const TString BaseFileName = gCutPath(mFileName).ReplaceChar(':', '/');
   
   FSRef ref; 
+  MStaticAssert(sizeof(TUnicodeChar) == sizeof(UniChar));
   err = ::FSMakeFSRefUnicode(&ParentRef, BaseFileName.Size(), 
-    BaseFileName.Chars(), kTextEncodingDefaultFormat, &ref);
+    (UniChar*)BaseFileName.Chars(), kTextEncodingDefaultFormat, &ref);
 
   err = ::ExtAudioFileOpen(&ref, &mpExtAudioFileRef);
   
