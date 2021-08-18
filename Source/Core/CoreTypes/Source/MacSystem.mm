@@ -771,9 +771,10 @@ int TSystem::LaunchProcess(
     ::close(FdNull);
 
     // convert TString args to cstrings
-    char File[PATH_MAX];
-    ::snprintf(File, PATH_MAX, "%s", 
-      FileName.StdCString(TString::kFileSystemEncoding).c_str());
+    TArray<char> FileChars;
+    const std::string FileNameCString = FileName.StdCString(TString::kFileSystemEncoding);
+    FileChars.SetSize((int)FileNameCString.size() + 1);
+    ::strcpy(FileChars.FirstWrite(), FileNameCString.c_str());
     
     TList< TArray<char> > ArgChars;
     ArgChars.PreallocateSpace(Args.Size());
@@ -790,7 +791,7 @@ int TSystem::LaunchProcess(
     
     TList<char*> ArgCharPtrs;
     ArgCharPtrs.PreallocateSpace(Args.Size() + 2);
-    ArgCharPtrs.Append(File);
+    ArgCharPtrs.Append(FileChars.FirstWrite());
     for (int i = 0; i < Args.Size(); ++i)
     {      
       ArgCharPtrs.Append(ArgChars[i].FirstWrite());
@@ -798,7 +799,7 @@ int TSystem::LaunchProcess(
     ArgCharPtrs.Append(NULL);
     
     // exec
-    ::execv(File, ArgCharPtrs.FirstRead());
+    ::execv(ArgCharPtrs[0], ArgCharPtrs.FirstRead());
     
     return ::raise(SIGKILL); // no exit (will crash)
   }
