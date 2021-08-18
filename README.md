@@ -5,9 +5,11 @@
 
 ## Audio Feature Extraction
 
-AFEC is a cross platform **audio feature extraction** and **sound classification** CLI tool written in C++. It analyzes audio files and saves a set of musically *interesting* audio-features into a sqlite database, which can then be used for other tasks - e.g. to organize sample libraries or to ease finding sounds with specific audio features (key, BPM, sound classes, RMS and so on). It's a CLI tool only to generate data - it does *NOT* provide a GUI to view the analyzed audio features or to preview audio files.
+AFEC is a cross platform **audio feature extraction** and **sound classification** CLI tool written in C++. It analyzes audio files and saves a set of musically *interesting* audio-features into a sqlite database, which can then be used for other tasks - e.g. to organize sample libraries or to ease finding sounds with specific audio features (key, BPM, sound classes, RMS and so on). 
 
-It was initially created for the [Sononym](https://sononym.net) project. This open sourced version got forked off from the initial release of Sononym at version 1.0. It's not compatible with Sononym's internal sample crawler and will not try to be in future. AFEC was released as an open source project, in the hope to be useful for other audio projects. The original authors of this project are no longer part of the Sononym project.
+It's a CLI tool only to generate data - it does *NOT* provide a GUI to view the analyzed audio features or to preview audio files. There are a few basic dash based GUIs available in the [AFEC-Visualizers](https://github.com/emuell/AFEC-Visualizers) repository though, to debug AFEC's results.
+
+The AFEC Crawler was initially created for the [Sononym](https://sononym.net) project. This open sourced version got forked off from the initial release of Sononym at version 1.0. It's not compatible with Sononym's internal sample crawler and will not try to be in future. AFEC was released as an open source project, in the hope to be useful for other audio projects. The original authors of this project are no longer part of the Sononym project.
 
 
 ## Sound Classification with Machine Learning
