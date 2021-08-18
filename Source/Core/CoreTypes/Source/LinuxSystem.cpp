@@ -523,9 +523,9 @@ int TSystem::LaunchProcess(
 
     // convert TString args to cstrings
     TArray<char> FileChars;
-    const char FileCString = FileName.StdCString(TString::kFileSystemEncoding);
-    FileChars.SetSize((int)FileCString.size() + 1);
-    ::strcpy(FileCString.c_str(), pFile);
+    const std::string FileNameCString = FileName.StdCString(TString::kFileSystemEncoding);
+    FileChars.SetSize((int)FileNameCString.size() + 1);
+    ::strcpy(FileCString.c_str(), FileNameCString.c_str());
 
     TList< TArray<char> > ArgCharsList;
     ArgCharsList.PreallocateSpace(Args.Size());

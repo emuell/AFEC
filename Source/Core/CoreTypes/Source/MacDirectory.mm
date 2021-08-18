@@ -251,7 +251,7 @@ static void SSetFileProperties(
     pProperties->mAttributes = 0;
   }
   
-  const TString PathAndNameCString = (Path.Path() + Name).StdCString(TString::kFileSystemEncoding);
+  const std::string PathAndNameCString = (Path.Path() + Name).StdCString(TString::kFileSystemEncoding);
   
   struct stat sb;
   if (::stat(PathAndNameCString.c_str(), &sb) == 0)
@@ -358,7 +358,7 @@ bool TDirectory::ExistsIgnoreCase()const
     
 	const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
-    if (::stat(PathCString, &dirInfo) == 0)
+    if (::stat(PathCString.c_str(), &dirInfo) == 0)
     {
       if (S_ISDIR(dirInfo.st_mode)) // is a dir
       {
