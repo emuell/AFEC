@@ -773,17 +773,17 @@ int TSystem::LaunchProcess(
     // convert TString args to cstrings
     char File[PATH_MAX];
     ::snprintf(File, PATH_MAX, "%s", 
-      FileName.CString(TString::kFileSystemEncoding));
+      FileName.StdCString(TString::kFileSystemEncoding).c_str());
     
     TList< TArray<char> > ArgChars;
     ArgChars.PreallocateSpace(Args.Size());
     for (int i = 0; i < Args.Size(); ++i)
     {
-      const char* pArg = Args[i].CString(TString::kFileSystemEncoding);
+      const std::string Arg = Args[i].StdCString(TString::kFileSystemEncoding);
 
       TArray<char> Chars;
-      Chars.SetSize((int)::strlen(pArg) + 1);
-      ::strcpy(Chars.FirstWrite(), pArg);
+      Chars.SetSize((int)Arg.size() + 1);
+      ::strcpy(Chars.FirstWrite(), Arg.c_str());
       
       ArgChars.Append(Chars);
     }

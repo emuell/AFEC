@@ -95,10 +95,10 @@ static bool SIsRegularFile(const TString& Directory, const dirent* dp)
     char fullpath[PATH_MAX + NAME_MAX];
     fullpath[0] = 0;
 
-    const char* pDirectory = Directory.CString(TString::kFileSystemEncoding);
-    MAssert(pDirectory[::strlen(pDirectory) - 1] == '/', "Expected a trailing /");
+    const std::string DirectoryCString = Directory.StdCString(TString::kFileSystemEncoding);
+    MAssert(DirectoryCString[DirectoryCString.size() - 1] == '/', "Expected a trailing /");
  
-    ::strcpy(fullpath, pDirectory);
+    ::strcpy(fullpath, DirectoryCString.c_str());
     ::strcat(fullpath, dp->d_name);
 
     struct stat fileInfo;
@@ -125,10 +125,10 @@ static bool SIsDirectory(const TString& Directory, const dirent* dp)
     char fullpath[PATH_MAX + NAME_MAX];
     fullpath[0] = 0;
 
-    const char* pDirectory = Directory.CString(TString::kFileSystemEncoding);
-    MAssert(pDirectory[::strlen(pDirectory) - 1] == '/', "Expected a trailing /");
+    const std::string DirectoryCString = Directory.StdCString(TString::kFileSystemEncoding);
+    MAssert(DirectoryCString[DirectoryCString.size() - 1] == '/', "Expected a trailing /");
  
-    ::strcpy(fullpath, pDirectory);
+    ::strcpy(fullpath, DirectoryCString.c_str());
     ::strcat(fullpath, dp->d_name);
 
     struct stat dirInfo;
@@ -148,12 +148,12 @@ static bool SLinksToRegularFile(const TString& Directory, const dirent* dp)
 {
   if (dp->d_type == DT_LNK)
   {
-    const char* pDirectory = Directory.CString(TString::kFileSystemEncoding);
-    MAssert(pDirectory[::strlen(pDirectory) - 1] == '/', "Expected a trailing /");
+    const std::string DirectoryCString = Directory.StdCString(TString::kFileSystemEncoding);
+    MAssert(DirectoryCString[DirectoryCString.size() - 1] == '/', "Expected a trailing /");
 
     const char* pFileName = dp->d_name;
 
-    if (::strlen(pDirectory) + ::strlen(pFileName) >= PATH_MAX + NAME_MAX)
+    if (::strlen(DirectoryCString.c_str()) + ::strlen(pFileName) >= PATH_MAX + NAME_MAX)
     {
       MInvalid("Unexpected path size...");
       return false;
@@ -162,7 +162,7 @@ static bool SLinksToRegularFile(const TString& Directory, const dirent* dp)
     char fullpath[PATH_MAX + NAME_MAX];
     fullpath[0] = 0;
    
-    ::strcpy(fullpath, pDirectory);
+    ::strcpy(fullpath, DirectoryCString.c_str());
     ::strcat(fullpath, pFileName);
 
     char linkbuf[PATH_MAX + NAME_MAX];
@@ -189,18 +189,18 @@ static bool SLinksToDirectory(
   if (dp->d_type == DT_LNK)
   {
     // combine directory and filename to full src path
-    const char* pDirectory = Directory.CString(TString::kFileSystemEncoding);
-    MAssert(pDirectory[::strlen(pDirectory) - 1] == '/', "Expected a trailing /");
+    const std::string DirectoryCString = Directory.StdCString(TString::kFileSystemEncoding);
+    MAssert(DirectoryCString[DirectoryCString.size() - 1] == '/', "Expected a trailing /");
     
     const char* pFileName = dp->d_name;
-    if (::strlen(pDirectory) + ::strlen(pFileName) >= PATH_MAX + NAME_MAX)
+    if (::strlen(DirectoryCString.c_str()) + ::strlen(pFileName) >= PATH_MAX + NAME_MAX)
     {
       MInvalid("Unexpected path size...");
       return false;
     }
     
     char fullpath[PATH_MAX + NAME_MAX] = { 0 };
-    ::strcpy(fullpath, pDirectory);
+    ::strcpy(fullpath, DirectoryCString.c_str());
     ::strcat(fullpath, pFileName);
 
     // resolve the link
@@ -253,11 +253,11 @@ static void SSetFileProperties(
     pProperties->mAttributes = 0;
   }
 
-  const TString PathAndName = Path.Path() + Name;
-
+  const std::string PathAndNameCString = (Path.Path() + Name).StdCString(TString::kFileSystemEncoding);
+  
   // NB: use stat and not lstat here: we want to show link target file's properties 
   struct stat sb;
-  if (::stat(PathAndName.CString(TString::kFileSystemEncoding), &sb) == 0)
+  if (::stat(PathAndNameCString.c_str(), &sb) == 0)
   {
     pProperties->mWriteDate = TDate::SCreateFromStatTime(sb.st_mtime);
     pProperties->mWriteTime = TDayTime::SCreateFromStatTime(sb.st_mtime);
@@ -345,7 +345,7 @@ static TInstallationPath SInstallationPath()
       else
       {
         TLog::SLog()->AddLine("System", "Running from directory '%s'...",
-          gApplicationDir().Path().CString(TString::kPlatformEncoding));
+          gApplicationDir().Path().StdCString(TString::kPlatformEncoding).c_str());
 
         sInstallPath = kInstallationFolder; // "."
       }
@@ -361,9 +361,11 @@ static TInstallationPath SInstallationPath()
 
 bool TDirectory::Exists()const
 {
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
+
   struct stat dirInfo;
  
-  if (::lstat(Path().CString(TString::kFileSystemEncoding), &dirInfo) == 0)
+  if (::lstat(PathCString.c_str(), &dirInfo) == 0)
   {
     if (S_ISDIR(dirInfo.st_mode)) // is a dir
     {
@@ -372,7 +374,7 @@ bool TDirectory::Exists()const
     else if (S_ISLNK(dirInfo.st_mode)) // or links to a dir
     {
       char linkbuf[PATH_MAX + NAME_MAX];
-      if (SResolveLink(linkbuf, sizeof(linkbuf), Path().CString(TString::kFileSystemEncoding)))
+      if (SResolveLink(linkbuf, sizeof(linkbuf), PathCString.c_str()))
       {
         struct stat dirInfo;
         if (::lstat(linkbuf, &dirInfo) == 0 && S_ISDIR(dirInfo.st_mode))
@@ -399,10 +401,12 @@ time_t TDirectory::ModificationStatTime(bool CheckMostRecentSubFolders)const
 {
   MAssert(Exists(), "Querying stat time for a non existing directory");
   
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
+
   time_t Ret = 0;
   
   struct stat sb;
-  if (::lstat(Path().CString(TString::kFileSystemEncoding), &sb) == 0)
+  if (::lstat(PathCString.c_str(), &sb) == 0)
   {
     Ret = sb.st_mtime;
     
@@ -458,10 +462,12 @@ TList<TString> TDirectory::FindFileNames(const TList<TString>& Extensions)const
 {
   MAssert(Exists(), "Querying for files in a non existing directory");
   
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
+
   TList<TString> FileNameList;
 
   // open directory
-  DIR* dir = ::opendir(Path().CString(TString::kFileSystemEncoding));
+  DIR* dir = ::opendir(PathCString.c_str());
 
   if (!dir)
   {
@@ -500,10 +506,12 @@ TList<TFileProperties> TDirectory::FindFiles(const TList<TString>& Extensions)co
 {
   MAssert(Exists(), "Querying for files in a non existing directory");
   
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
+
   TList<TFileProperties> FileList;
 
   // open directory
-  DIR* dir = ::opendir(Path().CString(TString::kFileSystemEncoding));
+  DIR* dir = ::opendir(PathCString.c_str());
 
   if (!dir)
   {
@@ -552,8 +560,10 @@ bool TDirectory::HasSubDirs()const
 {
   MAssert(Exists(), "Querying for sub directories in a non existing directory");
   
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
+
   // open directory
-  DIR* dir = ::opendir(Path().CString(TString::kFileSystemEncoding));
+  DIR* dir = ::opendir(PathCString.c_str());
 
   if (!dir)
   {
@@ -616,10 +626,12 @@ TList<TString> TDirectory::FindSubDirNames(
 {
   MAssert(Exists(), "Querying for sub directories in a non existing directory");
   
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
+
   TList<TString> SubDirNameList;
 
   // open directory
-  DIR* dir = ::opendir(Path().CString(TString::kFileSystemEncoding));
+  DIR* dir = ::opendir(PathCString.c_str());
 
   if (!dir)
   {
@@ -662,10 +674,12 @@ TList<TFileProperties> TDirectory::FindSubDirs(
 {
   MAssert(Exists(), "Querying for sub directories in a non existing directory");
   
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
+
   TList<TFileProperties> SubDirList;
 
   // open directory
-  DIR* dir = ::opendir(Path().CString(TString::kFileSystemEncoding));
+  DIR* dir = ::opendir(PathCString.c_str());
 
   if (!dir)
   {
@@ -722,7 +736,9 @@ bool TDirectory::Create(bool CreateParentDirs)const
   }
 
   // This should maybe be discussed? But 0755 should be a reasonable default permission
-  ::mkdir(Path().CString(TString::kFileSystemEncoding), 0755); 
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
+  
+  ::mkdir(PathCString.c_str(), 0755);
 
   const bool Success = Exists();
   return Success;
@@ -738,10 +754,12 @@ bool TDirectory::Unlink()const
     return false;
   }
 
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
+
 
   // ... try deleting an empty folder
 
-  if (::rmdir(Path().CString(TString::kFileSystemEncoding)) == 0)
+  if (::rmdir(PathCString.c_str()) == 0)
   {
     return true;
   }                    
@@ -749,7 +767,7 @@ bool TDirectory::Unlink()const
 
   // ... recursively remove sub folders and files.
 
-  if (DIR* dir = ::opendir(Path().CString(TString::kFileSystemEncoding)))
+  if (DIR* dir = ::opendir(PathCString.c_str()))
   {
     dirent* dp;
     while ((dp = ::readdir(dir)) != NULL)
@@ -780,7 +798,7 @@ bool TDirectory::Unlink()const
   }
   
   // directory should be empty here...
-  const bool Success = ::rmdir(Path().CString(TString::kFileSystemEncoding)) == 0;
+  const bool Success = ::rmdir(PathCString.c_str()) == 0;
   return Success;
 }
 
@@ -881,21 +899,21 @@ TDirectory gApplicationResourceDir()
     {
     case kDevEnvironment:
       sResourcesBaseDir = gDeveloperProjectsDir().Descend(
-        MProductProjectsLocation).Descend("Resources").Path().CString(
+        MProductProjectsLocation).Descend("Resources").Path().StdCString(
           TString::kFileSystemEncoding);
       break;
       
     case kUser:
       sResourcesBaseDir = TDirectory("/usr/share/" + 
         TString(MProductString).ToLower() + "-" +
-        TString(MVersionString).RemoveFirst("V")).Path().CString(
+        TString(MVersionString).RemoveFirst("V")).Path().StdCString(
           TString::kFileSystemEncoding);
       break;
       
     case kUserLocal:
       sResourcesBaseDir = TDirectory("/usr/local/share/" + 
         TString(MProductString).ToLower() + "-" +
-        TString(MVersionString).RemoveFirst("V")).Path().CString(
+        TString(MVersionString).RemoveFirst("V")).Path().StdCString(
           TString::kFileSystemEncoding);
       break;
       
@@ -913,7 +931,7 @@ TDirectory gApplicationResourceDir()
       if (ResourceBundleDir.Exists())
       {
         // use "APP_NAME.res" for plugins, when present 
-        sResourcesBaseDir = ResourceBundleDir.Path().CString(
+        sResourcesBaseDir = ResourceBundleDir.Path().StdCString(
           TString::kFileSystemEncoding);
       }
       else
@@ -924,13 +942,13 @@ TDirectory gApplicationResourceDir()
         // else APP_DIR/Resources when it exists
         if (ResourceSubDir.Exists())
         {
-          sResourcesBaseDir = ResourceSubDir.Path().CString(
+          sResourcesBaseDir = ResourceSubDir.Path().StdCString(
             TString::kFileSystemEncoding);
         }
         else
         {
           // APP_DIR as fallback (NB: needed for exes in resource folders)
-          sResourcesBaseDir = gApplicationDir().Path().CString(
+          sResourcesBaseDir = gApplicationDir().Path().StdCString(
             TString::kFileSystemEncoding);
         }
       }
@@ -1081,9 +1099,11 @@ bool gCopyFile(const TString& From, const TString& To, bool PreserveSymlinks)
 {
   if (!PreserveSymlinks && TFile(From).Exists() && ! TFile(To).Exists())
   {
+    const std::string FromCString = From.StdCString(TString::kFileSystemEncoding);
+    const std::string ToCString = To.StdCString(TString::kFileSystemEncoding);
+
     // try a raw file copy first
-    if (::SRawFileCopy(From.CString(TString::kFileSystemEncoding),
-            To.CString(TString::kFileSystemEncoding)) == 0)
+    if (::SRawFileCopy(FromCString.c_str(), ToCString.c_str()) == 0)
     {
       return true;
     }
@@ -1095,7 +1115,7 @@ bool gCopyFile(const TString& From, const TString& To, bool PreserveSymlinks)
     SEscapeFileName(From) + " " + SEscapeFileName(To) + 
     "; then exit 1; fi");
 
-  const int SysRet = ::system(CmdLine.CString(TString::kFileSystemEncoding));
+  const int SysRet = ::system(CmdLine.StdCString(TString::kFileSystemEncoding).c_str());
 
   if (WIFEXITED(SysRet))
   {
@@ -1112,9 +1132,11 @@ bool gCopyFile(const TString& From, const TString& To, bool PreserveSymlinks)
 
 bool gRenameDirOrFile(const TString& OldName, const TString& NewName)
 {
+  const std::string OldNameCString = OldName.StdCString(TString::kFileSystemEncoding);
+  const std::string NewNameCString = NewName.StdCString(TString::kFileSystemEncoding);
+
   // try 'rename' first (may fail when src, dest are on different devices)
-  if (::rename(OldName.CString(TString::kFileSystemEncoding),
-               NewName.CString(TString::kFileSystemEncoding)) == 0)
+  if (::rename(OldNameCString.c_str(), NewNameCString.c_str()) == 0)
   {
     return true;
   }
@@ -1123,7 +1145,7 @@ bool gRenameDirOrFile(const TString& OldName, const TString& NewName)
   const TString CmdLine = TString("if mv -f " + SEscapeFileName(OldName) + " " +
     SEscapeFileName(NewName) + "; then exit 1; fi");
 
-  const int SysRet = ::system(CmdLine.CString(TString::kFileSystemEncoding));
+  const int SysRet = ::system(CmdLine.StdCString(TString::kFileSystemEncoding).c_str());
 
   if (WIFEXITED(SysRet))
   {
@@ -1145,7 +1167,7 @@ bool gMoveFileToTrash(const TString& FileName)
     "if hash gio 2> /dev/null; then gio trash " + SEscapeFileName(FileName) + " && exit 1; "
     "else gvfs-trash " + SEscapeFileName(FileName) + " && exit 1; fi");
     
-  const int SysRet = ::system(CmdLine.CString(TString::kFileSystemEncoding));
+  const int SysRet = ::system(CmdLine.StdCString(TString::kFileSystemEncoding).c_str());
 
   if (WIFEXITED(SysRet))
   {
@@ -1164,9 +1186,11 @@ bool gMakeFileWritable(const TString& FilePath)
 {
   MAssert(gFileExists(FilePath), "Can only change flags for an existing file!");
 
+  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+
   struct stat StatBuffer;
 
-  if (::lstat(FilePath.CString(TString::kFileSystemEncoding), &StatBuffer) != -1) 
+  if (::lstat(PathCString.c_str(), &StatBuffer) != -1)
   {
     if (!S_ISLNK(StatBuffer.st_mode))
     {
@@ -1174,8 +1198,7 @@ bool gMakeFileWritable(const TString& FilePath)
 
       if (NewMode != StatBuffer.st_mode)
       {
-        const bool Success =
-          ::chmod(FilePath.CString(TString::kFileSystemEncoding), NewMode) == 0;
+        const bool Success = ::chmod(PathCString.c_str(), NewMode) == 0;
         return Success;
       }
       else
@@ -1194,9 +1217,11 @@ bool gMakeFileReadOnly(const TString& FilePath)
 {
   MAssert(gFileExists(FilePath), "Can only change flags for an existing file!");
 
+  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+
   struct stat StatBuffer;
   
-  if (::lstat(FilePath.CString(TString::kFileSystemEncoding), &StatBuffer) != -1) 
+  if (::lstat(PathCString.c_str(), &StatBuffer) != -1)
   {
     if (!S_ISLNK(StatBuffer.st_mode))
     {
@@ -1205,7 +1230,7 @@ bool gMakeFileReadOnly(const TString& FilePath)
       if (NewMode != StatBuffer.st_mode)
       {
         const bool Success =
-          ::chmod(FilePath.CString(TString::kFileSystemEncoding), NewMode) == 0;
+          ::chmod(PathCString.c_str(), NewMode) == 0;
         return Success;
       }
       else
@@ -1243,7 +1268,9 @@ TDirectory gCurrentWorkingDir()
 
 void gSetCurrentWorkingDir(const TDirectory& Directory)
 {
-  const int Result = ::chdir(Directory.Path().CString(TString::kFileSystemEncoding));
+  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+
+  const int Result = ::chdir(PathCString.c_str());
   MAssert(Result == 0, "chdir failed"); MUnused(Result);
 }
 

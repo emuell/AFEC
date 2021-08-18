@@ -523,18 +523,18 @@ int TSystem::LaunchProcess(
 
     // convert TString args to cstrings
     TArray<char> FileChars;
-    const char* pFile = FileName.CString(TString::kFileSystemEncoding);
-    FileChars.SetSize(::strlen(pFile) + 1);
-    ::strcpy(FileChars.FirstWrite(), pFile);
+    const char FileCString = FileName.StdCString(TString::kFileSystemEncoding);
+    FileChars.SetSize((int)FileCString.size() + 1);
+    ::strcpy(FileCString.c_str(), pFile);
 
     TList< TArray<char> > ArgCharsList;
     ArgCharsList.PreallocateSpace(Args.Size());
     for (int i = 0; i < Args.Size(); ++i)
     {
       TArray<char> ArgChars;
-      const char* pArg = Args[i].CString(TString::kUtf8);
-      ArgChars.SetSize(::strlen(pArg) + 1);
-      ::strcpy(ArgChars.FirstWrite(), pArg);
+      const std::string ArgCString = Args[i].StdCString(TString::kUtf8);
+      ArgChars.SetSize((int)ArgCString.size() + 1);
+      ::strcpy(ArgChars.FirstWrite(), ArgCString.c_str());
       
       ArgCharsList.Append(ArgChars);
     }
@@ -953,11 +953,11 @@ TString TSystem::ApplicationPathAndFileName(bool ResolveDllName)
 
   if (ResolveDllName)  
   {
-    sApplicationPathAndFileName_Dll = Ret.CString(TString::kFileSystemEncoding);
+    sApplicationPathAndFileName_Dll = Ret.StdCString(TString::kFileSystemEncoding);
   }
   else
   {
-    sApplicationPathAndFileName_Exe = Ret.CString(TString::kFileSystemEncoding);
+    sApplicationPathAndFileName_Exe = Ret.StdCString(TString::kFileSystemEncoding);
   }
   
   return Ret;
