@@ -1186,7 +1186,7 @@ bool gMakeFileWritable(const TString& FilePath)
 {
   MAssert(gFileExists(FilePath), "Can only change flags for an existing file!");
 
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = FilePath.StdCString(TString::kFileSystemEncoding);
 
   struct stat StatBuffer;
 
@@ -1217,7 +1217,7 @@ bool gMakeFileReadOnly(const TString& FilePath)
 {
   MAssert(gFileExists(FilePath), "Can only change flags for an existing file!");
 
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = FilePath.StdCString(TString::kFileSystemEncoding);
 
   struct stat StatBuffer;
   
@@ -1268,7 +1268,7 @@ TDirectory gCurrentWorkingDir()
 
 void gSetCurrentWorkingDir(const TDirectory& Directory)
 {
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = Directory.Path().StdCString(TString::kFileSystemEncoding);
 
   const int Result = ::chdir(PathCString.c_str());
   MAssert(Result == 0, "chdir failed"); MUnused(Result);

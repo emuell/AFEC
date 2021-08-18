@@ -356,7 +356,7 @@ bool TDirectory::ExistsIgnoreCase()const
   {
     struct stat dirInfo;
     
-	const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+	const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
     if (::stat(PathCString, &dirInfo) == 0)
     {
@@ -390,7 +390,7 @@ time_t TDirectory::ModificationStatTime(bool CheckMostRecentSubFolders)const
   
   time_t Ret = 0;
   
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
   struct stat sb;
   if (::stat(PathCString.c_str(), &sb) == 0)
@@ -448,7 +448,7 @@ TList<TString> TDirectory::FindFileNames(const TList<TString>& Extensions)const
 {
   MAssert(Exists(), "Querying for files in a non existing directory");
   
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
   TList<TString> FileNameList;
 
@@ -492,7 +492,7 @@ TList<TFileProperties> TDirectory::FindFiles(const TList<TString>& Extensions)co
 {
   MAssert(Exists(), "Querying for files in a non existing directory");
   
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
   TList<TFileProperties> FileList;
 
@@ -546,7 +546,7 @@ bool TDirectory::HasSubDirs()const
 {
   MAssert(Exists(), "Querying for sub directories in a non existing directory");
   
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
   // open directory
   DIR* dir = ::opendir(PathCString.c_str());
@@ -612,9 +612,9 @@ TList<TString> TDirectory::FindSubDirNames(
 {
   MAssert(Exists(), "Querying for sub directories in a non existing directory");
   
-  TList<TString> SubDirNameList;
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  TList<TString> SubDirNameList;
 
   // open directory
   DIR* dir = ::opendir(PathCString.c_str());
@@ -660,7 +660,7 @@ TList<TFileProperties> TDirectory::FindSubDirs(
 {
   MAssert(Exists(), "Querying for sub directories in a non existing directory");
   
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
   TList<TFileProperties> SubDirList;
 
@@ -721,7 +721,7 @@ bool TDirectory::Create(bool CreateParentDirs)const
     }    
   }
 
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
   // This should maybe be discussed? But 0755 should be a reasonable default permission
   ::mkdir(PathCString.c_str(), 0755); 
@@ -740,7 +740,7 @@ bool TDirectory::Unlink()const
     return false;
   }
 
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = Path().StdCString(TString::kFileSystemEncoding);
 
   
   // ... try deleting an empty folder
@@ -1209,9 +1209,9 @@ TDirectory gCurrentWorkingDir()
 
 void gSetCurrentWorkingDir(const TDirectory& Directory)
 {
-  const TString PathCString = Path.Path().StdCString(TString::kFileSystemEncoding);
+  const std::string PathCString = Directory.Path().StdCString(TString::kFileSystemEncoding);
   
-  const int Result = ::chdir(Directory.PathCString.c_str());
+  const int Result = ::chdir(PathCString.c_str());
   MAssert(Result == 0, "chdir failed"); MUnused(Result);
 }
 
@@ -1230,7 +1230,7 @@ bool gCopyFile(const TString& From, const TString& To, bool PreserveSymlinks)
   if (! PreserveSymlinks && TFile(From).Exists() && ! TFile(To).Exists())
   {
     const std::string FromCString = From.StdCString(TString::kFileSystemEncoding);
-    const std::string ToCString = From.StdCString(TString::kFileSystemEncoding);
+    const std::string ToCString = To.StdCString(TString::kFileSystemEncoding);
 
     if (::SRawFileCopy(FromCString.c_str(), ToCString.c_str()) == 0)
     {                 
