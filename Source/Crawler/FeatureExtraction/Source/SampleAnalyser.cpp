@@ -165,9 +165,7 @@ TSampleAnalyser::TSampleAnalyser(
   int HopFrameSize)
   : mSampleRate(SampleRate),
     mFftFrameSize(FftFrameSize),
-    mHopFrameSize(HopFrameSize),
-    mEnvelopeDetector(TEnvelopeDetector::kFast, MEnvelopeTimeInMs, SampleRate),
-    mEnvelope(0.0)
+    mHopFrameSize(HopFrameSize)
 {
   // analyzation bin area
   const double FrequenciesPerBin = mSampleRate / mFftFrameSize;
@@ -299,33 +297,39 @@ void TSampleAnalyser::SetOneShotCategorizationModel(const TString& ModelPath)
 
 TSampleDescriptors TSampleAnalyser::Analyze(const TString& FileName)
 {
-  // recreate results
-  mpResults = TOwnerPtr<TSampleDescriptors>(new TSampleDescriptors());
+  // create new analyzation status
+  TSampleData SampleData;
+  TSilenceStatus SilenceStatus;
+  TSampleDescriptors Results;
 
   // load sample data 
-  TSampleData SampleData;
   LoadSample(FileName, SampleData);
 
   // analyze low level descriptors
-  AnalyzeLowLevelDescriptors(SampleData);
+  AnalyzeLowLevelDescriptors(SampleData, SilenceStatus, Results);
 
-  return *mpResults;
+  return Results;
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void TSampleAnalyser::Extract(const TString& FileName, TSampleDescriptorPool* pPool)
+void TSampleAnalyser::Extract(const TString& FileName, TSampleDescriptorPool* pPool, std::mutex& PoolLock)
 {
-  // recreate results
-  mpResults = TOwnerPtr<TSampleDescriptors>(new TSampleDescriptors());
+  // create new analyzation status
+  TSampleData SampleData;
+  TSilenceStatus SilenceStatus;
+  TSampleDescriptors Results;
 
+#if 0
   // mark sample as failed without giving a reason, before starting to load and 
   // analyze it: when something crashes below, we won't try to access the file 
   // again when updating the database and thus avoid successive crashes...
-  pPool->InsertFailedSample(FileName, "");
+  {
+    const std::lock_guard<std::mutex> Lock(PoolLock);
 
-  TSampleData SampleData;
-
+    pPool->InsertFailedSample(FileName, "");
+  }
+#endif
 
   // ... load sample data 
 
@@ -338,6 +342,8 @@ void TSampleAnalyser::Extract(const TString& FileName, TSampleDescriptorPool* pP
     TLog::SLog()->AddLine(MLogPrefix, "Failed to load sample '%s' - '%s'",
       FileName.StdCString().c_str(), exception.what());
 
+    const std::lock_guard<std::mutex> Lock(PoolLock);
+
     pPool->InsertFailedSample(FileName,
       TString() + "Sample failed to load: " + exception.what());
 
@@ -349,11 +355,11 @@ void TSampleAnalyser::Extract(const TString& FileName, TSampleDescriptorPool* pP
 
   try
   {
-    AnalyzeLowLevelDescriptors(SampleData);
+    AnalyzeLowLevelDescriptors(SampleData, SilenceStatus, Results);
 
     if (pPool->DescriptorSet() == TSampleDescriptors::kHighLevelDescriptors)
     {
-      AnalyzeHighLevelDescriptors(SampleData);
+      AnalyzeHighLevelDescriptors(SampleData, SilenceStatus, Results);
     }
   }
   catch (const std::exception& exception)
@@ -361,6 +367,8 @@ void TSampleAnalyser::Extract(const TString& FileName, TSampleDescriptorPool* pP
     TLog::SLog()->AddLine(MLogPrefix, "Failed to analyse sample '%s' - '%s'",
       FileName.StdCString().c_str(), exception.what());
 
+    const std::lock_guard<std::mutex> Lock(PoolLock);
+    
     pPool->InsertFailedSample(FileName,
       TString() + "Sample failed to analyse: " + exception.what());
 
@@ -370,23 +378,26 @@ void TSampleAnalyser::Extract(const TString& FileName, TSampleDescriptorPool* pP
 
   // ... save results
 
-  pPool->InsertSample(FileName, *mpResults);
+  const std::lock_guard<std::mutex> Lock(PoolLock);
+
+  pPool->InsertSample(FileName, Results);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 TList<double> TSampleAnalyser::AudibleSpectrumFrames(
+  TSilenceStatus&      SilenceStatus, 
   const TList<double>& SpectrumDescriptor)const
 {
-  MAssert(SpectrumDescriptor.Size() == mSpectrumFrameIsAudible.Size(),
+  MAssert(SpectrumDescriptor.Size() == SilenceStatus.mSpectrumFrameIsAudible.Size(),
     "Unexpected descriptor (size)");
 
   TList<double> Ret;
   Ret.PreallocateSpace(SpectrumDescriptor.Size());
 
-  for (int i = 0; i < mSpectrumFrameIsAudible.Size(); ++i)
+  for (int i = 0; i < SilenceStatus.mSpectrumFrameIsAudible.Size(); ++i)
   {
-    if (mSpectrumFrameIsAudible[i])
+    if (SilenceStatus.mSpectrumFrameIsAudible[i])
     {
       Ret.Append(SpectrumDescriptor[i]);
     }
@@ -472,7 +483,7 @@ void TSampleAnalyser::LoadSample(
       {
         // don't abort loading, but zero out blocks which failed to load
         TLog::SLog()->AddLine(MLogPrefix, "Decoder error at sample frame %d: %s",
-          TotalSamplesRead, Exception.Message().StdCString().c_str());
+          TotalSamplesRead, Exception.what());
 
         for (int c = 0; c < NumberOfSampleChannels; ++c)
         {
@@ -677,7 +688,10 @@ void TSampleAnalyser::LoadSample(
 
 // -------------------------------------------------------------------------------------------------
 
-void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
+void TSampleAnalyser::AnalyzeLowLevelDescriptors(
+  const TSampleData&  SampleData, 
+  TSilenceStatus&     SilenceStatus,
+  TSampleDescriptors& Results)
 {
   MAssert(SampleData.mData.Size() >= mHopFrameSize,
     "Data should be valid and padded here");
@@ -685,27 +699,27 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
 
   // ... Basic file properties
 
-  mpResults->mFileName = SampleData.mOriginalFileName;
+  Results.mFileName = SampleData.mOriginalFileName;
 
-  mpResults->mFileType.mValue = gExtractFileExtension(
+  Results.mFileType.mValue = gExtractFileExtension(
     SampleData.mOriginalFileName).ToLower();
 
-  mpResults->mFileSize.mValue = SampleData.mOriginalFileSize;
+  Results.mFileSize.mValue = SampleData.mOriginalFileSize;
 
-  mpResults->mFileLength.mValue = TAudioMath::SamplesToMs(
+  Results.mFileLength.mValue = TAudioMath::SamplesToMs(
     SampleData.mOriginalSampleRate, SampleData.mOriginalNumberOfSamples) / 1000.0;
 
-  mpResults->mFileSampleRate.mValue = SampleData.mOriginalSampleRate;
-  mpResults->mFileBitDepth.mValue = SampleData.mOriginalBitDepth;
-  mpResults->mFileChannelCount.mValue = SampleData.mOriginalNumberOfChannels;
+  Results.mFileSampleRate.mValue = SampleData.mOriginalSampleRate;
+  Results.mFileBitDepth.mValue = SampleData.mOriginalBitDepth;
+  Results.mFileChannelCount.mValue = SampleData.mOriginalNumberOfChannels;
 
-  mpResults->mAnalyzationOffset.mValue = TAudioMath::SamplesToMs(
+  Results.mAnalyzationOffset.mValue = TAudioMath::SamplesToMs(
     mSampleRate, SampleData.mDataOffset) / 1000.0;
 
 
   // ... Effective length
 
-  CalcEffectiveLength(SampleData.mData.FirstRead(), SampleData.mData.Size());
+  CalcEffectiveLength(Results, SampleData.mData.FirstRead(), SampleData.mData.Size());
 
 
   // ... Spectral features
@@ -738,12 +752,9 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
   TArray<double> HarmonicSpectrum(mFftFrameSize);
   HarmonicSpectrum.Init(0.0);
 
-  // reset envelope
-  mEnvelope = 0.0;
-
-  // reset silence state
-  mSpectrumFrameIsAudible.ClearEntries();
-  mSpectrumFrameIsAudible.PreallocateSpace(
+  // init silence state
+  SilenceStatus.mSpectrumFrameIsAudible.Empty();
+  SilenceStatus.mSpectrumFrameIsAudible.PreallocateSpace(
     SampleDataAnalyzationLength / mHopFrameSize);
 
   // init fft transform
@@ -821,13 +832,13 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
     // Silence detection
     const bool IsSilentFrame =
       (::aubio_silence_detection(&SampleInputHopSize, MSilenceThresholdDb) == 1);
-    mSpectrumFrameIsAudible.Append(!IsSilentFrame);
-    mpResults->mAmplitudeSilence.mValues.Append(IsSilentFrame ? 1.0 : 0.0);
+    SilenceStatus.mSpectrumFrameIsAudible.Append(!IsSilentFrame);
+    Results.mAmplitudeSilence.mValues.Append(IsSilentFrame ? 1.0 : 0.0);
 
     // Amplitude Peak and RMS
-    CalcAmplitudePeak(SampleInputHopSize.data, SampleInputHopSize.length);
-    CalcAmplitudeRms(SampleInputHopSize.data, SampleInputHopSize.length);
-    CalcAmplitudeEnvelope(SampleInputHopSize.data, SampleInputHopSize.length);
+    CalcAmplitudePeak(Results, SampleInputHopSize.data, SampleInputHopSize.length);
+    CalcAmplitudeRms(Results, SampleInputHopSize.data, SampleInputHopSize.length);
+    CalcAmplitudeEnvelope(Results, SampleInputHopSize.data, SampleInputHopSize.length);
 
     // F0 (fundamental frequency)
     double F0 = 0.0;
@@ -848,8 +859,8 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
         F0Confidence = 1.0;
       #endif
 
-      mpResults->mF0.mValues.Append(F0);
-      mpResults->mF0Confidence.mValues.Append(F0Confidence);
+      Results.mF0.mValues.Append(F0);
+      Results.mF0Confidence.mValues.Append(F0Confidence);
 
       if (F0 > 0.0 && F0Confidence > MLowPitchConfidenceValue)
       {
@@ -870,7 +881,7 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
           F0FailSafe = CentroidFrequency;
         }
       }
-      mpResults->mFailSafeF0.mValues.Append(F0FailSafe);
+      Results.mFailSafeF0.mValues.Append(F0FailSafe);
     }
 
     // Harmonic spectrum  (from whitened peak spectrum & F0)
@@ -898,35 +909,35 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
 
     // Autocorrelation
     const int RemainingSamples = SampleData.mData.Size() - n;
-    CalcAutoCorrelation(SampleData.mData.FirstRead() + n, RemainingSamples);
+    CalcAutoCorrelation(Results, SampleData.mData.FirstRead() + n, RemainingSamples);
 
     // Spectral RMS
-    CalcSpectralRms(MagnitudeSpectrum);
+    CalcSpectralRms(Results, MagnitudeSpectrum);
     // Spectral Centroid & Spread
-    CalcSpectralCentroidAndSpread(MagnitudeSpectrum);
+    CalcSpectralCentroidAndSpread(Results, MagnitudeSpectrum);
     // Spectral Skewness and Kurtosis
-    CalcSpectralSkewnessAndKurtosis(MagnitudeSpectrum);
+    CalcSpectralSkewnessAndKurtosis(Results, MagnitudeSpectrum);
     // Spectral Rolloff
-    CalcSpectralRolloff(MagnitudeSpectrum);
+    CalcSpectralRolloff(Results, MagnitudeSpectrum);
     // Spectral Flatness
-    CalcSpectralFlatness(MagnitudeSpectrum);
+    CalcSpectralFlatness(Results, MagnitudeSpectrum);
     // Spectral Flux
-    CalcSpectralFlux(MagnitudeSpectrum, LastMagnitudeSpectrum);
+    CalcSpectralFlux(Results, MagnitudeSpectrum, LastMagnitudeSpectrum);
 
     // Spectral Complexity
-    CalcSpectralComplexity(PeakSpectrum); // Yup, peaks
+    CalcSpectralComplexity(Results, PeakSpectrum); // Yup, peaks
     // Spectral Inharmonicity
-    CalcSpectralInharmonicity(PeakSpectrum, F0FailSafe, F0Confidence); // Yup, peaks
+    CalcSpectralInharmonicity(Results, PeakSpectrum, F0FailSafe, F0Confidence); // Yup, peaks
     // Tristimulus
-    CalcTristimulus(HarmonicSpectrum, F0FailSafe, F0Confidence); // Yup, harmonics
+    CalcTristimulus(Results, HarmonicSpectrum, F0FailSafe, F0Confidence); // Yup, harmonics
 
     // Spectral RMS, flux and contrast band features
-    CalcSpectralBandFeatures(MagnitudeSpectrum, LastMagnitudeSpectrum);
+    CalcSpectralBandFeatures(Results, MagnitudeSpectrum, LastMagnitudeSpectrum);
 
     // Spectrum Bands
-    CalcSpectrumBands(MagnitudeSpectrum);
+    CalcSpectrumBands(Results, MagnitudeSpectrum);
     // Cepstrum Bands
-    CalcCepstrumBands(MagnitudeSpectrum);
+    CalcCepstrumBands(Results, MagnitudeSpectrum);
 
     // memorize last spectrum
     LastMagnitudeSpectrum = MagnitudeSpectrum;
@@ -960,45 +971,45 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
   const double OnsetOffsetInSeconds = TAudioMath::SamplesToMs(
     SampleData.mOriginalSampleRate, SampleData.mDataOffset) / 1000;
 
-  mpResults->mRhythmComplexOnsets.mValues = RhythmTracker.Onsets(TRhythmTracker::kComplex);
-  mpResults->mRhythmComplexOnsetCount.mValue = RhythmTracker.OnsetCount(TRhythmTracker::kComplex);
-  mpResults->mRhythmComplexTempo.mValue = RhythmTracker.CalculateTempo(
-    mpResults->mRhythmComplexTempoConfidence.mValue, TRhythmTracker::kComplex);
-  mpResults->mRhythmComplexOnsetFrequencyMean.mValue = 
+  Results.mRhythmComplexOnsets.mValues = RhythmTracker.Onsets(TRhythmTracker::kComplex);
+  Results.mRhythmComplexOnsetCount.mValue = RhythmTracker.OnsetCount(TRhythmTracker::kComplex);
+  Results.mRhythmComplexTempo.mValue = RhythmTracker.CalculateTempo(
+    Results.mRhythmComplexTempoConfidence.mValue, TRhythmTracker::kComplex);
+  Results.mRhythmComplexOnsetFrequencyMean.mValue = 
     RhythmTracker.CalculateRhythmFrequencyMean(TRhythmTracker::kComplex);
-  mpResults->mRhythmComplexOnsetStrength.mValue = 
+  Results.mRhythmComplexOnsetStrength.mValue = 
     RhythmTracker.CalculateRhythmStrength(TRhythmTracker::kComplex);
-  mpResults->mRhythmComplexOnsetContrast.mValue = 
+  Results.mRhythmComplexOnsetContrast.mValue = 
     RhythmTracker.CalculateRhythmContrast(TRhythmTracker::kComplex);
 
-  mpResults->mRhythmPercussiveOnsets.mValues = RhythmTracker.Onsets(TRhythmTracker::kPercussive);
-  mpResults->mRhythmPercussiveOnsetCount.mValue = RhythmTracker.OnsetCount(TRhythmTracker::kPercussive);
-  mpResults->mRhythmPercussiveTempo.mValue = RhythmTracker.CalculateTempo(
-    mpResults->mRhythmPercussiveTempoConfidence.mValue, TRhythmTracker::kPercussive);
-  mpResults->mRhythmPercussiveOnsetFrequencyMean.mValue = 
+  Results.mRhythmPercussiveOnsets.mValues = RhythmTracker.Onsets(TRhythmTracker::kPercussive);
+  Results.mRhythmPercussiveOnsetCount.mValue = RhythmTracker.OnsetCount(TRhythmTracker::kPercussive);
+  Results.mRhythmPercussiveTempo.mValue = RhythmTracker.CalculateTempo(
+    Results.mRhythmPercussiveTempoConfidence.mValue, TRhythmTracker::kPercussive);
+  Results.mRhythmPercussiveOnsetFrequencyMean.mValue = 
     RhythmTracker.CalculateRhythmFrequencyMean(TRhythmTracker::kPercussive);
-  mpResults->mRhythmPercussiveOnsetStrength.mValue = 
+  Results.mRhythmPercussiveOnsetStrength.mValue = 
     RhythmTracker.CalculateRhythmStrength(TRhythmTracker::kPercussive);
-  mpResults->mRhythmPercussiveOnsetContrast.mValue = 
+  Results.mRhythmPercussiveOnsetContrast.mValue = 
     RhythmTracker.CalculateRhythmContrast(TRhythmTracker::kPercussive);
 
   // calculate "final" tempo from the one which seems more confident
-  if (mpResults->mRhythmPercussiveTempoConfidence.mValue > mpResults->mRhythmComplexTempoConfidence.mValue) 
+  if (Results.mRhythmPercussiveTempoConfidence.mValue > Results.mRhythmComplexTempoConfidence.mValue) 
   {
-    mpResults->mRhythmFinalTempo.mValue = RhythmTracker.CalculateTempoWithHeuristics(
-      mpResults->mRhythmFinalTempoConfidence.mValue, // out
-      mpResults->mRhythmPercussiveTempo.mValue, // in
-      mpResults->mRhythmPercussiveTempoConfidence.mValue, // in
+    Results.mRhythmFinalTempo.mValue = RhythmTracker.CalculateTempoWithHeuristics(
+      Results.mRhythmFinalTempoConfidence.mValue, // out
+      Results.mRhythmPercussiveTempo.mValue, // in
+      Results.mRhythmPercussiveTempoConfidence.mValue, // in
       SampleDurationInSeconds, 
       OnsetOffsetInSeconds,
       TRhythmTracker::kPercussive);
   }
   else 
   {
-    mpResults->mRhythmFinalTempo.mValue = RhythmTracker.CalculateTempoWithHeuristics(
-      mpResults->mRhythmFinalTempoConfidence.mValue, // out
-      mpResults->mRhythmComplexTempo.mValue, // in
-      mpResults->mRhythmComplexTempoConfidence.mValue, // in
+    Results.mRhythmFinalTempo.mValue = RhythmTracker.CalculateTempoWithHeuristics(
+      Results.mRhythmFinalTempoConfidence.mValue, // out
+      Results.mRhythmComplexTempo.mValue, // in
+      Results.mRhythmComplexTempoConfidence.mValue, // in
       SampleDurationInSeconds, 
       OnsetOffsetInSeconds,
       TRhythmTracker::kComplex);
@@ -1019,15 +1030,18 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
 
   // ... calc statistics
 
-  CalcStatistics();
+  CalcStatistics(Results);
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
+void TSampleAnalyser::AnalyzeHighLevelDescriptors(
+  const TSampleData&  SampleData, 
+  TSilenceStatus&     SilenceStatus,
+  TSampleDescriptors& Results)
 {
   // extract classification features
-  const TSampleClassificationDescriptors ModelDescriptors(*mpResults);
+  const TSampleClassificationDescriptors ModelDescriptors(Results);
 
 
   // ... Classes
@@ -1048,14 +1062,14 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     
     // . ClassSignature
 
-    mpResults->mClassSignature.mValues = ClassificationWeights;
+    Results.mClassSignature.mValues = ClassificationWeights;
 
 
     // . Class & ClassStrengths
 
     const double MinWeight = 0.0; // include all
-    mpResults->mClassStrengths.mValues = TClassificationTools::CategoryStrengths(
-      mpResults->mClassSignature.mValues, MinWeight);
+    Results.mClassStrengths.mValues = TClassificationTools::CategoryStrengths(
+      Results.mClassSignature.mValues, MinWeight);
 
 
     // . Apply Heuristics
@@ -1072,32 +1086,32 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
         double IsOneShotConfidence = -1.0;
         double IsLoopConfidence = -1.0;
 
-        if (TClassificationHeuristics::IsOneShot(*mpResults, IsOneShotConfidence)) 
+        if (TClassificationHeuristics::IsOneShot(Results, IsOneShotConfidence)) 
         {
-          if (mpResults->mClassStrengths.mValues[kLoopClassIndex] > 
-                mpResults->mClassStrengths.mValues[kOneShotClassIndex]) 
+          if (Results.mClassStrengths.mValues[kLoopClassIndex] > 
+                Results.mClassStrengths.mValues[kOneShotClassIndex]) 
           {
             TLog::SLog()->AddLine(MLogPrefix, 
               "NB: Overriding model's 'IsOneShot' result with heuristics (confidence: %g)",
               IsOneShotConfidence);
 
-            mpResults->mClassStrengths.mValues[kLoopClassIndex] = MMin(IsOneShotConfidence / 2,
-              mpResults->mClassStrengths.mValues[kLoopClassIndex]);
-            mpResults->mClassStrengths.mValues[kOneShotClassIndex] = IsOneShotConfidence;
+            Results.mClassStrengths.mValues[kLoopClassIndex] = MMin(IsOneShotConfidence / 2,
+              Results.mClassStrengths.mValues[kLoopClassIndex]);
+            Results.mClassStrengths.mValues[kOneShotClassIndex] = IsOneShotConfidence;
           }
         }
-        else if (TClassificationHeuristics::IsLoop(*mpResults, IsLoopConfidence)) 
+        else if (TClassificationHeuristics::IsLoop(Results, IsLoopConfidence))
         {
-          if (mpResults->mClassStrengths.mValues[kLoopClassIndex] < 
-                mpResults->mClassStrengths.mValues[kOneShotClassIndex]) 
+          if (Results.mClassStrengths.mValues[kLoopClassIndex] < 
+                Results.mClassStrengths.mValues[kOneShotClassIndex]) 
           {
             TLog::SLog()->AddLine(MLogPrefix, 
               "NB: Overriding model's 'IsLoop' result with heuristics (confidence: %g)",
               IsLoopConfidence);
 
-            mpResults->mClassStrengths.mValues[kLoopClassIndex] = IsLoopConfidence;
-            mpResults->mClassStrengths.mValues[kOneShotClassIndex] = MMin(IsLoopConfidence / 2, 
-              mpResults->mClassStrengths.mValues[kOneShotClassIndex]);
+            Results.mClassStrengths.mValues[kLoopClassIndex] = IsLoopConfidence;
+            Results.mClassStrengths.mValues[kOneShotClassIndex] = MMin(IsLoopConfidence / 2, 
+              Results.mClassStrengths.mValues[kOneShotClassIndex]);
           }
         }
       }
@@ -1109,17 +1123,17 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     // collect class list from class strength
     const double MinDefaultWeight = 0.2;
     const double MinFallbackWeight = 0.01;
-    mpResults->mClasses.mValues = TClassificationTools::PickAllStrongCategories(
+    Results.mClasses.mValues = TClassificationTools::PickAllStrongCategories(
       mpClassificationModel->OutputClasses(),
-      mpResults->mClassStrengths.mValues,
+      Results.mClassStrengths.mValues,
       MinDefaultWeight,
       MinFallbackWeight);
   }
   else // ! mpClassificationModel
   {
-    mpResults->mClassSignature.mValues.Empty();
-    mpResults->mClasses.mValues = TList<TString>();
-    mpResults->mClassStrengths.mValues.Empty();
+    Results.mClassSignature.mValues.Empty();
+    Results.mClasses.mValues = TList<TString>();
+    Results.mClassStrengths.mValues.Empty();
   }
 
 
@@ -1141,47 +1155,47 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     const TList<float> CategoryWeights =
       mpOneShotCategorizationModel->Evaluate(CategorizationTestItem);
 
-    mpResults->mCategorySignature.mValues = CategoryWeights;
+    Results.mCategorySignature.mValues = CategoryWeights;
 
     // . Categories & CategoryStrengths (for OneShots only)
 
-    if (!mpResults->mClasses.mValues.IsEmpty() &&
-        !mpResults->mClasses.mValues.Contains("OneShot") &&
-        !mpResults->mClasses.mValues.Contains("Loop"))
+    if (!Results.mClasses.mValues.IsEmpty() &&
+        !Results.mClasses.mValues.Contains("OneShot") &&
+        !Results.mClasses.mValues.Contains("Loop"))
     {
       throw TReadableException("Unexpected classification model class: "
         "expecting 'OneShot' or 'Loop' for now...");
     }
 
-    if (mpResults->mClasses.mValues.IsEmpty() ||
-        mpResults->mClasses.mValues.Contains("OneShot"))
+    if (Results.mClasses.mValues.IsEmpty() ||
+        Results.mClasses.mValues.Contains("OneShot"))
     {
       // calculate relative strength from absolute weights
       const double MinWeight = 0.0; // include all
-      mpResults->mCategoryStrengths.mValues = TClassificationTools::CategoryStrengths(
-        mpResults->mCategorySignature.mValues, MinWeight);
+      Results.mCategoryStrengths.mValues = TClassificationTools::CategoryStrengths(
+        Results.mCategorySignature.mValues, MinWeight);
       
       // collect category list from relative strength
       const double MinDefaultWeight = 0.2;
       const double MinFallbackWeight = 0.01;
-      mpResults->mCategories.mValues = TClassificationTools::PickAllStrongCategories(
+      Results.mCategories.mValues = TClassificationTools::PickAllStrongCategories(
         mpOneShotCategorizationModel->OutputClasses(),
-        mpResults->mCategoryStrengths.mValues,
+        Results.mCategoryStrengths.mValues,
         MinDefaultWeight,
         MinFallbackWeight);
     }
-    else // mpResults->mClass.mValue == "Loop"
+    else // Results.mClass.mValue == "Loop"
     {
       // NB: keep mCategorySignature - it's used by the general similarity aspect
-      mpResults->mCategoryStrengths.mValues.Init(0.0);
-      mpResults->mCategories.mValues = TList<TString>();
+      Results.mCategoryStrengths.mValues.Init(0.0);
+      Results.mCategories.mValues = TList<TString>();
     }
   }
   else // ! mpOneShotCategorizationModel
   {
-    mpResults->mCategorySignature.mValues.Empty();
-    mpResults->mCategoryStrengths.mValues.Empty();
-    mpResults->mCategories.mValues = TList<TString>();
+    Results.mCategorySignature.mValues.Empty();
+    Results.mCategoryStrengths.mValues.Empty();
+    Results.mCategories.mValues = TList<TString>();
   }
 
 
@@ -1208,7 +1222,7 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
 
   // decide weather to use high, mid or low confident pitch as base
   const TList<double> AudiblePitchConfidence =
-    AudibleSpectrumFrames(mpResults->mF0Confidence.mValues);
+    AudibleSpectrumFrames(SilenceStatus, Results.mF0Confidence.mValues);
 
   const double AudiblePitchConfidenceMean = AudiblePitchConfidence.IsEmpty() ? 0.0 :
     TStatistics::Mean(AudiblePitchConfidence.FirstRead(), AudiblePitchConfidence.Size());
@@ -1230,18 +1244,18 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     IsConfidentPitch = IsLowConfidentPitch;
   }
 
-  mpResults->mHighLevelBaseNote.mValue = -1.0;
+  Results.mHighLevelBaseNote.mValue = -1.0;
   
   // calc "confident" pitch from f0
   TList<double> ConfidentPitch;
-  ConfidentPitch.PreallocateSpace(mpResults->mF0.mValues.Size());
+  ConfidentPitch.PreallocateSpace(Results.mF0.mValues.Size());
 
-  for (int i = 0; i < mpResults->mF0.mValues.Size(); ++i)
+  for (int i = 0; i < Results.mF0.mValues.Size(); ++i)
   {
-    if (IsConfidentPitch(mpResults->mF0.mValues[i],
-          mpResults->mF0Confidence.mValues[i]))
+    if (IsConfidentPitch(Results.mF0.mValues[i],
+          Results.mF0Confidence.mValues[i]))
     {
-      ConfidentPitch.Append(mpResults->mF0.mValues[i]);
+      ConfidentPitch.Append(Results.mF0.mValues[i]);
     }
   }
 
@@ -1252,12 +1266,12 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
 
     if (Hz > 20 && Hz < mSampleRate / 4)
     {
-      mpResults->mHighLevelBaseNote.mValue = ::aubio_freqtomidi(Hz);
+      Results.mHighLevelBaseNote.mValue = ::aubio_freqtomidi(Hz);
     }
   }
 
   // base note confidence
-  if (mpResults->mHighLevelBaseNote.mValue > 0.0)
+  if (Results.mHighLevelBaseNote.mValue > 0.0)
   {
     // add base note variance as penalty factor: so the more steady, the more 
     // confident is the detected base note the only fundamental pitch in the sound
@@ -1266,7 +1280,7 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     for (int i = 0; i < ConfidentPitch.Size(); ++i)
     {
       const double BaseNoteOffset = TMathT<double>::Abs(
-        mpResults->mHighLevelBaseNote.mValue - ::aubio_freqtomidi(ConfidentPitch[i]));
+        Results.mHighLevelBaseNote.mValue - ::aubio_freqtomidi(ConfidentPitch[i]));
       BaseNoteOffsets.Append(BaseNoteOffset);
     }
 
@@ -1276,31 +1290,31 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     const double BaseNoteVariancePenalty = 1.0 - MMin(1.0, BaseNoteStdDev / 6.0);
 
     // use the audible pitch confident mean as base
-    mpResults->mHighLevelBaseNoteConfidence.mValue =
+    Results.mHighLevelBaseNoteConfidence.mValue =
       AudiblePitchConfidenceMean * BaseNoteVariancePenalty;
   }
   else
   {
-    mpResults->mHighLevelBaseNoteConfidence.mValue = 0.0;
+    Results.mHighLevelBaseNoteConfidence.mValue = 0.0;
   }
 
 
   // ... Loudness
 
-  mpResults->mHighLevelPeakDb.mValue =
+  Results.mHighLevelPeakDb.mValue =
     TAudioMath::LinToDb(SampleData.mPeakValue);
-  mpResults->mHighLevelRmsDb.mValue =
+  Results.mHighLevelRmsDb.mValue =
     TAudioMath::LinToDb(SampleData.mRmsValue);
 
 
   // ... BPM 
 
   // use combined beat tracker & heuristics results
-  mpResults->mHighLevelBpm.mValue = mpResults->mRhythmFinalTempo.mValue;
-  mpResults->mHighLevelBpmConfidence.mValue = mpResults->mRhythmFinalTempoConfidence.mValue;
+  Results.mHighLevelBpm.mValue = Results.mRhythmFinalTempo.mValue;
+  Results.mHighLevelBpmConfidence.mValue = Results.mRhythmFinalTempoConfidence.mValue;
 
   // make pretty
-  TMath::Quantize(mpResults->mHighLevelBpm.mValue, 0.5, TMath::kRoundToNearest);
+  TMath::Quantize(Results.mHighLevelBpm.mValue, 0.5, TMath::kRoundToNearest);
 
 
   // ... Characteristics
@@ -1308,9 +1322,9 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
   // . Brightness
 
   const TList<double> SpectralRolloff =
-    AudibleSpectrumFrames(mpResults->mSpectralRolloff.mValues);
+    AudibleSpectrumFrames(SilenceStatus, Results.mSpectralRolloff.mValues);
   const TList<double> SpectralCentroid =
-    AudibleSpectrumFrames(mpResults->mSpectralCentroid.mValues);
+    AudibleSpectrumFrames(SilenceStatus, Results.mSpectralCentroid.mValues);
 
   if (SpectralRolloff.Size() && SpectralCentroid.Size())
   {
@@ -1326,19 +1340,19 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     WeightedCentroid = MMax(0.0, MMin(1.0, WeightedCentroid));
     WeightedCentroid = ::pow(WeightedCentroid, 4.0);
 
-    mpResults->mHighLevelBrightness.mValue = WeightedCentroid;
-    MAssert(mpResults->mHighLevelBrightness.mValue >= 0 &&
-      mpResults->mHighLevelBrightness.mValue <= 1.0, "");
+    Results.mHighLevelBrightness.mValue = WeightedCentroid;
+    MAssert(Results.mHighLevelBrightness.mValue >= 0 &&
+      Results.mHighLevelBrightness.mValue <= 1.0, "");
   }
   else // silence
   {
-    mpResults->mHighLevelBrightness.mValue = 0.0;
+    Results.mHighLevelBrightness.mValue = 0.0;
   }
 
   // . Noisiness
 
   const TList<double> SpectralFlatness =
-    AudibleSpectrumFrames(mpResults->mSpectralFlatness.mValues);
+    AudibleSpectrumFrames(SilenceStatus, Results.mSpectralFlatness.mValues);
 
   if (SpectralFlatness.Size())
   {
@@ -1357,20 +1371,20 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     WeightedFlatness = MMax(0.0, MMin(1.0, WeightedFlatness));
     WeightedFlatness = ::pow(WeightedFlatness, 2.0);
 
-    mpResults->mHighLevelNoisiness.mValue = WeightedFlatness;
-    MAssert(mpResults->mHighLevelNoisiness.mValue >= 0 &&
-      mpResults->mHighLevelNoisiness.mValue <= 1.0, "");
+    Results.mHighLevelNoisiness.mValue = WeightedFlatness;
+    MAssert(Results.mHighLevelNoisiness.mValue >= 0 &&
+      Results.mHighLevelNoisiness.mValue <= 1.0, "");
   }
   else // silence
   {
-    mpResults->mHighLevelNoisiness.mValue = 0.0;
+    Results.mHighLevelNoisiness.mValue = 0.0;
   }
 
 
   // . Harmonicity
 
   const TList<double> AutoCorrelation =
-    AudibleSpectrumFrames(mpResults->mAutoCorrelation.mValues);
+    AudibleSpectrumFrames(SilenceStatus, Results.mAutoCorrelation.mValues);
 
   if (AutoCorrelation.Size())
   {
@@ -1388,13 +1402,13 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     WeightedHarmonicity = MMax(0.0, MMin(1.0, WeightedHarmonicity));
     WeightedHarmonicity = ::pow(WeightedHarmonicity, 2.0);
 
-    mpResults->mHighLevelHarmonicity.mValue = WeightedHarmonicity;
-    MAssert(mpResults->mHighLevelHarmonicity.mValue >= 0 &&
-      mpResults->mHighLevelHarmonicity.mValue <= 1.0, "");
+    Results.mHighLevelHarmonicity.mValue = WeightedHarmonicity;
+    MAssert(Results.mHighLevelHarmonicity.mValue >= 0 &&
+      Results.mHighLevelHarmonicity.mValue <= 1.0, "");
   }
   else // silcence
   {
-    mpResults->mHighLevelHarmonicity.mValue = 0.0;
+    Results.mHighLevelHarmonicity.mValue = 0.0;
   }
 
   
@@ -1407,7 +1421,7 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
   };
 
   const TSampleDescriptors::TFramedVectorData<kNumberOfSpectrumBands>&
-    SpectrumBands = mpResults->mSpectrumBands;
+    SpectrumBands = Results.mSpectrumBands;
 
   TList< TStaticArray<double, kNumberOfHighLevelSpectrumBands> > ScaledSpectrumBands;
 
@@ -1445,7 +1459,7 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
   const int OldLength = ScaledSpectrumBands.Size();
   const double Step = (double)OldLength / kNumberOfHighLevelSpectrumBandFrames;
 
-  mpResults->mHighLevelSpectrumSignature.mValues.ClearEntries();
+  Results.mHighLevelSpectrumSignature.mValues.ClearEntries();
 
   double CurrentPos = 0;
   for (int i = 0; i < kNumberOfHighLevelSpectrumBandFrames; ++i)
@@ -1469,11 +1483,11 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
         CurrentPos
         ));
     }
-    mpResults->mHighLevelSpectrumSignature.mValues.Append(ResampledBandValues);
+    Results.mHighLevelSpectrumSignature.mValues.Append(ResampledBandValues);
     CurrentPos += Step;
   }
 
-  MAssert(mpResults->mHighLevelSpectrumSignature.mValues.Size() ==
+  MAssert(Results.mHighLevelSpectrumSignature.mValues.Size() ==
     kNumberOfHighLevelSpectrumBandFrames, "");
 
 
@@ -1481,13 +1495,13 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
 
   // SpectralFlatness defined above
   const TList<double> SpectralFlux =
-    AudibleSpectrumFrames(mpResults->mSpectralFlux.mValues);
+    AudibleSpectrumFrames(SilenceStatus, Results.mSpectralFlux.mValues);
   const TList<double> SpectralContrast =
-    AudibleSpectrumFrames(mpResults->mSpectralContrast.mValues);
+    AudibleSpectrumFrames(SilenceStatus, Results.mSpectralContrast.mValues);
   const TList<double> SpectralComplexity =
-    AudibleSpectrumFrames(mpResults->mSpectralComplexity.mValues);
+    AudibleSpectrumFrames(SilenceStatus, Results.mSpectralComplexity.mValues);
   const TList<double> SpectralInharmonicity =
-    AudibleSpectrumFrames(mpResults->mSpectralInharmonicity.mValues);
+    AudibleSpectrumFrames(SilenceStatus, Results.mSpectralInharmonicity.mValues);
 
   const double SpectrumFlatness = SpectralFlatness.IsEmpty() ? 0.0 :
     TStatistics::Mean(SpectralFlatness.FirstRead(), SpectralFlatness.Size());
@@ -1500,40 +1514,40 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
   const double SpectrumInharmonicity = SpectralInharmonicity.IsEmpty() ? 0.0 :
     TStatistics::Mean(SpectralInharmonicity.FirstRead(), SpectralInharmonicity.Size());
 
-  mpResults->mHighLevelSpectralFlatness.mValue = SpectrumFlatness;
-  mpResults->mHighLevelSpectralFlux.mValue = SpectrumFlux;
-  mpResults->mHighLevelSpectralContrast.mValue = SpectrumContrast;
-  mpResults->mHighLevelSpectralComplexity.mValue = SpectrumComplexity;
-  mpResults->mHighLevelSpectralInharmonicity.mValue = SpectrumInharmonicity;
+  Results.mHighLevelSpectralFlatness.mValue = SpectrumFlatness;
+  Results.mHighLevelSpectralFlux.mValue = SpectrumFlux;
+  Results.mHighLevelSpectralContrast.mValue = SpectrumContrast;
+  Results.mHighLevelSpectralComplexity.mValue = SpectrumComplexity;
+  Results.mHighLevelSpectralInharmonicity.mValue = SpectrumInharmonicity;
 
   // ... Pitch
 
   // calc "confident" pitch from f0
   TList<double> ConfidentPitchWithFallback;
-  ConfidentPitchWithFallback.PreallocateSpace(mpResults->mF0.mValues.Size());
+  ConfidentPitchWithFallback.PreallocateSpace(Results.mF0.mValues.Size());
 
   // look-ahead to find first confident pitch
   double LastConfidentPitch = 0.0;
-  if (mpResults->mF0.mValues.Size() > 1)
+  if (Results.mF0.mValues.Size() > 1)
   {
-    for (int i = 0; i <= MMax(1, mpResults->mF0.mValues.Size() / 4); ++i)
+    for (int i = 0; i <= MMax(1, Results.mF0.mValues.Size() / 4); ++i)
     {
-      if (mSpectrumFrameIsAudible[i] && IsConfidentPitch(
-            mpResults->mF0.mValues[i], mpResults->mF0Confidence.mValues[i]))
+      if (SilenceStatus.mSpectrumFrameIsAudible[i] && IsConfidentPitch(
+            Results.mF0.mValues[i], Results.mF0Confidence.mValues[i]))
       {
-        LastConfidentPitch = mpResults->mF0.mValues[i];
+        LastConfidentPitch = Results.mF0.mValues[i];
         break;
       }
     }
   }
 
-  for (int i = 0; i < mpResults->mF0.mValues.Size(); ++i)
+  for (int i = 0; i < Results.mF0.mValues.Size(); ++i)
   {
-    if (mSpectrumFrameIsAudible[i] && IsConfidentPitch(
-          mpResults->mF0.mValues[i], mpResults->mF0Confidence.mValues[i]))
+    if (SilenceStatus.mSpectrumFrameIsAudible[i] && IsConfidentPitch(
+          Results.mF0.mValues[i], Results.mF0Confidence.mValues[i]))
     {
-      ConfidentPitchWithFallback.Append(mpResults->mF0.mValues[i]);
-      LastConfidentPitch = mpResults->mF0.mValues[i];
+      ConfidentPitchWithFallback.Append(Results.mF0.mValues[i]);
+      LastConfidentPitch = Results.mF0.mValues[i];
     }
     else
     {
@@ -1541,23 +1555,23 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     }
   }
 
-  mpResults->mHighLevelPitch.mValues = ConfidentPitchWithFallback;
+  Results.mHighLevelPitch.mValues = ConfidentPitchWithFallback;
 
   // convert Hz to notes
-  std::transform(mpResults->mHighLevelPitch.mValues.Begin(), 
-    mpResults->mHighLevelPitch.mValues.End(), 
-    mpResults->mHighLevelPitch.mValues.Begin(), 
+  std::transform(Results.mHighLevelPitch.mValues.Begin(), 
+    Results.mHighLevelPitch.mValues.End(), 
+    Results.mHighLevelPitch.mValues.Begin(), 
     ::aubio_freqtomidi);
 
 
   // ... Pitch Confidence
 
-  mpResults->mHighLevelPitchConfidence.mValue = AudiblePitchConfidenceMean;
+  Results.mHighLevelPitchConfidence.mValue = AudiblePitchConfidenceMean;
 
 
   // ... Peak
 
-  mpResults->mHighLevelPeak.mValues = mpResults->mAmplitudePeak.mValues;
+  Results.mHighLevelPeak.mValues = Results.mAmplitudePeak.mValues;
 
 
   // ... Debug
@@ -1565,16 +1579,16 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
   #if defined(MEnableDebugSampleDescriptors)
   
     // pitch debugging
-    mpResults->mHighLevelDebugScalarValue.mValue = AudiblePitchConfidenceMean;
-    mpResults->mHighLevelDebugVectorValue.mValues = mpResults->mF0.mValues;
+    Results.mHighLevelDebugScalarValue.mValue = AudiblePitchConfidenceMean;
+    Results.mHighLevelDebugVectorValue.mValues = Results.mF0.mValues;
 
-    mpResults->mHighLevelDebugVectorVectorValue.mValues.Empty();
-    for (int i = 0; i < mpResults->mFailSafeF0.mValues.Size(); ++i)
+    Results.mHighLevelDebugVectorVectorValue.mValues.Empty();
+    for (int i = 0; i < Results.mFailSafeF0.mValues.Size(); ++i)
     {
-      mpResults->mHighLevelDebugVectorVectorValue.mValues.Append(
+      Results.mHighLevelDebugVectorVectorValue.mValues.Append(
         MakeList<double>(
-          mpResults->mFailSafeF0.mValues[i],
-          mpResults->mF0Confidence.mValues[i]
+          Results.mFailSafeF0.mValues[i],
+          Results.mF0Confidence.mValues[i]
         )
       );
     }
@@ -1595,10 +1609,10 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
       float FileBpm;
       if (StringToValue(FileBpm, BpmName))
       {
-        if (TMathT<float>::Abs((float)mpResults->mHighLevelBpm.mValue - FileBpm) > 5)
+        if (TMathT<float>::Abs((float)Results.mHighLevelBpm.mValue - FileBpm) > 5)
         {
           gTraceVar(">>>>> Wrong BPM %d: %.2f -> %.2f ", sNumberOfWrongBpms + 1,
-            FileBpm, mpResults->mHighLevelBpm.mValue);
+            FileBpm, Results.mHighLevelBpm.mValue);
 
           ++sNumberOfWrongBpms;
         }
@@ -1626,8 +1640,8 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
       FullPath.SplitPathComponents().Last() : "";
 
     sPitchStdDevs.push_back(TStatistics::StandardDeviation(
-      mpResults->mHighLevelPitch.mValues.FirstRead(),
-      mpResults->mHighLevelPitch.mValues.Size()));
+      Results.mHighLevelPitch.mValues.FirstRead(),
+      Results.mHighLevelPitch.mValues.Size()));
 
     const double TotalPitchStdDevMean = TStatistics::Mean(
       sPitchStdDevs.data(), (int)sPitchStdDevs.size());
@@ -1638,7 +1652,7 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
     if (Iter != sRootKeysMap.end())
     {
       const float ExpectedRootKey = (float)Iter->second;
-      const float DetectedRootKey = (float)::fmod(mpResults->mHighLevelBaseNote.mValue, 12.0);
+      const float DetectedRootKey = (float)::fmod(Results.mHighLevelBaseNote.mValue, 12.0);
 
       const float Min = MMin(DetectedRootKey, ExpectedRootKey);
       const float Max = MMax(DetectedRootKey, ExpectedRootKey);
@@ -1667,12 +1681,12 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcEffectiveLength(
-  const double* pSampleData, int NumberOfSamples) 
+  TSampleDescriptors& Results, const double* pSampleData, int NumberOfSamples)
 {
   const TPair<double, double*> SilenceTestRuns[] = {
-    MakePair(TAudioMath::DbToLin(-48.0), &mpResults->mEffectiveLength48dB.mValue),
-    MakePair(TAudioMath::DbToLin(-24.0), &mpResults->mEffectiveLength24dB.mValue),
-    MakePair(TAudioMath::DbToLin(-12.0), &mpResults->mEffectiveLength12dB.mValue),
+    MakePair(TAudioMath::DbToLin(-48.0), &Results.mEffectiveLength48dB.mValue),
+    MakePair(TAudioMath::DbToLin(-24.0), &Results.mEffectiveLength24dB.mValue),
+    MakePair(TAudioMath::DbToLin(-12.0), &Results.mEffectiveLength12dB.mValue),
   };
 
   for (size_t s = 0; s < MCountOf(SilenceTestRuns); ++s) 
@@ -1710,85 +1724,89 @@ void TSampleAnalyser::CalcEffectiveLength(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcAmplitudePeak(
-  const double* pSampleData, int NumberOfSamples)
+  TSampleDescriptors& Results, const double* pSampleData, int NumberOfSamples)
 {
   double Min = *pSampleData, Max = *pSampleData;
   TMathT<double>::GetMinMax(Min, Max, 0, NumberOfSamples, pSampleData);
 
-  mpResults->mAmplitudePeak.mValues.Append(
+  Results.mAmplitudePeak.mValues.Append(
     MMax(TMathT<double>::Abs(Min), TMathT<double>::Abs(Max)));
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcAmplitudeRms(
-  const double* pSampleData, int NumberOfSamples)
+  TSampleDescriptors& Results, const double* pSampleData, int NumberOfSamples)
 {
   double Rms = 0.0;
   ::xtract_rms_amplitude(pSampleData, NumberOfSamples, NULL, &Rms);
 
-  mpResults->mAmplitudeRms.mValues.Append(TMath::IsNaN(Rms) ? 0.0 : Rms);
+  Results.mAmplitudeRms.mValues.Append(TMath::IsNaN(Rms) ? 0.0 : Rms);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcAmplitudeEnvelope(
-  const double* pSampleData, int NumberOfSamples)
+  TSampleDescriptors& Results, const double* pSampleData, int NumberOfSamples)
 {
-  double FrameMax = mEnvelope;
+  TEnvelopeDetector EnvelopeDetector = 
+    TEnvelopeDetector(TEnvelopeDetector::kFast, MEnvelopeTimeInMs, mSampleRate);
+
+  double Envelope = 0.0;
+  double FrameMax = Envelope;
   for (int i = 0; i < NumberOfSamples; ++i)
   {
-    mEnvelopeDetector.Run(TMathT<double>::Abs(pSampleData[i]), mEnvelope);
-    FrameMax = MMax(FrameMax, mEnvelope);
+    EnvelopeDetector.Run(TMathT<double>::Abs(pSampleData[i]), Envelope);
+    FrameMax = MMax(FrameMax, Envelope);
   }
 
-  mpResults->mAmplitudeEnvelope.mValues.Append(FrameMax);
+  Results.mAmplitudeEnvelope.mValues.Append(FrameMax);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralRms(
-  const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
 {
   double Rms = 0.0;
   ::xtract_rms_amplitude(MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
     mAnalyzationBinCount, NULL, &Rms);
 
-  mpResults->mSpectralRms.mValues.Append(
+  Results.mSpectralRms.mValues.Append(
     TMath::IsNaN(Rms) ? 0.0 : Rms);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralCentroidAndSpread(
-  const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
 {
   const double Centroid = TStatistics::Centroid(
     MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
     mAnalyzationBinCount);
 
-  mpResults->mSpectralCentroid.mValues.Append(Centroid);
+  Results.mSpectralCentroid.mValues.Append(Centroid);
 
   const double Spread = TStatistics::Spread(
     MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
     mAnalyzationBinCount, 
     Centroid);
 
-  mpResults->mSpectralSpread.mValues.Append(Spread);
+  Results.mSpectralSpread.mValues.Append(Spread);
 
   #if 0 // libXtract's impl - mean and variance
     double Mean = 0.0;
     ::xtract_spectral_mean(MagnitudeSpectrum.FirstRead(),
       mFftFrameSize, NULL, &Mean);
 
-    mpResults->mSpectralCentroid.mValues.Append(
+    Results.mSpectralCentroid.mValues.Append(
       TMath::IsNaN(Mean) ? 0.0 : Mean);
 
     double Variance = 0.0;
     ::xtract_spectral_variance(MagnitudeSpectrum.FirstRead(),
       mFftFrameSize, &Mean, &Variance);
 
-    mpResults->mSpectralSpread.mValues.Append(
+    Results.mSpectralSpread.mValues.Append(
       TMath::IsNaN(Variance) ? 0.0 : Variance);
   #endif
 }
@@ -1796,7 +1814,7 @@ void TSampleAnalyser::CalcSpectralCentroidAndSpread(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralSkewnessAndKurtosis(
-  const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
 {
   const double Centroid = TStatistics::Centroid(
     MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
@@ -1817,14 +1835,14 @@ void TSampleAnalyser::CalcSpectralSkewnessAndKurtosis(
     Centroid, 
     Spread);
 
-  mpResults->mSpectralSkewness.mValues.Append(Skewness);
-  mpResults->mSpectralKurtosis.mValues.Append(Kurtosis);
+  Results.mSpectralSkewness.mValues.Append(Skewness);
+  Results.mSpectralKurtosis.mValues.Append(Kurtosis);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralRolloff(
-  const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
 {
   double Arguments[4] = { 0 };
   Arguments[0] = mSampleRate / (mFftFrameSize / 2);
@@ -1834,26 +1852,27 @@ void TSampleAnalyser::CalcSpectralRolloff(
   ::xtract_rolloff(MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
     mAnalyzationBinCount, Arguments, &Rolloff);
 
-  mpResults->mSpectralRolloff.mValues.Append(
+  Results.mSpectralRolloff.mValues.Append(
     TMath::IsNaN(Rolloff) ? 0.0 : Rolloff);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralFlatness(
-  const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
 {
   const double Flatness = SFlatnessDb(
     MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
     mAnalyzationBinCount);
 
-  mpResults->mSpectralFlatness.mValues.Append(
+  Results.mSpectralFlatness.mValues.Append(
     TMath::IsNaN(Flatness) ? 0.0 : Flatness);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralFlux(
+  TSampleDescriptors& Results, 
   const TArray<double>& MagnitudeSpectrum,
   const TArray<double>& LastMagnitudeSpectrum)
 {
@@ -1865,25 +1884,27 @@ void TSampleAnalyser::CalcSpectralFlux(
     LastMagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
     mAnalyzationBinCount);
 
-  mpResults->mSpectralFlux.mValues.Append(Flux);
+  Results.mSpectralFlux.mValues.Append(Flux);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralComplexity(
+  TSampleDescriptors& Results, 
   const TArray<double>& PeakSpectrum)
 {
   double PeakCount = 0.0;
   ::xtract_nonzero_count(PeakSpectrum.FirstRead() + mFirstAnalyzationBin,
     mAnalyzationBinCount, NULL, &PeakCount);
 
-  mpResults->mSpectralComplexity.mValues.Append(
+  Results.mSpectralComplexity.mValues.Append(
     TMath::IsNaN(PeakCount) ? 0.0 : PeakCount);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralInharmonicity(
+  TSampleDescriptors& Results, 
   const TArray<double>& PeakSpectrum,
   double                F0,
   double                F0Confidence)
@@ -1894,18 +1915,19 @@ void TSampleAnalyser::CalcSpectralInharmonicity(
     ::xtract_spectral_inharmonicity(PeakSpectrum.FirstRead(),
       mFftFrameSize, &F0, &Inharmonicity);
 
-    mpResults->mSpectralInharmonicity.mValues.Append(
+    Results.mSpectralInharmonicity.mValues.Append(
       TMath::IsNaN(Inharmonicity) ? 0.0 : Inharmonicity);
   }
   else // no F0 - assume silence or noise -> not inharmonic
   {
-    mpResults->mSpectralInharmonicity.mValues.Append(0.0);
+    Results.mSpectralInharmonicity.mValues.Append(0.0);
   }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcTristimulus(
+  TSampleDescriptors& Results, 
   const TArray<double>& HarmonicSpectrum,
   double                F0,
   double                F0Confidence)
@@ -1915,29 +1937,30 @@ void TSampleAnalyser::CalcTristimulus(
     double Tristimulus1 = 0.0;
     ::xtract_tristimulus_1(HarmonicSpectrum.FirstRead(),
       HarmonicSpectrum.Size(), &F0, &Tristimulus1);
-    mpResults->mTristimulus1.mValues.Append(Tristimulus1);
+    Results.mTristimulus1.mValues.Append(Tristimulus1);
 
     double Tristimulus2 = 0.0;
     ::xtract_tristimulus_2(HarmonicSpectrum.FirstRead(),
       HarmonicSpectrum.Size(), &F0, &Tristimulus2);
-    mpResults->mTristimulus2.mValues.Append(Tristimulus2);
+    Results.mTristimulus2.mValues.Append(Tristimulus2);
 
     double Tristimulus3 = 0.0;
     ::xtract_tristimulus_3(HarmonicSpectrum.FirstRead(),
       HarmonicSpectrum.Size(), &F0, &Tristimulus3);
-    mpResults->mTristimulus3.mValues.Append(Tristimulus3);
+    Results.mTristimulus3.mValues.Append(Tristimulus3);
   }
   else
   {
-    mpResults->mTristimulus1.mValues.Append(0.0);
-    mpResults->mTristimulus2.mValues.Append(0.0);
-    mpResults->mTristimulus3.mValues.Append(0.0);
+    Results.mTristimulus1.mValues.Append(0.0);
+    Results.mTristimulus2.mValues.Append(0.0);
+    Results.mTristimulus3.mValues.Append(0.0);
   }
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectrumBands(
+  TSampleDescriptors& Results, 
   const TArray<double>& MagnitudeSpectrum)
 {
   // . Spectrum bands
@@ -1976,12 +1999,13 @@ void TSampleAnalyser::CalcSpectrumBands(
     }
   }
 
-  mpResults->mSpectrumBands.mValues.Append(FrequencyBands);
+  Results.mSpectrumBands.mValues.Append(FrequencyBands);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcCepstrumBands(
+  TSampleDescriptors& Results, 
   const TArray<double>& MagnitudeSpectrum)
 {
   TStaticArray<double, kNumberOfCepstrumCoefficients> MFCCs;
@@ -1990,12 +2014,13 @@ void TSampleAnalyser::CalcCepstrumBands(
   ::xtract_mfcc(MagnitudeSpectrum.FirstRead(),
     mFftFrameSize / 2, mpXtractMelFilters, MFCCs.FirstWrite());
 
-  mpResults->mCepstrumBands.mValues.Append(MFCCs);
+  Results.mCepstrumBands.mValues.Append(MFCCs);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralBandFeatures(
+  TSampleDescriptors& Results, 
   const TArray<double>& MagnitudeSpectrum,
   const TArray<double>& LastMagnitudeSpectrum)
 {
@@ -2171,11 +2196,11 @@ void TSampleAnalyser::CalcSpectralBandFeatures(
     CurrentBin += NumBinsInBand;
   }
 
-  mpResults->mSpectralRmsBands.mValues.Append(RmsBands);
-  mpResults->mSpectralFlatnessBands.mValues.Append(FlatnessBands);
-  mpResults->mSpectralFluxBands.mValues.Append(FluxBands);
-  mpResults->mSpectralComplexityBands.mValues.Append(ComplexityBands);
-  mpResults->mSpectralContrastBands.mValues.Append(ContrastBands);
+  Results.mSpectralRmsBands.mValues.Append(RmsBands);
+  Results.mSpectralFlatnessBands.mValues.Append(FlatnessBands);
+  Results.mSpectralFluxBands.mValues.Append(FluxBands);
+  Results.mSpectralComplexityBands.mValues.Append(ComplexityBands);
+  Results.mSpectralContrastBands.mValues.Append(ContrastBands);
 
   #if 1  // calc average contrast from bands
 
@@ -2186,7 +2211,7 @@ void TSampleAnalyser::CalcSpectralBandFeatures(
       ContrastSum += ContrastBands[b];
     }
 
-    mpResults->mSpectralContrast.mValues.Append(
+    Results.mSpectralContrast.mValues.Append(
       ContrastSum / kNumberOfSpectrumSubBands);
 
   #else  // calc contrast for the entire frequency range
@@ -2233,13 +2258,14 @@ void TSampleAnalyser::CalcSpectralBandFeatures(
     const double Contrast = -1.0 * ::pow(
       Peak / Valley, 1.0 / ::log(BandMean + Epsilon));
 
-    mpResults->mSpectralContrast.mValues.Append(Contrast);
+    Results.mSpectralContrast.mValues.Append(Contrast);
   #endif
 }
 
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcAutoCorrelation(
+  TSampleDescriptors& Results, 
   const double* pSampleData,
   int           RemainingSamples)
 {
@@ -2289,7 +2315,7 @@ void TSampleAnalyser::CalcAutoCorrelation(
 
   if (!RemainingSamples || PeriodLength >= RemainingSamples)
   {
-    mpResults->mAutoCorrelation.mValues.Append(0.0);
+    Results.mAutoCorrelation.mValues.Append(0.0);
     return;
   }
 
@@ -2323,16 +2349,16 @@ void TSampleAnalyser::CalcAutoCorrelation(
     BestResult = MMax(BestResult, AutoCorrelation[i]);
   }
 
-  mpResults->mAutoCorrelation.mValues.Append(BestResult);
+  Results.mAutoCorrelation.mValues.Append(BestResult);
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void TSampleAnalyser::CalcStatistics()
+void TSampleAnalyser::CalcStatistics(TSampleDescriptors& Results)
 {
   // calculate all low level statistics from the VR or VVR values 
   const TList<TSampleDescriptors::TDescriptor*> LowLevelDescriptors =
-    mpResults->Descriptors(TSampleDescriptors::kLowLevelDescriptors);
+    Results.Descriptors(TSampleDescriptors::kLowLevelDescriptors);
 
   for (int i = 0; i < LowLevelDescriptors.Size(); ++i)
   { 

@@ -11,6 +11,8 @@
 #include "AudioTypes/Export/Envelopes.h"
 #include "FeatureExtraction/Export/SampleDescriptors.h"
 
+#include <mutex>
+
 struct xtract_mel_filter_;
 class TClassificationModel;
 class TSampleDescriptorPool;
@@ -48,7 +50,8 @@ public:
   //! @throws TReadableException on errors
   TSampleDescriptors Analyze(const TString& FileName);
   //! Analyze and extract a single audio file. Results or errors are passed to pool.
-  void Extract(const TString& FileName, TSampleDescriptorPool* pPool);
+  //! The given mutex serializes all pool writes.
+  void Extract(const TString& FileName, TSampleDescriptorPool* pPool, std::mutex& PoolLock);
 
 private:
   // get a few consts from TSampleDescriptors
@@ -93,66 +96,102 @@ private:
     float mRmsValue;
   };
 
+  // Calculated in AnalyzeLowLevelDescriptors
+  struct TSilenceStatus
+  {
+    TList<bool> mSpectrumFrameIsAudible;
+    TList<bool> mRhythmFrameIsAudible;
+  };
+
   // filter out non audible frames from the given descriptor values
   TList<double> AudibleSpectrumFrames(
+    TSilenceStatus&      SilenceStatus, 
     const TList<double>& SpectrumDescriptor)const;
 
   //! Load and normalize sample data.
   void LoadSample(const TString& FileName, TSampleData& Data);
   //! Analyze given file and put low level descriptor results into mpResults
   //! @throw TReadableException on Errors
-  void AnalyzeLowLevelDescriptors(const TSampleData& RawSampleData);
+  void AnalyzeLowLevelDescriptors(
+    const TSampleData&   RawSampleData, 
+    TSilenceStatus&      SilenceStatus,
+    TSampleDescriptors&  Results);
   //! Analyze high level descriptors from low level descriptor results
-  void AnalyzeHighLevelDescriptors(const TSampleData& RawSampleData);
+  void AnalyzeHighLevelDescriptors(
+    const TSampleData&   RawSampleData,
+    TSilenceStatus&      SilenceStatus,
+    TSampleDescriptors&  Results);
 
   void CalcEffectiveLength(
-    const double* pSampleData, int NumberOfSamples);
+    TSampleDescriptors& Results, 
+    const double*       pSampleData, 
+    int                 NumberOfSamples);
 
   void CalcAmplitudePeak(
-    const double* pSampleData, int NumberOfSamples);
+    TSampleDescriptors& Results, 
+    const double*       pSampleData, 
+    int                 NumberOfSamples);
   void CalcAmplitudeRms(
-    const double* pSampleData, int NumberOfSamples);
+    TSampleDescriptors& Results, 
+    const double*       pSampleData, 
+    int                 NumberOfSamples);
   void CalcAmplitudeEnvelope(
-    const double* pSampleData, int NumberOfSamples);
+    TSampleDescriptors& Results, 
+    const double*       pSampleData, 
+    int                 NumberOfSamples);
 
   void CalcSpectralRms(
+    TSampleDescriptors&   Results, 
     const TArray<double>& MagnitudeSpectrum);
   void CalcSpectralCentroidAndSpread(
+    TSampleDescriptors&   Results, 
     const TArray<double>& MagnitudeSpectrum);
   void CalcSpectralSkewnessAndKurtosis(
+    TSampleDescriptors&   Results, 
     const TArray<double>& MagnitudeSpectrum);
   void CalcSpectralRolloff(
+    TSampleDescriptors&   Results, 
     const TArray<double>& MagnitudeSpectrum);
   void CalcSpectralFlatness(
+    TSampleDescriptors&   Results,
     const TArray<double>& MagnitudeSpectrum);
   void CalcSpectralFlux(
+    TSampleDescriptors&   Results, 
     const TArray<double>& MagnitudeSpectrum,
     const TArray<double>& LastMagnitudeSpectrum);
 
   void CalcAutoCorrelation(
-    const double* pSampleData, int RemainingSamples);
+    TSampleDescriptors& Results, 
+    const double*       pSampleData, 
+    int                 RemainingSamples);
 
   void CalcSpectralComplexity(
+    TSampleDescriptors&   Results, 
     const TArray<double>& PeakSpectrum);
   void CalcSpectralInharmonicity(
+    TSampleDescriptors&   Results, 
     const TArray<double>& PeakSpectrum,
     double                F0,
     double                F0Confidence);
   void CalcTristimulus(
+    TSampleDescriptors&   Results, 
     const TArray<double>& HarmonicSpectrum,
     double                F0,
     double                F0Confidence);
 
   void CalcSpectralBandFeatures(
+    TSampleDescriptors&   Results, 
     const TArray<double>& MagnitudeSpectrum,
     const TArray<double>& LastMagnitudeSpectrum);
 
   void CalcSpectrumBands(
+    TSampleDescriptors&   Results, 
     const TArray<double>& MagnitudeSpectrum);
   void CalcCepstrumBands(
+    TSampleDescriptors&   Results, 
     const TArray<double>& MagnitudeSpectrum);
 
-  void CalcStatistics();
+  void CalcStatistics(TSampleDescriptors& Results);
 
   const int mSampleRate;
   const int mFftFrameSize;
@@ -162,17 +201,9 @@ private:
   int mLastAnalyzationBin;
   int mAnalyzationBinCount;
 
-  TList<bool> mSpectrumFrameIsAudible;
-  TList<bool> mRhythmFrameIsAudible;
-
   double* mpWindow;
 
-  TEnvelopeDetector mEnvelopeDetector;
-  double mEnvelope;
-
   TOwnerPtr<xtract_mel_filter_> mpXtractMelFilters;
-
-  TOwnerPtr<TSampleDescriptors> mpResults;
 
   TOwnerPtr<TClassificationModel> mpClassificationModel;
   TOwnerPtr<TClassificationModel> mpOneShotCategorizationModel;
