@@ -632,7 +632,7 @@ TList<TSystem::TArchInfo> TSystem::ExecutableArchitectures(const TString& FileNa
   }
   catch (const TReadableException& Exception)
   {
-    MInvalid(Exception.Message().CString()); MUnused(Exception);
+    MInvalid(Exception.what()); MUnused(Exception);
     return TList<TArchInfo>();
   }
 }
@@ -755,7 +755,7 @@ int TSystem::LaunchProcess(
     DebugString += " " + Args[i];
   }
   DebugString += "'";
-  TLog::SLog()->AddLineNoVarArgs("System", DebugString.CString());
+  TLog::SLog()->AddLineNoVarArgs("System", DebugString.StdCString().c_str());
   
   // fork
   int ProcessId = ::fork();
@@ -771,26 +771,27 @@ int TSystem::LaunchProcess(
     ::close(FdNull);
 
     // convert TString args to cstrings
-    char File[PATH_MAX];
-    ::snprintf(File, PATH_MAX, "%s", 
-      FileName.CString(TString::kFileSystemEncoding));
+    TArray<char> FileChars;
+    const std::string FileNameCString = FileName.StdCString(TString::kFileSystemEncoding);
+    FileChars.SetSize((int)FileNameCString.size() + 1);
+    ::strcpy(FileChars.FirstWrite(), FileNameCString.c_str());
     
     TList< TArray<char> > ArgChars;
     ArgChars.PreallocateSpace(Args.Size());
     for (int i = 0; i < Args.Size(); ++i)
     {
-      const char* pArg = Args[i].CString(TString::kFileSystemEncoding);
+      const std::string Arg = Args[i].StdCString(TString::kFileSystemEncoding);
 
       TArray<char> Chars;
-      Chars.SetSize((int)::strlen(pArg) + 1);
-      ::strcpy(Chars.FirstWrite(), pArg);
+      Chars.SetSize((int)Arg.size() + 1);
+      ::strcpy(Chars.FirstWrite(), Arg.c_str());
       
       ArgChars.Append(Chars);
     }
     
     TList<char*> ArgCharPtrs;
     ArgCharPtrs.PreallocateSpace(Args.Size() + 2);
-    ArgCharPtrs.Append(File);
+    ArgCharPtrs.Append(FileChars.FirstWrite());
     for (int i = 0; i < Args.Size(); ++i)
     {      
       ArgCharPtrs.Append(ArgChars[i].FirstWrite());
@@ -798,7 +799,7 @@ int TSystem::LaunchProcess(
     ArgCharPtrs.Append(NULL);
     
     // exec
-    ::execv(File, ArgCharPtrs.FirstRead());
+    ::execv(ArgCharPtrs[0], ArgCharPtrs.FirstRead());
     
     return ::raise(SIGKILL); // no exit (will crash)
   }

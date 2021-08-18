@@ -175,8 +175,8 @@ void TZipFile::SGZipFile(
 {
   MAssert(CompressionLevel >= 1 && CompressionLevel <= 9, "Invalid compression level");
   
-  const std::string CSrcFileName(SrcFileNameAndPath.CString(TString::kFileSystemEncoding));
-  const std::string CDstFileName(DstFileNameAndPath.CString(TString::kFileSystemEncoding));
+  const std::string CSrcFileName = SrcFileNameAndPath.StdCString(TString::kFileSystemEncoding);
+  const std::string CDstFileName = DstFileNameAndPath.StdCString(TString::kFileSystemEncoding);
   
   FILE* pInFile = ::fopen(CSrcFileName.c_str(), "rb");
   
@@ -245,8 +245,8 @@ void TZipFile::SUnGZipFile(
   const TString&    SrcFileNameAndPath, 
   const TString&    DstFileNameAndPath)
 {
-  const std::string CSrcFileName(SrcFileNameAndPath.CString(TString::kFileSystemEncoding));
-  const std::string CDstFileName(DstFileNameAndPath.CString(TString::kFileSystemEncoding));
+  const std::string CSrcFileName = SrcFileNameAndPath.StdCString(TString::kFileSystemEncoding);
+  const std::string CDstFileName = DstFileNameAndPath.StdCString(TString::kFileSystemEncoding);
   
   gzFile pInFile = gzopen(CSrcFileName.c_str(), "rb");
   FILE* pOutFile = fopen(CDstFileName.c_str(), "wb");

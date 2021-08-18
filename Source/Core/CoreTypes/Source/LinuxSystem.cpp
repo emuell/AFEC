@@ -506,7 +506,7 @@ int TSystem::LaunchProcess(
     DebugString += " " + Args[i];
   }
   DebugString += "'";
-  TLog::SLog()->AddLineNoVarArgs("System", DebugString.CString());
+  TLog::SLog()->AddLineNoVarArgs("System", DebugString.StdCString().c_str());
 
   // fork
   int ProcessId = ::fork();
@@ -523,18 +523,18 @@ int TSystem::LaunchProcess(
 
     // convert TString args to cstrings
     TArray<char> FileChars;
-    const char* pFile = FileName.CString(TString::kFileSystemEncoding);
-    FileChars.SetSize(::strlen(pFile) + 1);
-    ::strcpy(FileChars.FirstWrite(), pFile);
+    const std::string FileNameCString = FileName.StdCString(TString::kFileSystemEncoding);
+    FileChars.SetSize((int)FileNameCString.size() + 1);
+    ::strcpy(FileChars.FirstWrite(), FileNameCString.c_str());
 
     TList< TArray<char> > ArgCharsList;
     ArgCharsList.PreallocateSpace(Args.Size());
     for (int i = 0; i < Args.Size(); ++i)
     {
       TArray<char> ArgChars;
-      const char* pArg = Args[i].CString(TString::kUtf8);
-      ArgChars.SetSize(::strlen(pArg) + 1);
-      ::strcpy(ArgChars.FirstWrite(), pArg);
+      const std::string ArgCString = Args[i].StdCString(TString::kUtf8);
+      ArgChars.SetSize((int)ArgCString.size() + 1);
+      ::strcpy(ArgChars.FirstWrite(), ArgCString.c_str());
       
       ArgCharsList.Append(ArgChars);
     }
@@ -698,7 +698,7 @@ TList<TSystem::TArchInfo> TSystem::ExecutableArchitectures(const TString& FileNa
   }
   catch (const TReadableException& Exception)
   { 
-    MInvalid(Exception.Message().CString()); MUnused(Exception);
+    MInvalid(Exception.what()); MUnused(Exception);
     return TList<TArchInfo>();
   }
 }
@@ -765,7 +765,7 @@ TString TSystem::ApplicationPathAndFileName(bool ResolveDllName)
       Ret = TString(dl_info.dli_fname, TString::kFileSystemEncoding);
 
       TLog::SLog()->AddLine("System", "Application path retrieved from dladdr: '%s'",
-        Ret.CString());
+        Ret.StdCString().c_str());
 
       MAssert(TFile(Ret).Exists(), "Invalid dl_info path");
     }
@@ -846,7 +846,7 @@ TString TSystem::ApplicationPathAndFileName(bool ResolveDllName)
 
         // found path
         TLog::SLog()->AddLine("System", "Application path retrieved from /proc/self/exe: '%s'",
-          Ret.CString());
+          Ret.StdCString().c_str());
 
         break;
       }
@@ -945,7 +945,7 @@ TString TSystem::ApplicationPathAndFileName(bool ResolveDllName)
     }
 
     TLog::SLog()->AddLine("System", "Application path retrieved from /proc/self/maps: '%s'",
-      Ret.CString());
+      Ret.StdCString().c_str());
   }
     
   // cache the result...
@@ -953,11 +953,11 @@ TString TSystem::ApplicationPathAndFileName(bool ResolveDllName)
 
   if (ResolveDllName)  
   {
-    sApplicationPathAndFileName_Dll = Ret.CString(TString::kFileSystemEncoding);
+    sApplicationPathAndFileName_Dll = Ret.StdCString(TString::kFileSystemEncoding);
   }
   else
   {
-    sApplicationPathAndFileName_Exe = Ret.CString(TString::kFileSystemEncoding);
+    sApplicationPathAndFileName_Exe = Ret.StdCString(TString::kFileSystemEncoding);
   }
   
   return Ret;

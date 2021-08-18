@@ -9,6 +9,10 @@
 #include <cwctype>  // towlower
 #include <clocale>
 
+#if defined(MDebug)
+  #include <clocale>
+#endif
+
 #include <limits>
 #include <utility>
 
@@ -560,15 +564,15 @@ static bool SIsPunct(TUnicodeChar Char)
 
 const char* TIconv::SDefaultPlatformEncoding()
 {
-  #if defined(MMac)
-    return "MACROMAN";
-  #elif defined(MWindows)
-    return  "LATIN1";
-  #elif defined(MLinux)
-    return "";
-  #else
-    #error unknown platform
-  #endif
+#if defined(MMac)
+  return "MACROMAN";
+#elif defined(MWindows)
+  return  "LATIN1";
+#elif defined(MLinux)
+  return "";
+#else
+#error unknown platform
+#endif
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -576,7 +580,7 @@ const char* TIconv::SDefaultPlatformEncoding()
 TIconv::TIconv(const char* pFromEncoding, const char* pToEncoding)
 {
   m_iconv = ::iconv_open(pToEncoding, pFromEncoding);
-  
+
   if (m_iconv == (iconv_t)(uintptr_t)-1)
   {
     throw TReadableException(MText(
@@ -598,19 +602,19 @@ bool TIconv::Open(const char* pFromEncoding, const char* pToEncoding)
 {
   Close();
   m_iconv = ::iconv_open(pFromEncoding, pToEncoding);
-  
+
   return (m_iconv != (iconv_t)(uintptr_t)-1);
 }
 
 // -------------------------------------------------------------------------------------------------
 
 size_t TIconv::Convert(
-  const char**  ppInputString, 
+  const char**  ppInputString,
   size_t*       pInputBytesLeft,
-  char**        pOutputString, 
+  char**        pOutputString,
   size_t*       pOutputBytesLeft)
 {
-  return ::iconv(m_iconv, ppInputString, pInputBytesLeft, 
+  return ::iconv(m_iconv, ppInputString, pInputBytesLeft,
     (char**)pOutputString, pOutputBytesLeft);
 }
 
@@ -627,7 +631,7 @@ bool TIconv::Close()
     {
       ret = false;
     }
-    
+
     m_iconv = (iconv_t)(uintptr_t)-1;
   }
 
@@ -694,8 +698,6 @@ void TString::SInit()
 {
   spEmptyStringBuffer = new TEmptyStringBuffer();
 
-  SInitPlatformString();
-  
   TStringConsts::sInitialized = true;
   
   TStringConsts::sMinus1 = "-1";
@@ -785,8 +787,6 @@ void TString::SExit()
   TDefaultStringFormatConsts::slg.Empty();
   TDefaultStringFormatConsts::s17lg.Empty();
 
-  SExitPlatformString();
-
   spEmptyStringBuffer.Delete();
 }
 
@@ -873,22 +873,22 @@ TString::TString(const TUnicodeChar *pChars)
   operator=(pChars);
 }
 
-TString::TString( const TUnicodeChar* pBegin, const TUnicodeChar* pEnd )
-  : mpStringBuffer( spEmptyStringBuffer )
+TString::TString(const TUnicodeChar* pBegin, const TUnicodeChar* pEnd)
+  : mpStringBuffer(spEmptyStringBuffer)
 {
   const int Len = (int)(intptr_t)(pEnd - pBegin);
 
-  if ( Len > 0 )
+  if (Len > 0)
   {
-    mpStringBuffer = new TStringBuffer( NULL, Len + 1 );
+    mpStringBuffer = new TStringBuffer(NULL, Len + 1);
 
-    if ( mpStringBuffer->AllocatedSize() == 0 )
+    if (mpStringBuffer->AllocatedSize() == 0)
     {
       throw TOutOfMemoryException();
     }
 
-    TMemory::Copy( mpStringBuffer->ReadWritePtr(), pBegin,
-      (int)(sizeof( TUnicodeChar ) * Len) );
+    TMemory::Copy(mpStringBuffer->ReadWritePtr(), pBegin, 
+      (int)(sizeof(TUnicodeChar) * Len));
 
     mpStringBuffer->ReadWritePtr()[Len] = '\0';
   }
@@ -1114,6 +1114,16 @@ TString TString::SubString(int CharIndexStart, int CharIndexEnd) const
     // CharIndexEnd == CharIndexStart
     return TString();
   }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+std::string TString::StdCString(TCStringEncoding Encoding)const
+{
+  TArray<char> Chars;
+  CreateCStringArray(Chars, Encoding);
+
+  return std::string(Chars.FirstRead(), Chars.Size());
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -2470,14 +2480,13 @@ void TString::CreateCStringArray(
 {
   MUnused(AllowLossyConversion);
     
-  // avoid overhead (CString(kUtf8) already invokes Iconv)
+  // avoid overhead (StdCString(kUtf8) already invokes Iconv)
   if (::strcmp(pIconvEncoding, "UTF-8") == 0)
   {
-    const char* pSourceChars = CString(kUtf8);
-    const size_t SourceLen = ::strlen(pSourceChars);
-      
-    Array.SetSize((int)SourceLen);
-    TMemory::Copy(Array.FirstWrite(), pSourceChars, SourceLen);  
+    const std::string CString = StdCString(kUtf8);
+
+    Array.SetSize((int)CString.size());
+    TMemory::Copy(Array.FirstWrite(), CString.c_str(), CString.size());
   }
   else
   {
@@ -2485,8 +2494,10 @@ void TString::CreateCStringArray(
     
     TIconv Converter("UTF-8", pIconvEncoding); // throws error
     
-    const char* pSourceChars = CString(kUtf8);
-    size_t SourceLen = ::strlen(pSourceChars);
+    const std::string CString = StdCString(kUtf8);
+
+    const char* pSourceChars = CString.c_str();
+    size_t SourceLen = CString.size();
 
     while (SourceLen > 0)
     {
@@ -4077,14 +4088,14 @@ void TStringConverter::ToBase64(const TArray<char>& Source, TArray<char>& Dest)
   if (Source.Size() == 0)
   {
     Dest.SetSize(1);
-    Dest.FirstWrite()[0] = 0;
+    Dest.FirstWrite()[0] = '\0';
     return;
   }
 
-  const int PreAllocatedSize = Source.Size() * 4 / 3 + 3;
+  const int DestLenWithPadding = (Source.Size() + 2) / 3 * 4 + 1;
 
   TList<char> DestList;
-  DestList.PreallocateSpace(PreAllocatedSize);
+  DestList.PreallocateSpace(DestLenWithPadding);
 
   int SourceReadPos = 0;
 
@@ -4135,14 +4146,15 @@ void TStringConverter::ToBase64(const TArray<char>& Source, TArray<char>& Dest)
     DestList += sAlphabet[(tmp >> 18) & 0x3F];
     DestList += sAlphabet[(tmp >> 12) & 0x3F];
     DestList += '=';
+    DestList += '=';
 
   } break;
 
   }
 
-  DestList += '\0';
-  
-  MAssert(DestList.Size() <= PreAllocatedSize, "");
+  DestList += '\0'; // zero terminate
+
+  MAssert(DestList.Size() <= DestLenWithPadding, "");
   Dest.SetSize(DestList.Size());
   
   TMemory::Copy(Dest.FirstWrite(), DestList.FirstRead(), DestList.Size());

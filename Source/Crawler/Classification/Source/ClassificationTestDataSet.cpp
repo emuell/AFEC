@@ -18,7 +18,7 @@ namespace boost {
   // -----------------------------------------------------------------------------------------------
 
     template<class Archive>
-    void serialize(Archive & ar, TPoint & Point, const unsigned int version)
+    void serialize(Archive& ar, TPoint& Point, const unsigned int version)
     {
       ar & Point.mX;
       ar & Point.mY;
@@ -27,7 +27,7 @@ namespace boost {
     // ---------------------------------------------------------------------------------------------
 
     template<class Archive>
-    void serialize(Archive & ar, TString & String, const unsigned int version)
+    void serialize(Archive& ar, TString& String, const unsigned int version)
     {
       if (Archive::is_loading::value)
       {
@@ -37,7 +37,7 @@ namespace boost {
       }
       else
       {
-        std::string CString(String.CString(TString::kUtf8));
+        std::string CString(String.StdCString(TString::kUtf8));
         ar & CString;
       }
     }
@@ -45,7 +45,7 @@ namespace boost {
     // ---------------------------------------------------------------------------------------------
 
     template<class Archive>
-    void serialize(Archive & ar, TList<TString> & StringList, const unsigned int version)
+    void serialize(Archive& ar, TList<TString>& StringList, const unsigned int version)
     {
       if (Archive::is_loading::value)
       {
@@ -212,7 +212,7 @@ TClassificationTestDataSet::TClassificationTestDataSet(
     mInputFeatureNames.PreallocateSpace((int)FeatureNames.size());
     for (size_t i = 0; i < FeatureNames.size(); ++i)
     {
-      mInputFeatureNames.Append(FeatureNames[i].c_str());
+      mInputFeatureNames.Append(TString(FeatureNames[i].c_str(), TString::kUtf8));
     }
   }
 
@@ -546,7 +546,7 @@ void TClassificationTestDataSet::ExportToCsvFile(const TString& Filename) const
   #if defined(MCompiler_VisualCPP)
     std::ofstream FileStream(Filename.Chars());
   #elif defined(MCompiler_GCC)
-    std::ofstream FileStream(Filename.CString(TString::kFileSystemEncoding));
+    std::ofstream FileStream(Filename.StdCString(TString::kFileSystemEncoding));
   #else
     #error "Unknown compiler"
   #endif
@@ -558,7 +558,7 @@ void TClassificationTestDataSet::ExportToCsvFile(const TString& Filename) const
     FileStream << "id,";
     for (int i = 0; i < mInputFeatureNames.Size(); ++i)
     {
-      FileStream << mInputFeatureNames[i].CString();
+      FileStream << mInputFeatureNames[i].StdCString();
       if (i < mInputFeatureNames.Size() - 1)
       {
         FileStream << ",";
@@ -597,7 +597,7 @@ void TClassificationTestDataSet::ExportToCsvFile(const TString& Filename) const
     }
 
     // id
-    FileStream << "\"" << (*IdIter).CString(TString::kUtf8) << 
+    FileStream << "\"" << (*IdIter).StdCString(TString::kUtf8) << 
       "\"" << Separator;
 
     // feature values
@@ -632,7 +632,7 @@ void TClassificationTestDataSet::LoadFromFile(const TString& FileName)
     std::ifstream ifs(FileName.Chars(), Flags);
   #elif defined(MCompiler_GCC)
     // kFileSystemEncoding should be utf-8 on linux/OSX, so this should be fine too
-    std::ifstream ifs(FileName.CString(TString::kFileSystemEncoding), Flags);
+    std::ifstream ifs(FileName.StdCString(TString::kFileSystemEncoding), Flags);
   #else
     #error "Unknown compiler"
   #endif
@@ -664,7 +664,7 @@ void TClassificationTestDataSet::SaveToFile(const TString& FileName) const
   #if defined(MCompiler_VisualCPP)
     std::ofstream ofs(FileName.Chars(), Flags); // see LoadFromFile...
   #elif defined(MCompiler_GCC)
-    std::ofstream ofs(FileName.CString(TString::kFileSystemEncoding), Flags);
+    std::ofstream ofs(FileName.StdCString(TString::kFileSystemEncoding), Flags);
   #else
     #error "Unknown compiler"
   #endif

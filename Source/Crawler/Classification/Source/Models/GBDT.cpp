@@ -67,8 +67,8 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
 
   // training data and report metrics
   params.emplace("num_class", std::to_string(NumberOfClasses));
-  params.emplace("data", std::string(TrainDataFileName.CString()));
-  params.emplace("valid_data", std::string(TestDataFileName.CString()));
+  params.emplace("data", TrainDataFileName.StdCString(TString::kFileSystemEncoding));
+  params.emplace("valid_data", TestDataFileName.StdCString(TString::kFileSystemEncoding));
   params.emplace("metric_freq", "1");
   params.emplace("train_metric", "true");
   params.emplace("deterministic", "true");
@@ -131,8 +131,10 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
     std::ofstream TrainDataFileStream(TrainDataFileName.Chars());
     std::ofstream TestDataFileStream(TestDataFileName.Chars());
   #elif defined(MCompiler_GCC)
-    std::ofstream TrainDataFileStream(TrainDataFileName.CString(TString::kFileSystemEncoding));
-    std::ofstream TestDataFileStream(TestDataFileName.CString(TString::kFileSystemEncoding));
+    std::ofstream TrainDataFileStream(
+      TrainDataFileName.StdCString(TString::kFileSystemEncoding));
+    std::ofstream TestDataFileStream(
+      TestDataFileName.StdCString(TString::kFileSystemEncoding));
   #else
     #error "Unknown compiler"
   #endif

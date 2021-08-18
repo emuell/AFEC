@@ -150,9 +150,10 @@ int gMain(const TList<TString>& Arguments)
 
   // ... Parse program options
 
+  const std::string ProgramName = gCutPath(Arguments[0]).StdCString();
   const std::string Usage = std::string() + "Usage:\n" +
-    "  " + gCutPath(Arguments[0]).CString() + " [options] -o /path_to/database.db <paths...>\n" +
-    "  " + gCutPath(Arguments[0]).CString() + " --help";
+    "  " + ProgramName.c_str() + " [options] -o /path_to/database.db <paths...>\n" +
+    "  " + ProgramName.c_str() + " --help";
 
   boost::program_options::options_description CommandLineOptions("Options");
   CommandLineOptions.add_options()
@@ -233,7 +234,7 @@ int gMain(const TList<TString>& Arguments)
       {
         std::stringstream Error;
         Error << "ERROR: invalid -l argument: expected 'low' or 'high', got: " <<
-          Level.CString() << ".";
+          Level.StdCString() << ".";
         throw boost::program_options::error(Error.str());
       }
     }
@@ -260,7 +261,7 @@ int gMain(const TList<TString>& Arguments)
         {
           std::stringstream Error;
           Error << "class model argument does not point to an existing model file: '" <<
-            ClassificationModelNameAndPath.CString() << "'.";
+            ClassificationModelNameAndPath.StdCString() << "'.";
           throw boost::program_options::error(Error.str());
         }
       }
@@ -274,7 +275,7 @@ int gMain(const TList<TString>& Arguments)
         {
           std::stringstream Error;
           Error << "category model does not point to an existing model file: '" <<
-            ClassificationModelNameAndPath.CString() << "'.";
+            ClassificationModelNameAndPath.StdCString() << "'.";
           throw boost::program_options::error(Error.str());
         }
       }
@@ -331,7 +332,7 @@ int gMain(const TList<TString>& Arguments)
           if (DirectoriesOrFiles.Contains(Directory.Path()))
           {
             std::stringstream Error;
-            Error << "Directory '" << Directory.Path().CString() << "' got specified multiple "
+            Error << "Directory '" << Directory.Path().StdCString() << "' got specified multiple "
               "times in 'files'. You probably forgot to prefix it with an 'out' option?";
             throw boost::program_options::error(Error.str());
           }
@@ -345,7 +346,7 @@ int gMain(const TList<TString>& Arguments)
         else
         {
           std::stringstream Error;
-          Error << "invalid arguments - argument '" << FileOrDirectory.CString() <<
+          Error << "invalid arguments - argument '" << FileOrDirectory.StdCString() <<
             "' is neither an existing file nor directory.";
           throw boost::program_options::error(Error.str());
         }
@@ -394,7 +395,7 @@ int gMain(const TList<TString>& Arguments)
         DirectoriesOrFiles[i] = gCurrentWorkingDir().Descend(Directory.Path()).Path();
       }
 
-      if (!Directory.IsSameOrSubDirOf(DbPath))
+      if (! Directory.IsSameOrSubDirOf(DbPath))
       {
         // all passed directories must be child dirs of the db path
         UseRelativePaths = false;
@@ -443,7 +444,7 @@ int gMain(const TList<TString>& Arguments)
   }
   catch (const TReadableException& Exception)
   {
-    std::cerr << Exception.Message().CString();
+    std::cerr << Exception.what();
     return EXIT_FAILURE;
   }
 
@@ -467,7 +468,7 @@ int gMain(const TList<TString>& Arguments)
   }
   catch (const TReadableException& Exception)
   {
-    std::cerr << Exception.Message().CString();
+    std::cerr << Exception.what();
     return EXIT_FAILURE;
   }
 
@@ -484,8 +485,8 @@ void SShowVersionInfo()
   TLog::SLog()->SetTraceLogContents(false);
 
   // version and built date
-  std::cout << MProductString.CString() << " " << 
-    MBuildNumberString.CString() << "\n";
+  std::cout << MProductString.StdCString() << " " << 
+    MBuildNumberString.StdCString() << "\n";
 
   // supported audio files
   std::cout << "Supported Audio files:" << "\n";
@@ -494,7 +495,7 @@ void SShowVersionInfo()
   const TList<TString> AudioFileExtensions = TAudioFile::SSupportedExtensions();
   for (int i = 0; i < AudioFileExtensions.Size(); ++i)
   {
-    std::cout << AudioFileExtensions[i].CString();
+    std::cout << AudioFileExtensions[i].StdCString();
     if (i < AudioFileExtensions.Size() - 1)
     {
       std::cout << ", ";
@@ -515,7 +516,7 @@ void SShowVersionInfo()
   std::cout << "Class Model:\n";
   if (TFile(DefaultClassModelPathAndName).Exists())
   {
-    std::cout << "  " << DefaultClassModelPathAndName.CString() << "\n";
+    std::cout << "  " << DefaultClassModelPathAndName.StdCString() << "\n";
   }
   else
   {
@@ -530,7 +531,7 @@ void SShowVersionInfo()
   std::cout << "Category Model:\n";
   if (TFile(DefaultCategoryModelPathAndName).Exists())
   {
-    std::cout << "  " << DefaultCategoryModelPathAndName.CString() << "\n";
+    std::cout << "  " << DefaultCategoryModelPathAndName.StdCString() << "\n";
   }
   else
   {
@@ -555,7 +556,7 @@ int SRunExtractor(
     // ... init
 
     TLog::SLog()->AddLine(MLogPrefix, "Setting up sqlite extractor");
-    TLog::SLog()->AddLine(MLogPrefix, "Writing into db: '%s'", DbNameAndPath.CString());
+    TLog::SLog()->AddLine(MLogPrefix, "Writing into db: '%s'", DbNameAndPath.StdCString().c_str());
 
 
     // ... start crawling
@@ -658,13 +659,13 @@ int SRunExtractor(
         // NB: IMPORTANT: The GUI (hackily) picks up the progress from this log line, by 
         // reading the stdout, so don't remove or change it unless you change the GUI too.
         TLog::SLog()->AddLine(MLogPrefix, "Analyzing '%s' (%d of %d)",
-          AudioFilesToAdd[i].CString(), i + 1, AudioFilesToAdd.Size());
+          AudioFilesToAdd[i].StdCString().c_str(), i + 1, AudioFilesToAdd.Size());
 
         pAnalyzer->Extract(AudioFilesToAdd[i], pSamplePool);
       }
 
       // remove no longer existing files
-      if (!AudioFilesToRemove.IsEmpty()) 
+      if (! AudioFilesToRemove.IsEmpty()) 
       {
         TLog::SLog()->AddLine(MLogPrefix, "Removing %d samples", 
           AudioFilesToRemove.Size());
@@ -801,7 +802,7 @@ void SCollectFiles(
     if (SIgnoreRootDirectory(Directory))
     {
       TLog::SLog()->AddLine(MLogPrefix,
-        "Ignoring contents of directory: '%s'", Directory.Path().CString());
+        "Ignoring contents of directory: '%s'", Directory.Path().StdCString().c_str());
 
       return;
     }
@@ -828,7 +829,7 @@ void SCollectFiles(
       if (SIgnoreSubDirectory(SubDirNames[i]))
       {
         TLog::SLog()->AddLine(MLogPrefix,
-          "Ignoring contents of (sub)directory: '%s'", FullSubDir.Path().CString());
+          "Ignoring contents of (sub)directory: '%s'", FullSubDir.Path().StdCString().c_str());
 
         continue;
       }

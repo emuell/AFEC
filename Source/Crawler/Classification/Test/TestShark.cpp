@@ -23,7 +23,7 @@ void TClassificationTest::Shark()
 
     shark::ClassificationDataset TrainData, TestData;
     shark::importCSV(TrainData,
-      (DataDir.Path() + "SharkClassificationData.csv").CString(TString::kFileSystemEncoding),
+      (DataDir.Path() + "SharkClassificationData.csv").StdCString(TString::kFileSystemEncoding),
       shark::LAST_COLUMN, ' ');
 
     // Use 70% for training and 30% for testing.
@@ -63,7 +63,7 @@ void TClassificationTest::Shark()
 
     shark::ClassificationDataset TrainData, TestData;
     shark::importCSV(TrainData,
-      (DataDir.Path() + "SharkMultiClassificationData.csv").CString(TString::kFileSystemEncoding),
+      (DataDir.Path() + "SharkMultiClassificationData.csv").StdCString(TString::kFileSystemEncoding),
       shark::LAST_COLUMN, ',');
 
     // normalize data

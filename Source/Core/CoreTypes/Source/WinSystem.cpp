@@ -342,7 +342,7 @@ int TSystem::LaunchProcess(
   CommandLine.Append(L'\0');
 
   TLog::SLog()->AddLine( "System", "Launching Process: %s", 
-    TString(CommandLine.FirstRead()).CString() );
+    TString(CommandLine.FirstRead()).StdCString().c_str() );
 
   // launch
   const BOOL InheritHandles = FALSE; // set to TRUE to redirect std out and err to parent
@@ -870,7 +870,7 @@ TList<TSystem::TArchInfo> TSystem::ExecutableArchitectures(const TString& FileNa
   }
   catch (const TReadableException& Exception)
   { 
-    MInvalid(Exception.Message().CString()); MUnused(Exception);
+    MInvalid(Exception.what()); MUnused(Exception);
     return TList<TArchInfo>();
   }
 }

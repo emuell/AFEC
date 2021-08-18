@@ -10,18 +10,26 @@ namespace boost
   {
 
     template<class Archive>
-    void serialize(Archive & ar, TPoint & Point, const unsigned int version)
+    void serialize(Archive& ar, TPoint& Point, const unsigned int version)
     {
       ar & Point.mX;
       ar & Point.mY;
     }
 
     template<class Archive>
-    void serialize(Archive & ar, TString & String, const unsigned int version)
+    void serialize(Archive& ar, TString& String, const unsigned int version)
     {
-      std::string CString(String.CString(TString::kUtf8));
-      ar & CString;
-      String = TString(CString.c_str(), TString::kUtf8);
+      if (Archive::is_loading::value)
+      {
+        std::string CString;
+        ar & CString;
+        String = TString(CString.c_str(), TString::kUtf8);
+      }
+      else 
+      {
+        std::string CString(String.StdCString(TString::kUtf8).c_str());
+        ar & CString;
+      }
     }
 
   }
@@ -200,7 +208,7 @@ void TClassificationModel::Load(const TString& FileName)
   std::ifstream ifs(FileName.Chars(), Flags);
 #elif defined(MCompiler_GCC)
   // kFileSystemEncoding should be utf-8 on linux/OSX, so this should be fine too
-  std::ifstream ifs(FileName.CString(TString::kFileSystemEncoding), Flags);
+  std::ifstream ifs(FileName.StdCString(TString::kFileSystemEncoding), Flags);
 #else
   #error "Unknown compiler"
 #endif
@@ -236,7 +244,7 @@ void TClassificationModel::Save(const TString& FileName) const
 #if defined(MCompiler_VisualCPP)
   std::ofstream ofs(FileName.Chars(), Flags); // see TClassificationModel::Load...
 #elif defined(MCompiler_GCC)
-  std::ofstream ofs(FileName.CString(TString::kFileSystemEncoding), Flags);
+  std::ofstream ofs(FileName.StdCString(TString::kFileSystemEncoding), Flags);
 #else
   #error "Unknown compiler"
 #endif

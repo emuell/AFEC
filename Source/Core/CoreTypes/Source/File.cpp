@@ -84,13 +84,13 @@ MStaticAssert(sizeof(double) == 8);
 #elif defined(MMac) || defined(MLinux)
   FILE* ufopen(const TUnicodeChar* pFileName, const wchar_t* pFlags)
   {
-    const char* pUtf8FileName = TString(pFileName).CString(
-      TString::kFileSystemEncoding);
+    const std::string Utf8FileName = 
+      TString(pFileName).StdCString(TString::kFileSystemEncoding);
 
-    const char* pFlagsCString = TString(pFlags).CString();
+    const std::string FlagsCString = TString(pFlags).StdCString();
 
     struct stat FileStatInfo;
-    if (::stat(pUtf8FileName, &FileStatInfo) == 0 && 
+    if (::stat(Utf8FileName.c_str(), &FileStatInfo) == 0 &&
         S_ISDIR(FileStatInfo.st_mode))
     {
       // fopen strangely does not fail for directories, so we must 
@@ -98,22 +98,25 @@ MStaticAssert(sizeof(double) == 8);
       return NULL;
     }
     
-    return ::fopen(pUtf8FileName, pFlagsCString);
+    return ::fopen(Utf8FileName.c_str(), FlagsCString.c_str());
   }
   
   FILE* ufreopen(const TUnicodeChar* pFileName, const wchar_t* pFlags, FILE* FileHandle)
   {
-     const char* pUtf8FileName = TString(pFileName).CString(
-      TString::kFileSystemEncoding);
+    const std::string Utf8FileName = 
+      TString(pFileName).StdCString(TString::kFileSystemEncoding);
 
-    const char* pFlagsCString = TString(pFlags).CString();
+    const std::string FlagsCString = TString(pFlags).StdCString();
     
-    return ::freopen(pUtf8FileName, pFlagsCString, FileHandle);
+    return ::freopen(Utf8FileName.c_str(), FlagsCString.c_str(), FileHandle);
   }
 
   int uunlink(const TUnicodeChar* pFileName)
   {
-    return ::unlink(TString(pFileName).CString(TString::kFileSystemEncoding));
+    const std::string Utf8FileName = 
+      TString(pFileName).StdCString(TString::kFileSystemEncoding);
+
+    return ::unlink(Utf8FileName.c_str());
   }
   
   #define fseek64 fseeko
@@ -484,8 +487,11 @@ int TFile::ModificationStatTime()const
     }
     
   #else
+    const std::string Utf8FileName = 
+      mFileName.StdCString(TString::kFileSystemEncoding);
+  
     struct stat buf;
-    int result = ::stat(mFileName.CString(TString::kFileSystemEncoding), &buf);
+    int result = ::stat(Utf8FileName.c_str(), &buf);
 
     if (result != 0)
     {
@@ -574,7 +580,7 @@ void TFile::ReadText(
 
   int CharOffset = 0;
   
-  TString Encoding(IconvEncoding);
+  TString SrcEncoding(IconvEncoding);
   
   
   // ... convert from UTF-16,32 or 8 automatically
@@ -585,7 +591,7 @@ void TFile::ReadText(
         (unsigned char)CharArray[1] == 0xBB &&
         (unsigned char)CharArray[2] == 0xBF)
   {
-    Encoding = "UTF-8";
+    SrcEncoding = "UTF-8";
     CharOffset = 3;
   }
   
@@ -597,7 +603,7 @@ void TFile::ReadText(
             ((unsigned char)CharArray[0] == 0xFF && 
              (unsigned char)CharArray[1] == 0xFE)))
   {
-    Encoding = (unsigned char)CharArray[0] == 0xFE ? "UTF-16BE" : "UTF-16LE";
+    SrcEncoding = (unsigned char)CharArray[0] == 0xFE ? "UTF-16BE" : "UTF-16LE";
     CharOffset = 2;
   }
   
@@ -613,16 +619,16 @@ void TFile::ReadText(
              (unsigned char)CharArray[2] == 0x00 && 
              (unsigned char)CharArray[3] == 0x00)))
   {
-    Encoding = (unsigned char)CharArray[0] == 0x00 ? "UTF-32BE" : "UTF-32LE";
+    SrcEncoding = (unsigned char)CharArray[0] == 0x00 ? "UTF-32BE" : "UTF-32LE";
     CharOffset = 4;
   }
   
 
   // ... guess UTF-8 from the content if encoding is auto
   
-  if (Encoding == "auto")
+  if (SrcEncoding == "auto")
   {
-    Encoding = ""; // platform encoding as fallback
+    SrcEncoding = ""; // platform encoding as fallback
 
     for (int i = 0; i < CharArray.Size(); ++i)
     {
@@ -638,13 +644,13 @@ void TFile::ReadText(
             (Character & 0xFE) == 0xFC)
         {
           // looks like UTF-8
-          Encoding = "UTF-8";
+          SrcEncoding = "UTF-8";
           break;
         }
         else
         {
           // definitely not UTF8, assume platform encoding
-          Encoding = "";
+          SrcEncoding = "";
           break;
         }
       }
@@ -656,11 +662,11 @@ void TFile::ReadText(
   
   TString::TCStringEncoding CStringEncoding;
   
-  if (Encoding.IsEmpty())
+  if (SrcEncoding.IsEmpty())
   {
     CStringEncoding = TString::kPlatformEncoding;
   }
-  else if (Encoding == "UTF-8")
+  else if (SrcEncoding == "UTF-8")
   {
     CStringEncoding = TString::kUtf8;
   }
@@ -668,8 +674,9 @@ void TFile::ReadText(
   {
     // else convert char buffer to UTF8...
     CStringEncoding = TString::kUtf8;
-
-    TIconv IconvConverter(Encoding.CString(), "UTF-8");
+    
+    const std::string SrcEncodingCString = SrcEncoding.StdCString();
+    TIconv IconvConverter(SrcEncodingCString.c_str(), "UTF-8");
       
     const char* pSourceChars = CharArray.FirstRead() + CharOffset;
     size_t SourceLen = CharArray.Size() - CharOffset;
@@ -782,18 +789,19 @@ void TFile::WriteText(
   {
     for (int i = 0; i < Text.Size(); ++i)
     {
-      const char* pCString = Text[i].CString(TString::kPlatformEncoding);
-      const TUInt32 StringLen = (TUInt32)::strlen(pCString);
-      Write(pCString, StringLen);
+      const std::string LineCString = Text[i].StdCString(TString::kPlatformEncoding);
+      Write(LineCString.c_str(), (TUInt32)LineCString.size());
       Write(NewLineChars.FirstRead(), NewLineChars.Size());
     }
   }
   else
   {
+    const std::string IconvEncodingCString = IconvEncoding.StdCString();
+
     for (int i = 0; i < Text.Size(); ++i)
     {
       TArray<char> LineChars;
-      Text[i].CreateCStringArray(LineChars, IconvEncoding.CString());
+      Text[i].CreateCStringArray(LineChars, IconvEncodingCString.c_str());
     
       Write(LineChars.FirstRead(), LineChars.Size());
       Write(NewLineChars.FirstRead(), NewLineChars.Size());
@@ -874,12 +882,11 @@ void TFile::Read(T24 *pBuffer, size_t Count)
 
 void TFile::Write(const TString &String, TString::TCStringEncoding Encoding)
 { 
-  const char* pCStringChars = String.CString(Encoding);
-  
-  const TInt32 Len = (TInt32)::strlen(pCStringChars) + 1;
-  Write(Len);
+  const std::string CString = String.StdCString(Encoding).c_str();
+  const TInt32 Length = (TInt32)CString.size() + 1;
 
-  Write(pCStringChars, Len);
+  Write(Length);
+  Write(CString.c_str(), Length);
 }
 
 void TFile::Write(const bool& Value)

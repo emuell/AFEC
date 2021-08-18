@@ -62,11 +62,11 @@ static bool SForwardArgsToRunningApplication(const TList<TString>& Arguments)
         {
           if (gFileExists(Arguments[i]))
           {
-            const char* pArgCString = Arguments[i].CString(TString::kUtf8);
+            const std::string ArgumentCString = Arguments[i].StdCString(TString::kUtf8);
 
             COPYDATASTRUCT CopyDataStruct;
-            CopyDataStruct.cbData = (DWORD)::strlen(pArgCString);
-            CopyDataStruct.lpData = (PVOID)pArgCString;
+            CopyDataStruct.cbData = (DWORD)ArgumentCString.size();
+            CopyDataStruct.lpData = (PVOID)ArgumentCString.c_str();
             
             DWORD_PTR MessageResult = 0;
             const LRESULT SendResult = ::SendMessageTimeout(gMainAppWindowHandle, 

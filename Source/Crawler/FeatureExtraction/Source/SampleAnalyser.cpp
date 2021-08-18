@@ -336,7 +336,7 @@ void TSampleAnalyser::Extract(const TString& FileName, TSampleDescriptorPool* pP
   catch (const std::exception& exception)
   {
     TLog::SLog()->AddLine(MLogPrefix, "Failed to load sample '%s' - '%s'",
-      FileName.CString(), exception.what());
+      FileName.StdCString().c_str(), exception.what());
 
     pPool->InsertFailedSample(FileName,
       TString() + "Sample failed to load: " + exception.what());
@@ -359,7 +359,7 @@ void TSampleAnalyser::Extract(const TString& FileName, TSampleDescriptorPool* pP
   catch (const std::exception& exception)
   {
     TLog::SLog()->AddLine(MLogPrefix, "Failed to analyse sample '%s' - '%s'",
-      FileName.CString(), exception.what());
+      FileName.StdCString().c_str(), exception.what());
 
     pPool->InsertFailedSample(FileName,
       TString() + "Sample failed to analyse: " + exception.what());
@@ -472,7 +472,7 @@ void TSampleAnalyser::LoadSample(
       {
         // don't abort loading, but zero out blocks which failed to load
         TLog::SLog()->AddLine(MLogPrefix, "Decoder error at sample frame %d: %s",
-          TotalSamplesRead, Exception.Message().CString());
+          TotalSamplesRead, Exception.Message().StdCString().c_str());
 
         for (int c = 0; c < NumberOfSampleChannels; ++c)
         {
@@ -1011,7 +1011,7 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(const TSampleData& SampleData)
   #if defined(MWritePgmSpectrum)
     const TString PmgFile(gCutExtension(SampleData.mOriginalFileName) + "_Spectrum.pgm");
 
-    shark::exportPGM(PmgFile.CString(), PmgSpectrum,
+    shark::exportPGM(PmgFile.StdCString(TString::kFileSystemEncoding), PmgSpectrum,
       mFftFrameSize / 2, PmgSpectrum.size() / (mFftFrameSize / 2),
       true);
   #endif
@@ -1634,7 +1634,7 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(const TSampleData& SampleData)
 
     gTraceVar("> Total pitch stddev mean: %.2f", TotalPitchStdDevMean);
 
-    auto Iter = sRootKeysMap.find(TString(RootKeyFolderName).ToLower().CString());
+    auto Iter = sRootKeysMap.find(TString(RootKeyFolderName).ToLower().StdCString());
     if (Iter != sRootKeysMap.end())
     {
       const float ExpectedRootKey = (float)Iter->second;

@@ -260,10 +260,10 @@ TClassificationTestResults TDnnClassificationModel::OnTrain(
 
 #if 0
       tiny_dnn::image<> img = conv.weight_to_image();
-      img.write((ModelDir().Path() + "Conv_Layer_0.png").CString(TString::kFileSystemEncoding));
+      img.write((ModelDir().Path() + "Conv_Layer_0.png").StdCString(TString::kFileSystemEncoding));
 
       img = pooling.output_to_image();
-      img.write((ModelDir().Path() + "Pool_Layer_0.png").CString(TString::kFileSystemEncoding));
+      img.write((ModelDir().Path() + "Pool_Layer_0.png").StdCString(TString::kFileSystemEncoding));
 #endif
     }
   };

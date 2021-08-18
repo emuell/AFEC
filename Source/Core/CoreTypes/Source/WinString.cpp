@@ -14,10 +14,6 @@
 
 namespace
 {
-  TStaticArray<TArray<char>, TString::kNumCStringBuffers> sCCharArrays;
-  int sLastCCharArray;
-  bool sInitialized = false;
-    
   // -----------------------------------------------------------------------------------------------
 
   int CodePageFromEncoding(TString::TCStringEncoding Encoding)
@@ -38,26 +34,6 @@ namespace
 }
 
 // =================================================================================================
-
-// -------------------------------------------------------------------------------------------------
-
-void TString::SInitPlatformString()
-{
-  sLastCCharArray = 0;
-  sInitialized = true;
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void TString::SExitPlatformString()
-{
-  sInitialized = false;
-  
-  for (int i = 0; i < sCCharArrays.Size(); ++i)
-  {
-    sCCharArrays[i].Empty();
-  }
-} 
 
 // -------------------------------------------------------------------------------------------------
 
@@ -123,84 +99,6 @@ TString::TString(const char* pCString, TCStringEncoding Encoding)
         MInvalid("Conversion failed");
       }
     }  
-  }
-}
-
-// -------------------------------------------------------------------------------------------------
-
-const char* TString::CString(TCStringEncoding Encoding)const
-{
-  MAssert(sInitialized, "Not yet or no longer initialized!");
-  
-  if (! IsEmpty())
-  {
-    TArray<char>& rCurrThreadsBuffer = sCCharArrays[sLastCCharArray];
-    sLastCCharArray = (sLastCCharArray + 1) % kNumCStringBuffers;
-
-    if (Encoding == TString::kAscii)
-    {
-      const TUnicodeChar* pSrcChars = Chars();
-      const int Length = Size() + 1;
-      
-      #if defined(MCStringBufferReallocation)
-        rCurrThreadsBuffer.SetSize(Length);
-      #else
-        rCurrThreadsBuffer.Grow(Length);
-      #endif
-      
-      char* pDestChars = rCurrThreadsBuffer.FirstWrite();
-      
-      while (*pSrcChars != '\0')
-      {
-        if (*pSrcChars >= 127)
-        {
-          *pDestChars++ = '?';
-          ++pSrcChars;
-        }
-        else
-        {
-          *pDestChars++ = (char)*pSrcChars++;
-        }
-      }
-      
-      *pDestChars = '\0';
-      
-      return rCurrThreadsBuffer.FirstRead();
-    }
-    else
-    {
-      const int StrLen = ::WideCharToMultiByte(CodePageFromEncoding(Encoding), 0, 
-        mpStringBuffer->ReadPtr(), -1, NULL, 0, NULL, NULL );
-
-      if (StrLen > 0)
-      {
-        #if defined(MCStringBufferReallocation)
-          rCurrThreadsBuffer.SetSize(StrLen);
-        #else
-          rCurrThreadsBuffer.Grow(StrLen);
-        #endif
-
-        if (::WideCharToMultiByte(CodePageFromEncoding(Encoding), 0, mpStringBuffer->ReadPtr(), 
-          -1, rCurrThreadsBuffer.FirstWrite(), StrLen, NULL, NULL ) != -1)
-        {
-          rCurrThreadsBuffer[StrLen - 1] = '\0';
-          return rCurrThreadsBuffer.FirstRead();
-        }
-        else
-        {
-          MInvalid("Conversion failed");
-          return "";
-        }
-      }
-      else
-      {
-        return "";
-      }
-    }  
-  }
-  else
-  {
-    return "";
   }
 }
 

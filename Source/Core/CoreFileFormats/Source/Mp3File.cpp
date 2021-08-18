@@ -122,15 +122,16 @@ void TMp3DecoderFile::Open()
       "(mpg123_new: '%s').", ToString(Mpeg123Error)));
   }
 
-  const char* pFileName = mpFile->FileName().CString(TString::kFileSystemEncoding);
+  const std::string FileNameCString = 
+    mpFile->FileName().StdCString(TString::kFileSystemEncoding);
 
   if (libmpg123_is_using_64)
   {
-    Mpeg123Error = ::mpg123_open_64(mMp3File, pFileName);
+    Mpeg123Error = ::mpg123_open_64(mMp3File, FileNameCString.c_str());
   }
   else
   {
-    Mpeg123Error = ::mpg123_open(mMp3File, pFileName);
+    Mpeg123Error = ::mpg123_open(mMp3File, FileNameCString.c_str());
   }
 
   if (Mpeg123Error != MPG123_OK)

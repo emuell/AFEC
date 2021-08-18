@@ -1294,7 +1294,7 @@ void TSqliteSampleDescriptorPool::InitializeDatabase()
         catch (const TReadableException& Exception)
         {
           TLog::SLog()->AddLine(MLogPrefix, "Drop statement failed: %s",
-            Exception.Message().CString());
+            Exception.what());
         }
       }
     }
@@ -1362,7 +1362,7 @@ void TSqliteSampleDescriptorPool::InitializeDatabase()
     catch (const TReadableException& Exception)
     {
       TLog::SLog()->AddLine(MLogPrefix, "Table initialization failed: %s",
-        Exception.Message().CString());
+        Exception.what());
 
       throw Exception;
     }
@@ -1394,9 +1394,7 @@ bool TSqliteSampleDescriptorPool::IsEmpty() const
     catch (const TReadableException& Exception)
     {
       TLog::SLog()->AddLine(MLogPrefix, "Unexpected DB error: %s",
-        Exception.Message().CString());
-
-      MInvalid(Exception.Message().CString());
+        Exception.what());
       throw;
     }
   }
@@ -1429,9 +1427,7 @@ int TSqliteSampleDescriptorPool::NumberOfSamples() const
     catch (const TReadableException& Exception)
     {
       TLog::SLog()->AddLine(MLogPrefix, "Unexpected DB error: %s",
-        Exception.Message().CString());
-
-      MInvalid(Exception.Message().CString());
+        Exception.what());
       throw;
     }
   }
@@ -1542,9 +1538,7 @@ TOwnerPtr<TSampleDescriptors> TSqliteSampleDescriptorPool::Sample(int Index) con
     catch (const TReadableException& Exception)
     {
       TLog::SLog()->AddLine(MLogPrefix, "Unexpected DB error: %s",
-        Exception.Message().CString());
-
-      MInvalid(Exception.Message().CString());
+        Exception.what());
       throw;
     }
   }
@@ -1576,9 +1570,7 @@ TList<TPair<TString, int>> TSqliteSampleDescriptorPool::SampleModificationDates(
   catch (const TReadableException& Exception)
   {
     TLog::SLog()->AddLine(MLogPrefix, "Unexpected DB error: %s",
-      Exception.Message().CString());
-
-    MInvalid(Exception.Message().CString());
+      Exception.what());
     throw;
   }
 
@@ -1652,7 +1644,7 @@ void TSqliteSampleDescriptorPool::InsertSample(
   catch (const TReadableException& Exception)
   {
     TLog::SLog()->AddLine(MLogPrefix, "Inserting %s failed: %s",
-      RelFilename.CString(), Exception.Message().CString());
+      RelFilename.StdCString().c_str(), Exception.what());
 
     throw Exception;
   }
@@ -1686,7 +1678,7 @@ void TSqliteSampleDescriptorPool::InsertFailedSample(
   catch (const TReadableException& Exception)
   {
     TLog::SLog()->AddLine(MLogPrefix, "Inserting %s as failed, failed: %s",
-      RelFilename.CString(), Exception.Message().CString());
+      RelFilename.StdCString().c_str(), Exception.what());
 
     throw Exception;
   }
@@ -1734,7 +1726,7 @@ void TSqliteSampleDescriptorPool::RemoveSamples(const TList<TString>& FileNames)
   catch (const TReadableException& Exception)
   {
     TLog::SLog()->AddLine(MLogPrefix, "Removing samples failed: %s",
-      Exception.Message().CString());
+      Exception.what());
 
     throw Exception;
   }
@@ -1768,7 +1760,7 @@ void TSqliteSampleDescriptorPool::InsertClassifier(
   catch (const TReadableException& Exception)
   {
     TLog::SLog()->AddLine(MLogPrefix, "Inserting classifier %s failed : %s",
-      ClassifierName.CString(), Exception.Message().CString());
+      ClassifierName.StdCString().c_str(), Exception.what());
 
     throw Exception;
   }

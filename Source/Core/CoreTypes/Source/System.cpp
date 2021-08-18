@@ -162,7 +162,7 @@ void TSystem::ShowMessage(const TString& Message, TSystem::TMessageType Type)
       {
         TLog::SLog()->AddLine((Type == kError) ? 
           "Error Message" : "Warning Message", "%s", 
-          Paragraphs[i].CString());
+          Paragraphs[i].StdCString().c_str());
       }
     }
   }
@@ -188,11 +188,11 @@ void TSystem::StandardMessageRedirector(
 {
   if (Type == kError) 
   {
-    std::cerr << Message.CString() << "\n"; 
+    std::cerr << Message.StdCString() << "\n"; 
   }
   else // Type == kWarning or kInfo
   {
-    std::cout << Message.CString() << "\n"; 
+    std::cout << Message.StdCString() << "\n"; 
   }
 }
 

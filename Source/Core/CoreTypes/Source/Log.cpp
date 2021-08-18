@@ -159,7 +159,7 @@ void TLog::CreateLogFile()
         }
         catch (const TReadableException& Exception)
         {
-          MInvalid(Exception.Message().CString()); MUnused(Exception);
+          MInvalid(Exception.what()); MUnused(Exception);
         
           TFile(mDirectory.Path() + mName).Unlink();
           CreatingNewFile = true;
@@ -189,17 +189,17 @@ void TLog::CreateLogFile()
     {
       if (mLogFile.IsOpen() && (mFileMode == kAppend) && !CreatingNewFile)
       {
-        const char* pSpacer = (4 * TString::SNewLine()).CString();
-        mLogFile.Write(pSpacer, ::strlen(pSpacer));
+        const std::string Spacing = (4 * TString::SNewLine()).StdCString();
+        mLogFile.Write(Spacing.c_str(), Spacing.size());
       }
 
-      Dump("", TString(MSeperator).CString());
+      Dump("", TString(MSeperator).StdCString().c_str());
       Dump("", TString("Version : " + MProductNameAndVersionString +
-        MAlphaOrBetaVersionString + " (" + TString(__DATE__) + ")").CString());
-      Dump("", TString("Date    : " + ToString(TDate::SCurrentDate())).CString());
-      Dump("", TString("Time    : " + ToString(TDayTime::SCurrentDayTime())).CString());
-      Dump("", TString("OS      : " + TSystem::GetOsAsString()).CString());
-      Dump("", TString(MSeperator).CString());
+        MAlphaOrBetaVersionString + " (" + TString(__DATE__) + ")").StdCString().c_str());
+      Dump("", TString("Date    : " + ToString(TDate::SCurrentDate())).StdCString().c_str());
+      Dump("", TString("Time    : " + ToString(TDayTime::SCurrentDayTime())).StdCString().c_str());
+      Dump("", TString("OS      : " + TSystem::GetOsAsString()).StdCString().c_str());
+      Dump("", TString(MSeperator).StdCString().c_str());
     }
   }
   catch (const TReadableException& Exception)

@@ -5,16 +5,17 @@
 
 // =================================================================================================
 
+// Assumed below when converting from NSString/CFString to TString and vice versa
+MStaticAssert(sizeof(UniChar) == sizeof(TUnicodeChar));
+
+// =================================================================================================
+
 // to let wrong use of the buffers crash as often as possible
 #if defined(MDebug)
   #define MCStringBufferReallocation
 #endif
 
 // =================================================================================================
-
-static TStaticArray<TArray<char>, TString::kNumCStringBuffers> sCCharArrays;
-static int sLastCCharArray;
-static bool sInitialized = false;
 
 // -------------------------------------------------------------------------------------------------
 
@@ -38,26 +39,6 @@ static CFStringEncoding SCFStringEncoding(TString::TCStringEncoding Encoding)
 }
 
 // =================================================================================================
-
-// -------------------------------------------------------------------------------------------------
-
-void TString::SInitPlatformString()
-{
-  sLastCCharArray = 0;
-  sInitialized = true;
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void TString::SExitPlatformString()
-{
-  sInitialized = false;
-
-  for (int i = 0; i < sCCharArrays.Size(); ++i)
-  {
-    sCCharArrays[i].Empty();
-  }
-}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -206,146 +187,11 @@ TString::TString(const char* pCString, TCStringEncoding Encoding)
       }
 
       ::CFStringGetCharacters(StrRef, ::CFRangeMake(0, NumDestChars - 1),
-        mpStringBuffer->ReadWritePtr());
+        (UniChar*)mpStringBuffer->ReadWritePtr());
 
       mpStringBuffer->ReadWritePtr()[NumDestChars - 1] = '\0';
 
       ::CFRelease(StrRef);
-    }
-  }
-}
-
-// -------------------------------------------------------------------------------------------------
-
-const char* TString::CString(TCStringEncoding Encoding)const
-{
-  MAssert(sInitialized, "Not yet or no longer initialized!");
-
-  if (IsEmpty())
-  {
-    return "";
-  }
-  else
-  {
-    TArray<char>& rCurrThreadsBuffer = sCCharArrays[sLastCCharArray];
-    sLastCCharArray = (sLastCCharArray + 1) % kNumCStringBuffers;
-
-    if (Encoding == TString::kAscii)
-    {
-      const TUnicodeChar* pSrcChars = Chars();
-      const int Length = Size() + 1;
-
-      #if defined(MCStringBufferReallocation)
-        rCurrThreadsBuffer.SetSize(Length);
-      #else
-        rCurrThreadsBuffer.Grow(Length);
-      #endif
-
-      char* pDestChars = rCurrThreadsBuffer.FirstWrite();
-
-      while (*pSrcChars != '\0')
-      {
-        if (*pSrcChars >= 127)
-        {
-          *pDestChars++ = '?';
-          ++pSrcChars;
-        }
-        else
-        {
-          *pDestChars++ = (char)*pSrcChars++;
-        }
-      }
-
-      *pDestChars = '\0';
-
-      return rCurrThreadsBuffer.FirstRead();
-    }
-    // self made UTF8 conversion, because thats faster
-    else if (Encoding == TString::kUtf8)
-    {
-      const TUnicodeChar* pSrcChars = Chars();
-      const int Length = Size();
-
-      #if defined(MCStringBufferReallocation)
-        rCurrThreadsBuffer.SetSize(3*Length + 1);
-      #else
-        rCurrThreadsBuffer.Grow(3*Length + 1);
-      #endif
-
-      char* pDestChars = rCurrThreadsBuffer.FirstWrite();
-
-      while (*pSrcChars != '\0')
-      {
-        if (*pSrcChars & 0xff80)
-        {
-          if (*pSrcChars & 0xf800)
-          {
-            *pDestChars++ = (char)(0xe0 | (*pSrcChars >> 12));
-            *pDestChars++ = (char)(0x80 | ((*pSrcChars >> 6) & 0x3f));
-          }
-          else
-          {
-            *pDestChars++ = (char)(0xc0 | ((*pSrcChars >> 6) & 0x3f));
-          }
-
-          *pDestChars++ = (char)(0x80 | (*pSrcChars & 0x3f));
-        }
-        else
-        {
-          *pDestChars++ = (char)(*pSrcChars);
-        }
-
-        ++pSrcChars;
-      }
-
-      *pDestChars = '\0';
-
-      return rCurrThreadsBuffer.FirstRead();
-    }
-    else
-    {
-      const int StrLen = Size();
-
-      const CFStringRef StringRef = ::CFStringCreateWithCharactersNoCopy(
-        NULL, Chars(), StrLen, kCFAllocatorNull);
-
-      CFIndex FilledBytes;
-
-      if (Encoding == TString::kFileSystemEncoding)
-      {
-        FilledBytes = ::CFStringGetMaximumSizeOfFileSystemRepresentation(StringRef);
-      }
-      else
-      {
-        ::CFStringGetBytes(StringRef, ::CFRangeMake(0, StrLen),
-          ::SCFStringEncoding(Encoding), '?', false, NULL, 0, &FilledBytes);
-      }
-
-      #if defined(MCStringBufferReallocation)
-        rCurrThreadsBuffer.SetSize((int)FilledBytes + 1);
-      #else
-        rCurrThreadsBuffer.Grow((int)FilledBytes + 1);
-      #endif
-
-      if (Encoding == TString::kFileSystemEncoding)
-      {
-        ::CFStringGetFileSystemRepresentation(StringRef,
-          rCurrThreadsBuffer.FirstWrite(), FilledBytes);
-      }
-      else
-      {
-        ::CFStringGetBytes(StringRef, ::CFRangeMake(0, StrLen),
-          ::SCFStringEncoding(Encoding), '?', false,
-          (UInt8*)rCurrThreadsBuffer.FirstWrite(),
-          FilledBytes, &FilledBytes);
-      }
-
-      MAssert(FilledBytes > 0, "Conversion failed");
-      ::CFRelease(StringRef);
-
-      rCurrThreadsBuffer[(int)FilledBytes] = '\0';
-
-      return rCurrThreadsBuffer.FirstRead();
     }
   }
 }
@@ -361,7 +207,7 @@ void TString::CreateCStringArray(
     const int StrLen = Size();
 
     const CFStringRef StringRef = ::CFStringCreateWithCharactersNoCopy(
-      NULL, Chars(), StrLen, kCFAllocatorNull);
+      NULL, (UniChar*)Chars(), StrLen, kCFAllocatorNull);
 
     CFIndex FilledBytes;
 
@@ -477,7 +323,7 @@ TString& TString::SetFromCStringArray(
     }
 
     ::CFStringGetCharacters(StrRef, ::CFRangeMake(0, NumDestChars - 1),
-      mpStringBuffer->ReadWritePtr());
+      (UniChar*)mpStringBuffer->ReadWritePtr());
 
     mpStringBuffer->ReadWritePtr()[NumDestChars - 1] = '\0';
 
@@ -497,7 +343,7 @@ TString& TString::SetFromCStringArray(
 
 CFStringRef gCreateCFString(const TString& String)
 {
-  return ::CFStringCreateWithCharacters(NULL, String.Chars(), String.Size());
+  return ::CFStringCreateWithCharacters(NULL, (UniChar*)String.Chars(), String.Size());
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -509,7 +355,7 @@ TString gCreateStringFromCFString(CFStringRef StringRef)
     TArray<TUnicodeChar> StringBuffer((int)Length + 1);
 
     ::CFStringGetCharacters(StringRef, ::CFRangeMake(0, Length),
-      StringBuffer.FirstWrite());
+      (UniChar*)StringBuffer.FirstWrite());
 
     StringBuffer[(int)Length] = '\0';
 
@@ -525,7 +371,7 @@ TString gCreateStringFromCFString(CFStringRef StringRef)
 
 NSString* gCreateNSString(const TString& String)
 {
-  return [NSString stringWithCharacters:String.Chars() length:String.Size()];
+  return [NSString stringWithCharacters:(UniChar*)String.Chars() length:String.Size()];
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -534,4 +380,3 @@ TString gCreateStringFromNSString(NSString* pNsString)
 {
   return gCreateStringFromCFString((CFStringRef)pNsString);
 }
-

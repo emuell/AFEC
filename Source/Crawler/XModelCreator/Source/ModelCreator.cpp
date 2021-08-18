@@ -73,9 +73,10 @@ int gMain(const TList<TString>& Arguments)
  
   // ... Parse program options
 
+  const std::string ProgramName = gCutPath(Arguments[0]).StdCString();
   const std::string Usage = std::string() + "Usage:\n" + 
-    "  " + gCutPath(Arguments[0]).CString() + " [options] <input.db>\n" +
-    "  " + gCutPath(Arguments[0]).CString() + " --help";
+    "  " + ProgramName.c_str() + " [options] <input.db>\n" +
+    "  " + ProgramName.c_str() + " --help";
 
   boost::program_options::options_description CommandLineOptions("Options");
   CommandLineOptions.add_options()
@@ -138,7 +139,7 @@ int gMain(const TList<TString>& Arguments)
           !TFile(gCutExtension(SourceDatabasePathAndName) + ".shark").Exists())
       {
         std::cerr << "ERROR: src_database is not a valid low level database file: "
-          << SourceDatabasePathAndName.CString() << std::endl;
+          << SourceDatabasePathAndName.StdCString().c_str() << std::endl;
 
         std::cerr << Usage << "\n\n" << CommandLineOptions << "\n";
         return EXIT_FAILURE;
@@ -190,7 +191,7 @@ int gMain(const TList<TString>& Arguments)
   }
   catch (const TReadableException& Exception)
   {
-    std::cerr << Exception.Message().CString();
+    std::cerr << Exception.what();
     return 1;
   }
 
@@ -211,7 +212,7 @@ int gMain(const TList<TString>& Arguments)
            TFile(SourceDatabasePathAndName).ModificationStatTime() ||
          !TFile(SourceDatabasePathAndName).Exists()))
     {
-      STraceResults("Loading data set from '%s'", TestDataSetFilename.CString());
+      STraceResults("Loading data set from '%s'", TestDataSetFilename.StdCString().c_str());
 
       pTestSet = TOwnerPtr<TClassificationTestDataSet>(new TClassificationTestDataSet());
       pTestSet->LoadFromFile(TestDataSetFilename);
@@ -219,14 +220,14 @@ int gMain(const TList<TString>& Arguments)
     else
     {
       STraceResults("Creating data set from '%s'",
-        SourceDatabasePathAndName.CString());
+        SourceDatabasePathAndName.StdCString().c_str());
 
       const bool ReadOnlyPool = true;
       TSqliteSampleDescriptorPool Pool(TSampleDescriptors::kLowLevelDescriptors);
       if (!Pool.Open(SourceDatabasePathAndName, ReadOnlyPool))
       {
         throw TReadableException(
-          MText("Failed to open database: '%s'", SourceDatabasePathAndName.CString()));
+          MText("Failed to open database: '%s'", SourceDatabasePathAndName));
       }
 
       const int NumberOfSamples = Pool.NumberOfSamples();
@@ -255,7 +256,7 @@ int gMain(const TList<TString>& Arguments)
       pTestSet = TOwnerPtr<TClassificationTestDataSet>(
         new TClassificationTestDataSet(SourceDatabasePathAndName, Descriptors));
 
-      STraceResults("Saving data set to '%s'", TestDataSetFilename.CString());
+      STraceResults("Saving data set to '%s'", TestDataSetFilename.StdCString().c_str());
 
       // cache set, to quickly rerun next times
       pTestSet->SaveToFile(TestDataSetFilename);
@@ -272,7 +273,7 @@ int gMain(const TList<TString>& Arguments)
       TestSet.InputFeaturesSize().mY,
       TestSet.NumberOfClasses());
 
-    STraceResults("Will write model to '%s'\n", DestModelPathAndName.CString());
+    STraceResults("Will write model to '%s'\n", DestModelPathAndName.StdCString().c_str());
 
     TClassificationTestResults BestResults;
     TPtr<TDefaultBaggingClassificationModel> pBestModel;
@@ -295,7 +296,7 @@ int gMain(const TList<TString>& Arguments)
          new TDefaultBaggingClassificationModel());
 
       STraceResults("Training new %s model (run %d/%d)...", 
-        pNewModel->Name().CString(), i + 1, NumberOfRuns);
+        pNewModel->Name().StdCString().c_str(), i + 1, NumberOfRuns);
 
       const TClassificationTestResults Results = pNewModel->Train(TestSet);
 

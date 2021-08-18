@@ -71,7 +71,7 @@ static shark::BipolarRBM STrainRBM(
         const TString FeaturesFileName = ModelDir.Path() + "Features_Layer";
 
         shark::exportFiltersToPGMGrid(
-          FeaturesFileName.CString(TString::kFileSystemEncoding),
+          FeaturesFileName.StdCString(TString::kFileSystemEncoding),
           rbm.weightMatrix(), dataWidth, dataHeight);
       }
 #endif
@@ -129,7 +129,8 @@ static TNetworkType* SCreatePretrainedDeepAutoEncoderNetwork(
   std::ifstream ifs(ModelFileName.Chars(), StreamFlags);
 #elif defined(MCompiler_GCC)
   // kFileSystemEncoding should be utf-8 on linux/OSX, so this should be fine too
-  std::ifstream ifs(ModelFileName.CString(TString::kFileSystemEncoding), StreamFlags);
+  std::ifstream ifs(
+    ModelFileName.StdCString(TString::kFileSystemEncoding), StreamFlags);
 #else
   #error "Unknown compiler"
 #endif
@@ -241,7 +242,8 @@ static TNetworkType* SCreatePretrainedDeepAutoEncoderNetwork(
 #if defined(MCompiler_VisualCPP)
     std::ofstream ofs(ModelFileName.Chars(), StreamFlags); // see Load above...
 #elif defined(MCompiler_GCC)
-    std::ofstream ofs(ModelFileName.CString(TString::kFileSystemEncoding), StreamFlags);
+    std::ofstream ofs(
+      ModelFileName.StdCString(TString::kFileSystemEncoding), StreamFlags);
 #else
     #error "Unknown compiler"
 #endif
@@ -297,7 +299,7 @@ TRbmClassificationModel::TSharkModelType*
   const TString SourceLayerFileName = ModelDir().Path() + "Source_Layer";
 
   shark::exportFiltersToPGMGrid(
-    SourceLayerFileName.CString(TString::kFileSystemEncoding),
+    SourceLayerFileName.StdCString(TString::kFileSystemEncoding),
     TrainData.inputs(), InputFeaturesSize.mX, InputFeaturesSize.mY);
 #endif
 
