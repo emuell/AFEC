@@ -295,7 +295,9 @@ void TSampleAnalyser::SetOneShotCategorizationModel(const TString& ModelPath)
 
 // -------------------------------------------------------------------------------------------------
 
-TSampleDescriptors TSampleAnalyser::Analyze(const TString& FileName)
+TSampleDescriptors TSampleAnalyser::Analyze(
+  const TString&                      FileName,
+  TSampleDescriptors::TDescriptorSet  DescriptorSet) const
 {
   // create new analyzation status
   TSampleData SampleData;
@@ -303,17 +305,47 @@ TSampleDescriptors TSampleAnalyser::Analyze(const TString& FileName)
   TSampleDescriptors Results;
 
   // load sample data 
-  LoadSample(FileName, SampleData);
+  try 
+  {
+    LoadSample(FileName, SampleData);
+  }
+  catch (const std::exception& exception)
+  {
+    TLog::SLog()->AddLine(MLogPrefix, "Failed to load sample '%s' - '%s'",
+      FileName.StdCString().c_str(), exception.what());
 
-  // analyze low level descriptors
-  AnalyzeLowLevelDescriptors(SampleData, SilenceStatus, Results);
+    throw;
+  }
+
+  // analyze
+  try
+  {
+    // analyze low level descriptors
+    AnalyzeLowLevelDescriptors(SampleData, SilenceStatus, Results);
+
+    if (DescriptorSet == TSampleDescriptors::kHighLevelDescriptors) 
+    {
+      // analyze high level descriptors
+      AnalyzeHighLevelDescriptors(SampleData, SilenceStatus, Results);
+    }
+  }
+  catch (const std::exception& exception)
+  {
+    TLog::SLog()->AddLine(MLogPrefix, "Failed to analyse sample '%s' - '%s'",
+      FileName.StdCString().c_str(), exception.what());
+
+    throw;
+  }
 
   return Results;
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void TSampleAnalyser::Extract(const TString& FileName, TSampleDescriptorPool* pPool, std::mutex& PoolLock)
+void TSampleAnalyser::Extract(
+  const TString&          FileName, 
+  TSampleDescriptorPool*  pPool, 
+  std::mutex&             PoolLock) const
 {
   // create new analyzation status
   TSampleData SampleData;
@@ -410,7 +442,7 @@ TList<double> TSampleAnalyser::AudibleSpectrumFrames(
 
 void TSampleAnalyser::LoadSample(
   const TString&  FileName,
-  TSampleData&    SampleData)
+  TSampleData&    SampleData) const
 {
   // ... Open Audio file
   
@@ -691,7 +723,7 @@ void TSampleAnalyser::LoadSample(
 void TSampleAnalyser::AnalyzeLowLevelDescriptors(
   const TSampleData&  SampleData, 
   TSilenceStatus&     SilenceStatus,
-  TSampleDescriptors& Results)
+  TSampleDescriptors& Results) const
 {
   MAssert(SampleData.mData.Size() >= mHopFrameSize,
     "Data should be valid and padded here");
@@ -1038,7 +1070,7 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(
 void TSampleAnalyser::AnalyzeHighLevelDescriptors(
   const TSampleData&  SampleData, 
   TSilenceStatus&     SilenceStatus,
-  TSampleDescriptors& Results)
+  TSampleDescriptors& Results) const
 {
   // extract classification features
   const TSampleClassificationDescriptors ModelDescriptors(Results);
@@ -1681,7 +1713,9 @@ void TSampleAnalyser::AnalyzeHighLevelDescriptors(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcEffectiveLength(
-  TSampleDescriptors& Results, const double* pSampleData, int NumberOfSamples)
+  TSampleDescriptors& Results, 
+  const double*       pSampleData, 
+  int                 NumberOfSamples) const
 {
   const TPair<double, double*> SilenceTestRuns[] = {
     MakePair(TAudioMath::DbToLin(-48.0), &Results.mEffectiveLength48dB.mValue),
@@ -1724,7 +1758,9 @@ void TSampleAnalyser::CalcEffectiveLength(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcAmplitudePeak(
-  TSampleDescriptors& Results, const double* pSampleData, int NumberOfSamples)
+  TSampleDescriptors& Results, 
+  const double*       pSampleData, 
+  int                 NumberOfSamples) const
 {
   double Min = *pSampleData, Max = *pSampleData;
   TMathT<double>::GetMinMax(Min, Max, 0, NumberOfSamples, pSampleData);
@@ -1736,7 +1772,9 @@ void TSampleAnalyser::CalcAmplitudePeak(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcAmplitudeRms(
-  TSampleDescriptors& Results, const double* pSampleData, int NumberOfSamples)
+  TSampleDescriptors& Results, 
+  const double*       pSampleData, 
+  int                 NumberOfSamples) const
 {
   double Rms = 0.0;
   ::xtract_rms_amplitude(pSampleData, NumberOfSamples, NULL, &Rms);
@@ -1747,7 +1785,9 @@ void TSampleAnalyser::CalcAmplitudeRms(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcAmplitudeEnvelope(
-  TSampleDescriptors& Results, const double* pSampleData, int NumberOfSamples)
+  TSampleDescriptors& Results, 
+  const double*       pSampleData, 
+  int                 NumberOfSamples) const
 {
   TEnvelopeDetector EnvelopeDetector = 
     TEnvelopeDetector(TEnvelopeDetector::kFast, MEnvelopeTimeInMs, mSampleRate);
@@ -1766,7 +1806,8 @@ void TSampleAnalyser::CalcAmplitudeEnvelope(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralRms(
-  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors&   Results, 
+  const TArray<double>& MagnitudeSpectrum) const
 {
   double Rms = 0.0;
   ::xtract_rms_amplitude(MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
@@ -1779,7 +1820,8 @@ void TSampleAnalyser::CalcSpectralRms(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralCentroidAndSpread(
-  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors&   Results, 
+  const TArray<double>& MagnitudeSpectrum) const
 {
   const double Centroid = TStatistics::Centroid(
     MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
@@ -1814,7 +1856,8 @@ void TSampleAnalyser::CalcSpectralCentroidAndSpread(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralSkewnessAndKurtosis(
-  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors&   Results, 
+  const TArray<double>& MagnitudeSpectrum) const
 {
   const double Centroid = TStatistics::Centroid(
     MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
@@ -1842,7 +1885,8 @@ void TSampleAnalyser::CalcSpectralSkewnessAndKurtosis(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralRolloff(
-  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors&   Results, 
+  const TArray<double>& MagnitudeSpectrum) const
 {
   double Arguments[4] = { 0 };
   Arguments[0] = mSampleRate / (mFftFrameSize / 2);
@@ -1859,7 +1903,8 @@ void TSampleAnalyser::CalcSpectralRolloff(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralFlatness(
-  TSampleDescriptors& Results, const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors&   Results, 
+  const TArray<double>& MagnitudeSpectrum) const
 {
   const double Flatness = SFlatnessDb(
     MagnitudeSpectrum.FirstRead() + mFirstAnalyzationBin, 
@@ -1872,9 +1917,9 @@ void TSampleAnalyser::CalcSpectralFlatness(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralFlux(
-  TSampleDescriptors& Results, 
+  TSampleDescriptors&   Results, 
   const TArray<double>& MagnitudeSpectrum,
-  const TArray<double>& LastMagnitudeSpectrum)
+  const TArray<double>& LastMagnitudeSpectrum) const
 {
   MAssert(LastMagnitudeSpectrum.Size() == mFftFrameSize &&
     MagnitudeSpectrum.Size() == mFftFrameSize, "");
@@ -1890,8 +1935,8 @@ void TSampleAnalyser::CalcSpectralFlux(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralComplexity(
-  TSampleDescriptors& Results, 
-  const TArray<double>& PeakSpectrum)
+  TSampleDescriptors&   Results, 
+  const TArray<double>& PeakSpectrum) const
 {
   double PeakCount = 0.0;
   ::xtract_nonzero_count(PeakSpectrum.FirstRead() + mFirstAnalyzationBin,
@@ -1904,10 +1949,10 @@ void TSampleAnalyser::CalcSpectralComplexity(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralInharmonicity(
-  TSampleDescriptors& Results, 
+  TSampleDescriptors&   Results, 
   const TArray<double>& PeakSpectrum,
   double                F0,
-  double                F0Confidence)
+  double                F0Confidence) const
 {
   if (F0 > 0.0 && F0Confidence > 0.0)
   {
@@ -1927,10 +1972,10 @@ void TSampleAnalyser::CalcSpectralInharmonicity(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcTristimulus(
-  TSampleDescriptors& Results, 
+  TSampleDescriptors&   Results, 
   const TArray<double>& HarmonicSpectrum,
   double                F0,
-  double                F0Confidence)
+  double                F0Confidence) const
 {
   if (F0 > 0.0 && F0Confidence > 0.0) // got a fundamental frequency?
   {
@@ -1960,8 +2005,8 @@ void TSampleAnalyser::CalcTristimulus(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectrumBands(
-  TSampleDescriptors& Results, 
-  const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors&   Results, 
+  const TArray<double>& MagnitudeSpectrum) const
 {
   // . Spectrum bands
 
@@ -2005,8 +2050,8 @@ void TSampleAnalyser::CalcSpectrumBands(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcCepstrumBands(
-  TSampleDescriptors& Results, 
-  const TArray<double>& MagnitudeSpectrum)
+  TSampleDescriptors&   Results, 
+  const TArray<double>& MagnitudeSpectrum) const
 {
   TStaticArray<double, kNumberOfCepstrumCoefficients> MFCCs;
   MFCCs.Init(0.0);
@@ -2020,9 +2065,9 @@ void TSampleAnalyser::CalcCepstrumBands(
 // -------------------------------------------------------------------------------------------------
 
 void TSampleAnalyser::CalcSpectralBandFeatures(
-  TSampleDescriptors& Results, 
+  TSampleDescriptors&   Results, 
   const TArray<double>& MagnitudeSpectrum,
-  const TArray<double>& LastMagnitudeSpectrum)
+  const TArray<double>& LastMagnitudeSpectrum) const
 {
   // Setup analysation consts/ranges
   const double NeighbourRatio = 0.3; // Neighbours per band to take mean of
@@ -2266,8 +2311,8 @@ void TSampleAnalyser::CalcSpectralBandFeatures(
 
 void TSampleAnalyser::CalcAutoCorrelation(
   TSampleDescriptors& Results, 
-  const double* pSampleData,
-  int           RemainingSamples)
+  const double*       pSampleData,
+  int                 RemainingSamples) const
 {
   // consts
   const float MinPeriodLengthInMs = 0.8f; // ~1250 Hz 
@@ -2354,7 +2399,7 @@ void TSampleAnalyser::CalcAutoCorrelation(
 
 // -------------------------------------------------------------------------------------------------
 
-void TSampleAnalyser::CalcStatistics(TSampleDescriptors& Results)
+void TSampleAnalyser::CalcStatistics(TSampleDescriptors& Results) const
 {
   // calculate all low level statistics from the VR or VVR values 
   const TList<TSampleDescriptors::TDescriptor*> LowLevelDescriptors =
