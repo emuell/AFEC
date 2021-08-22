@@ -5,6 +5,7 @@
 #include "CoreTypes/Export/Log.h"
 #include "CoreTypes/Export/Pointer.h"
 #include "CoreTypes/Export/System.h"
+#include "CoreTypes/Export/Cpu.h"
 
 #include "AudioTypes/Export/AudioTypesInit.h"
 
@@ -18,10 +19,12 @@
 #include "Classification/Export/ClassificationInit.h"
 
 #include "../../3rdParty/Boost/Export/BoostProgramOptions.h"
+#include "../../3rdParty/Ctpl/Export/Ctpl.h"
 
 #include <string>
 #include <iostream>
 #include <set>
+#include <list>
 #include <stdexcept>
 #include <cstdlib>
 
@@ -106,7 +109,8 @@ static int SRunExtractor(
   const TDirectory&                   DbBasePath,
   const TString&                      ClassificationModelNameAndPath,
   const TString&                      OneShotCategorizationModelNameAndPath,
-  TSampleDescriptors::TDescriptorSet  DescriptorSet);
+  TSampleDescriptors::TDescriptorSet  DescriptorSet,
+  int                                 MaxAnalyzeThreads);
 
 static bool SIgnoreRootDirectory(const TDirectory& BaseDirectory);
 static bool SIgnoreSubDirectory(const TString& SubDirName);
@@ -166,6 +170,9 @@ int gMain(const TList<TString>& Arguments)
       "for level='high'. When not specified, the default models from the crawler's "
       "resource dir are used. Set to 'none' to explicitely avoid loading the "
       "a default model - e.g. --model \"None\" --model \"None\" will disable both.")
+    ("jobs,j", boost::program_options::value<int>()->default_value(-1),
+      "Maximum number of samples that are analyzed simultaneously. "
+      "By default all available concurrent CPU threads in the system.")
     ("out,o", boost::program_options::value<std::string>(), (std::string() +
       "Set destination directory/db_name.db or just a directory. When only a directory "
       "is specified, the database filename will be: '" + std::string(MDefaultLowLevelDatabaseName) + 
@@ -190,6 +197,8 @@ int gMain(const TList<TString>& Arguments)
 
   TSampleDescriptors::TDescriptorSet DescriptorSet =
     TSampleDescriptors::kLowLevelDescriptors;
+
+  int MaxAnalyzeThreads = -1;
 
   try
   {
@@ -281,6 +290,18 @@ int gMain(const TList<TString>& Arguments)
       }
     }
     
+    // jobs -> MaxAnalyzeThreads
+    if (ProgramVariablesMap.find("jobs") != ProgramVariablesMap.end()) 
+    {
+      MaxAnalyzeThreads = ProgramVariablesMap["jobs"].as<int>();
+      if (MaxAnalyzeThreads != -1 && MaxAnalyzeThreads <= 0)
+      {
+        std::stringstream Error;
+        Error << "jobs must be a number > 0 or -1.";
+        throw boost::program_options::error(Error.str());
+      }
+    }
+
     // out -> DbNameAndPath
     if (ProgramVariablesMap.find("out") != ProgramVariablesMap.end())
     {
@@ -454,7 +475,8 @@ int gMain(const TList<TString>& Arguments)
   const int Result = SRunExtractor(
     DirectoriesOrFiles, DbNameAndPath, DbBasePath,
     ClassificationModelNameAndPath, CategorizationModelNameAndPath,
-    DescriptorSet);
+    DescriptorSet, 
+    MaxAnalyzeThreads);
 
 
   // ... Finalize 
@@ -547,7 +569,8 @@ int SRunExtractor(
   const TDirectory&                   DbBasePath,
   const TString&                      ClassificationModelNameAndPath,
   const TString&                      CategorizationModelNameAndPath,
-  TSampleDescriptors::TDescriptorSet  DescriptorSet)
+  TSampleDescriptors::TDescriptorSet  DescriptorSet,
+  int                                 MaxAnalyzeThreads)
 {
   bool GotCrawlError = false;
 
@@ -654,36 +677,99 @@ int SRunExtractor(
     else
     {
       // analyze new files
-      for (int i = 0; i < AudioFilesToAdd.Size() && !sAbortProcessing; ++i)
-      {
-        // NB: IMPORTANT: The GUI (hackily) picks up the progress from this log line, by 
-        // reading the stdout, so don't remove or change it unless you change the GUI too.
-        TLog::SLog()->AddLine(MLogPrefix, "Analyzing '%s' (%d of %d)",
-          AudioFilesToAdd[i].StdCString().c_str(), i + 1, AudioFilesToAdd.Size());
+      const int MaxThreads = (MaxAnalyzeThreads == -1) ? 
+        TCpu::NumberOfConcurrentThreads() : MaxAnalyzeThreads;
 
-        pAnalyzer->Extract(AudioFilesToAdd[i], pSamplePool);
+      const int NumberOfAudioFilesToAdd = AudioFilesToAdd.Size();
+
+      std::mutex SamplePoolLock;
+
+      if (MaxThreads == 1)
+      {
+        for (int i = 0; i < NumberOfAudioFilesToAdd; ++i)
+        {
+          if (sAbortProcessing)
+          {
+            throw std::runtime_error("Analyzation aborted...");
+          }
+
+          const TString AudioFileToAdd = AudioFilesToAdd[i];
+
+          TLog::SLog()->AddLine(MLogPrefix, "Analyzing '%s' (%d of %d)",
+            AudioFileToAdd.StdCString().c_str(), i + 1, NumberOfAudioFilesToAdd);
+
+          pAnalyzer->Extract(AudioFileToAdd, pSamplePool, SamplePoolLock);
+        }
       }
-
-      // remove no longer existing files
-      if (! AudioFilesToRemove.IsEmpty()) 
+      else
       {
-        TLog::SLog()->AddLine(MLogPrefix, "Removing %d samples", 
-          AudioFilesToRemove.Size());
+        ctpl::thread_pool ThreadPool(
+          MMin(MaxThreads, AudioFilesToAdd.Size()),
+          AudioFilesToAdd.Size());
 
-        pSamplePool->RemoveSamples(AudioFilesToRemove);
+        std::list< std::future<void> > JobList;
+        for (int i = 0; i < NumberOfAudioFilesToAdd; ++i)
+        {
+          const TString AudioFileToAdd = AudioFilesToAdd[i];
+
+          JobList.push_back(ThreadPool.push(
+            [=, &pAnalyzer, &pSamplePool, &SamplePoolLock](int _ThreadId) {
+              if (sAbortProcessing)
+              {
+                throw std::runtime_error("Analyzation aborted...");
+              }
+
+              TLog::SLog()->AddLine(MLogPrefix, "Analyzing '%s' (%d of %d)",
+                AudioFileToAdd.StdCString().c_str(), i + 1, NumberOfAudioFilesToAdd);
+
+              pAnalyzer->Extract(AudioFileToAdd, pSamplePool, SamplePoolLock);
+            }
+          ));
+        }
+
+        // wait until all tasks completed
+        while (! JobList.empty())
+        {
+          try
+          {
+            JobList.front().get();
+          }
+          catch (const std::exception&)
+          {
+            // stop thread pool, wait until its down and clear all tasks on errors
+            ThreadPool.stop();
+            JobList.clear();
+
+            throw;
+          }
+
+          // remove successfully finished tasks
+          JobList.pop_front();
+        }
+
+        // remove no longer existing files
+        if (! AudioFilesToRemove.IsEmpty())
+        {
+          TLog::SLog()->AddLine(MLogPrefix, "Removing %d samples",
+            AudioFilesToRemove.Size());
+
+          pSamplePool->RemoveSamples(AudioFilesToRemove);
+        }
       }
     }
   }
   catch (const std::exception& Exception)
   {
-    TLog::SLog()->AddLine(MLogPrefix, "ERROR: Exception caught: %s", Exception.what());
-    GotCrawlError = true;
-  }
-
-
-  if (sAbortProcessing)
-  {
-    TLog::SLog()->AddLine(MLogPrefix, "Crawler was aborted...");
+    if (sAbortProcessing)
+    {
+      TLog::SLog()->AddLine(MLogPrefix, "Crawler was aborted...");
+      GotCrawlError = false;
+    }
+    else
+    {
+      TLog::SLog()->AddLine(MLogPrefix, "ERROR: Exception caught: %s", Exception.what());
+      GotCrawlError = true;
+    }
   }
 
   return (GotCrawlError) ? EXIT_FAILURE : EXIT_SUCCESS;
