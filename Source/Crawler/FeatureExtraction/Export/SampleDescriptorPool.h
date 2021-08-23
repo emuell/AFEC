@@ -6,6 +6,7 @@
 // =================================================================================================
 
 #include "CoreTypes/Export/Str.h"
+#include "CoreTypes/Export/Directory.h"
 #include "CoreTypes/Export/Pointer.h"
 
 #include "FeatureExtraction/Export/SampleDescriptors.h"
@@ -24,39 +25,59 @@ public:
   //@{ ... Descriptor types
 
   // the sample descriptor (sub)set the sample pool stores
-  TSampleDescriptors::TDescriptorSet DescriptorSet()const 
-  { 
-    return mDescriptorSet; 
-  }
+  TSampleDescriptors::TDescriptorSet DescriptorSet()const;
+  //@}
+
+
+  //@{ ... Pool File Location & Base path
+
+  // Pool version: increase to force to recreate the pool when running crawler 
+  // on an existing pool db/file.
+  enum { kCurrentVersion = 1 };
+
+  // check if the pool needs to be upgraded. 
+  // !! NB: open the pool in read-only mode before checking, to avoid that the pool 
+  // structures (e.g. tables) automatically get wiped clean in \function Open. !!
+  bool NeedsUpgrade()const;
+
+  // Open an existing or new database. When \param ReadOnly is true, tables will not 
+  // be created, in case they do not exist in the database.
+  // !! NB: when opening in "Write" mode and the database needs to be upgraded, all 
+  // existing tables will get dropped without any further checks or warnings !!
+  bool Open(const TString& FileName, bool ReadOnly = false);
+
+  // when set, make all sample filenames relative to the given directory
+  TDirectory BasePath()const;
+  void SetBasePath(const TDirectory& BasePath);
   //@}
 
 
   //@{ ... Access existing sample descriptors
 
   // check if there is any asset present (failed or succeeded)
-  virtual bool IsEmpty() const = 0;
+  bool IsEmpty() const;
 
   // fetch samples (suceeded ones only)
-  virtual int NumberOfSamples() const = 0;
-  virtual TOwnerPtr<TSampleDescriptors> Sample(int Index) const = 0;
+  int NumberOfSamples() const;
+  TOwnerPtr<TSampleDescriptors> Sample(int Index) const;
 
   // fetch abs path and modification stat time of all stored samples
-  virtual TList< TPair<TString, int> > SampleModificationDates() const = 0;
+  TList< TPair<TString, int> > SampleModificationDates() const;
   //@}
 
 
   //@{ ... Insert/replace/remove sample descriptors
 
-  virtual void InsertSample(
+  void InsertSample(
     const TString&            FileName,
-    const TSampleDescriptors& Results) = 0;
+    const TSampleDescriptors& Results);
 
-  virtual void InsertFailedSample(
+  void InsertFailedSample(
     const TString& FileName,
-    const TString& Reason) = 0;
+    const TString& Reason);
 
-  virtual void RemoveSample(const TString& FileName) = 0;
-  virtual void RemoveSamples(const TList<TString>& FileNames) = 0;
+  void RemoveSample(const TString& FileName);
+  void RemoveSamples(const TList<TString>& FileNames);
   //@}
 
 
@@ -64,22 +85,56 @@ public:
 
   //! Set list classifier names (e.g. 'OneShot-Categories')
   //! Available in high level high level descriptor dbs only.
-  virtual void InsertClassifier(
+  void InsertClassifier(
+    const TString&        ClassifierName,
+    const TList<TString>& Classes);
+  //@}
+
+protected:
+  TSampleDescriptorPool(TSampleDescriptors::TDescriptorSet DescriptorSet);
+  virtual ~TSampleDescriptorPool();
+
+
+  //@{ ... Base path helpers
+
+  // normalize and convert abs to relative path, using 'BasePath'
+  TString RelativeFilenamePath(const TString& SampleFileName) const;
+  // normalize and convert relative to abs path, using 'BasePath'
+  TString AbsFilenamePath(const TString& SampleFileName) const;
+  //@}
+
+
+  //@{ ... Pool Impl
+
+  virtual bool OnNeedsUpgrade()const = 0;
+  virtual bool OnOpen(const TString& FileName, bool ReadOnly) = 0;
+
+  virtual bool OnIsEmpty() const = 0;
+
+  virtual int OnNumberOfSamples() const = 0;
+  virtual TOwnerPtr<TSampleDescriptors> OnSample(int Index) const = 0;
+
+  virtual TList< TPair<TString, int> > OnSampleModificationDates() const = 0;
+
+  virtual void OnInsertSample(
+    const TString&            FileName,
+    const TSampleDescriptors& Results) = 0;
+  virtual void OnInsertFailedSample(
+    const TString& FileName,
+    const TString& Reason) = 0;
+
+  virtual void OnRemoveSample(const TString& FileName) = 0;
+  virtual void OnRemoveSamples(const TList<TString>& FileNames) = 0;
+
+  virtual void OnInsertClassifier(
     const TString&        ClassifierName,
     const TList<TString>& Classes) = 0;
   //@}
 
-protected:
-  TSampleDescriptorPool(TSampleDescriptors::TDescriptorSet DescriptorSet)
-    : mDescriptorSet(DescriptorSet)
-  { }
-
-  virtual ~TSampleDescriptorPool()
-  { }
-
+  TString mFileName;
+  TDirectory mBasePath;
   const TSampleDescriptors::TDescriptorSet mDescriptorSet;
 };
 
 
 #endif // _SampleDescriptorPool_h_
-

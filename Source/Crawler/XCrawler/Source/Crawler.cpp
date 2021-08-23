@@ -526,9 +526,9 @@ void SShowVersionInfo()
   std::cout << "\n";
 
   // assets database version
-  std::cout << "Database Version:\n";
+  std::cout << "Pool Version:\n";
   std::cout << "  " << std::to_string(
-    TSqliteSampleDescriptorPool::kCurrentVersion) << "\n";
+    TSampleDescriptorPool::kCurrentVersion) << "\n";
 
   // class model
   const TString DefaultClassModelPathAndName =

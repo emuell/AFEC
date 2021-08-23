@@ -1113,104 +1113,6 @@ TSqliteSampleDescriptorPool::~TSqliteSampleDescriptorPool()
 
 // -------------------------------------------------------------------------------------------------
 
-bool TSqliteSampleDescriptorPool::Open(
-  const TString& DatabaseName,
-  bool           ReadOnly)
-{
-  if (!mDatabase.Open(DatabaseName))
-  {
-    TLog::SLog()->AddLine(MLogPrefix, "Failed to open database");
-    return false;
-  }
-  else
-  {
-    // set match operator
-    mDatabase.SetMatchOperator(this, SFileNameMatchOperator);
-
-    // create or update tables
-    if (!ReadOnly)
-    {
-      InitializeDatabase();
-    }
-
-    return true;
-  }
-}
-
-// -------------------------------------------------------------------------------------------------
-
-TDirectory TSqliteSampleDescriptorPool::BasePath()const
-{
-  return mBasePath;
-}
-
-// -------------------------------------------------------------------------------------------------
-
-void TSqliteSampleDescriptorPool::SetBasePath(const TDirectory& BasePath)
-{
-  mBasePath = BasePath;
-}
-
-// -------------------------------------------------------------------------------------------------
-
-bool TSqliteSampleDescriptorPool::DatabaseNeedsUpgrade()const
-{
-  const int Version = mDatabase.ExecuteScalarInt("PRAGMA user_version");
-  return (kCurrentVersion > Version);
-}
-
-// -------------------------------------------------------------------------------------------------
-
-TString TSqliteSampleDescriptorPool::RelativeFilenamePath(
-  const TString &FileName) const
-{
-  TString Ret = FileName;
-
-  if (!mBasePath.IsEmpty())
-  {
-    TString NormalizedFileName = FileName;
-    NormalizedFileName.ReplaceChar(TDirectory::SWrongPathSeparatorChar(),
-      TDirectory::SPathSeparatorChar());
-
-    if (NormalizedFileName.StartsWith(mBasePath.Path()))
-    {
-      Ret = NormalizedFileName;
-      Ret.RemoveFirst(mBasePath.Path());
-    }
-  }
-
-  // always use '/' for relative paths to allow using the db on Linux and OSX
-  #if defined(MWindows)
-    Ret.ReplaceChar('\\', '/');
-  #endif
-
-  return Ret;
-}
-
-// -------------------------------------------------------------------------------------------------
-
-TString TSqliteSampleDescriptorPool::AbsFilenamePath(
-  const TString &FileName) const
-{
-  TString Ret = FileName;
-
-  if (!mBasePath.IsEmpty())
-  {
-    TString NormalizedFileName = FileName;
-    NormalizedFileName.ReplaceChar(TDirectory::SWrongPathSeparatorChar(),
-      TDirectory::SPathSeparatorChar());
-
-    if (!NormalizedFileName.StartsWith(mBasePath.Path()))
-    {
-      Ret = mBasePath.Path() + NormalizedFileName;
-    }
-  }
-
-  return Ret;
-}
-
-// -------------------------------------------------------------------------------------------------
-
 void TSqliteSampleDescriptorPool::ShutdownDatabase()
 {
   if (mDatabase.IsOpen())
@@ -1371,7 +1273,42 @@ void TSqliteSampleDescriptorPool::InitializeDatabase()
 
 // -------------------------------------------------------------------------------------------------
 
-bool TSqliteSampleDescriptorPool::IsEmpty() const
+bool TSqliteSampleDescriptorPool::OnOpen(
+  const TString& DatabaseName,
+  bool           ReadOnly)
+{
+  if (! mDatabase.Open(DatabaseName))
+  {
+    TLog::SLog()->AddLine(MLogPrefix, "Failed to open database");
+    return false;
+  }
+  else
+  {
+    // set match operator
+    mDatabase.SetMatchOperator(this, SFileNameMatchOperator);
+
+    // create or update tables
+    if (!ReadOnly)
+    {
+      InitializeDatabase();
+    }
+
+    return true;
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+bool TSqliteSampleDescriptorPool::OnNeedsUpgrade()const
+{
+  const int Version = mDatabase.ExecuteScalarInt("PRAGMA user_version");
+  return (kCurrentVersion > Version);
+}
+
+
+// -------------------------------------------------------------------------------------------------
+
+bool TSqliteSampleDescriptorPool::OnIsEmpty() const
 {
   if (mDatabase.IsOpen())
   {
@@ -1404,7 +1341,7 @@ bool TSqliteSampleDescriptorPool::IsEmpty() const
 
 // -------------------------------------------------------------------------------------------------
 
-int TSqliteSampleDescriptorPool::NumberOfSamples() const
+int TSqliteSampleDescriptorPool::OnNumberOfSamples() const
 {
   if (mDatabase.IsOpen())
   {
@@ -1437,7 +1374,7 @@ int TSqliteSampleDescriptorPool::NumberOfSamples() const
 
 // -------------------------------------------------------------------------------------------------
 
-TOwnerPtr<TSampleDescriptors> TSqliteSampleDescriptorPool::Sample(int Index) const
+TOwnerPtr<TSampleDescriptors> TSqliteSampleDescriptorPool::OnSample(int Index) const
 {
   if (mDatabase.IsOpen())
   {
@@ -1548,7 +1485,7 @@ TOwnerPtr<TSampleDescriptors> TSqliteSampleDescriptorPool::Sample(int Index) con
 
 // -------------------------------------------------------------------------------------------------
 
-TList<TPair<TString, int>> TSqliteSampleDescriptorPool::SampleModificationDates() const
+TList<TPair<TString, int>> TSqliteSampleDescriptorPool::OnSampleModificationDates() const
 {
   TList<TPair<TString, int>> Ret;
 
@@ -1579,7 +1516,7 @@ TList<TPair<TString, int>> TSqliteSampleDescriptorPool::SampleModificationDates(
 
 // -------------------------------------------------------------------------------------------------
 
-void TSqliteSampleDescriptorPool::InsertSample(
+void TSqliteSampleDescriptorPool::OnInsertSample(
   const TString&             FileName,
   const TSampleDescriptors&  Results)
 {
@@ -1652,7 +1589,7 @@ void TSqliteSampleDescriptorPool::InsertSample(
 
 // -------------------------------------------------------------------------------------------------
 
-void TSqliteSampleDescriptorPool::InsertFailedSample(
+void TSqliteSampleDescriptorPool::OnInsertFailedSample(
   const TString& FileName,
   const TString& Reason)
 {
@@ -1686,14 +1623,14 @@ void TSqliteSampleDescriptorPool::InsertFailedSample(
 
 // -------------------------------------------------------------------------------------------------
 
-void TSqliteSampleDescriptorPool::RemoveSample(const TString& FileName)
+void TSqliteSampleDescriptorPool::OnRemoveSample(const TString& FileName)
 {
   RemoveSamples(MakeList(FileName));
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void TSqliteSampleDescriptorPool::RemoveSamples(const TList<TString>& FileNames)
+void TSqliteSampleDescriptorPool::OnRemoveSamples(const TList<TString>& FileNames)
 {
   // make sure all pased names are relative, as stored in the database
   TList<TString> RelFilenames;
@@ -1734,7 +1671,7 @@ void TSqliteSampleDescriptorPool::RemoveSamples(const TList<TString>& FileNames)
 
 // -------------------------------------------------------------------------------------------------
 
-void TSqliteSampleDescriptorPool::InsertClassifier(
+void TSqliteSampleDescriptorPool::OnInsertClassifier(
   const TString&        ClassifierName,
   const TList<TString>& Classes)
 {
