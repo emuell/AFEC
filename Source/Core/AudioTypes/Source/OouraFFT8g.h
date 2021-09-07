@@ -2,10 +2,9 @@
 
 // modifications made for AFEC:
 //  - add missing prototypes
-//  - add cast to (double) to avoid float conversion warnings
 //  - prefix public functions with ooura_
 
-// See c impl for official ooura comments
+// See c impl for official ooura comments and credits
 
 void ooura_cdft(int n, int isgn, double *a, int *ip, double *w);
 void ooura_rdft(int n, int isgn, double *a, int *ip, double *w);
