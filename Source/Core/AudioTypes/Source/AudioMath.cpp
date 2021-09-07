@@ -7,10 +7,16 @@
 #if defined(MHaveIntelIPP)
   #include "../../3rdParty/IPP/Export/IPPs.h"
 #endif
+  
+#if defined(MMac)
+  #include <Accelerate/Accelerate.h>
+#endif
 
 #if defined(MArch_X86) || defined(MArch_X64)
   #include <xmmintrin.h>
 #endif
+
+#include <cmath>
 
 // =================================================================================================
 
@@ -51,26 +57,6 @@ void TAudioMath::Init()
   #endif
 }
 
-// -------------------------------------------------------------------------------------------------
-
-void TAudioMath::FrequencyToNote(double Frequency, int& Note, int& CentsDeviation)
-{
-  MAssert(Frequency >= 20.0 && Frequency <= 22050.0, "Invalid frequency value");
-
-  const double BaseFrequency = 440.0;
-
-  const double NoteFrac = 69.0 + 12.0 *
-    ::log(Frequency / BaseFrequency) / ::log(2.0);
-
-  Note = TMath::d2iRound(NoteFrac);
-  CentsDeviation = TMath::d2iRound((NoteFrac - Note) * 100);
-
-  if (CentsDeviation >= 50)
-  {
-    CentsDeviation -= 100;
-    Note++;
-  }
-}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -79,17 +65,22 @@ void TAudioMath::AddBuffer(
   float*        pDestBuffer,
   int           NumberOfSamples)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsAdd_32f(pSourceBuffer, pDestBuffer, pDestBuffer, NumberOfSamples));
   
+  #elif defined(MMac)
+    ::vDSP_vadd(pSourceBuffer, 1, pDestBuffer, 1, pDestBuffer, 1, NumberOfSamples);
+    
   #else
     MAssert(NumberOfSamples >= 0, "");
     for (int i = 0; i < NumberOfSamples; ++i)
     {
-      pDestBuffer[i] *= pSourceBuffer[i];
+      pDestBuffer[i] += pSourceBuffer[i];
     }
   #endif
 }
@@ -99,17 +90,22 @@ void TAudioMath::AddBuffer(
   double*       pDestBuffer,
   int           NumberOfSamples)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsAdd_64f(pSourceBuffer, pDestBuffer, pDestBuffer, NumberOfSamples));
 
+  #elif defined(MMac)
+    ::vDSP_vaddD(pSourceBuffer, 1, pDestBuffer, 1, pDestBuffer, 1, NumberOfSamples);
+    
   #else
     MAssert(NumberOfSamples >= 0, "");
     for (int i = 0; i < NumberOfSamples; ++i)
     {
-      pDestBuffer[i] *= pSourceBuffer[i];
+      pDestBuffer[i] += pSourceBuffer[i];
     }
   #endif
 }
@@ -164,11 +160,16 @@ void TAudioMath::CopyBufferScaled(
     return;
   }
 
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsMulC_32f(pSourceBuffer, ScaleFactor, pDestBuffer, NumberOfSamples));
+  
+  #elif defined(MMac)
+    ::vDSP_vsmul(pSourceBuffer, 1, &ScaleFactor, pDestBuffer, 1, NumberOfSamples);
   
   #else
     MAssert(NumberOfSamples >= 0, "");
@@ -191,11 +192,17 @@ void TAudioMath::CopyBufferScaled(
     return;
   }
 
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsMulC_64f(pSourceBuffer, ScaleFactor, pDestBuffer, NumberOfSamples));
+  
+  #elif defined(MMac)
+    double ScaleFactorD =  ScaleFactor;
+    ::vDSP_vsmulD(pSourceBuffer, 1, &ScaleFactorD, pDestBuffer, 1, NumberOfSamples);
   
   #else
     MAssert(NumberOfSamples >= 0, "");
@@ -214,11 +221,16 @@ void TAudioMath::MultiplyBuffers(
   float*        pDestBuffer,
   int           NumberOfSamples)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsMul_32f(pSourceBufferA, pSourceBufferB, pDestBuffer, NumberOfSamples));
+  
+  #elif defined(MMac)
+    ::vDSP_vmul(pSourceBufferA, 1, pSourceBufferB, 1, pDestBuffer, 1, NumberOfSamples);
   
   #else
     MAssert(NumberOfSamples >= 0, "");
@@ -235,11 +247,16 @@ void TAudioMath::MultiplyBuffers(
   double*       pDestBuffer,
   int           NumberOfSamples)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsMul_64f(pSourceBufferA, pSourceBufferB, pDestBuffer, NumberOfSamples));
+  
+  #elif defined(MMac)
+    ::vDSP_vmulD(pSourceBufferA, 1, pSourceBufferB, 1, pDestBuffer, 1, NumberOfSamples);
   
   #else
     MAssert(NumberOfSamples >= 0, "");
@@ -262,17 +279,22 @@ void TAudioMath::ScaleBuffer(
     return;
   }
 
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsMulC_32f(pSourceBuffer, ScaleFactor, pSourceBuffer, NumberOfSamples));
   
+  #elif defined(MMac)
+    ::vDSP_vsmul(pSourceBuffer, 1, &ScaleFactor, pSourceBuffer, 1, NumberOfSamples);
+
   #else
     MAssert(NumberOfSamples >= 0, "");
     for (int i = 0; i < NumberOfSamples; ++i)
     {
-      pSourceBuffer[i] = pSourceBuffer[i] * ScaleFactor;
+      pSourceBuffer[i] *= ScaleFactor;
     }
   #endif
 }
@@ -287,17 +309,22 @@ void TAudioMath::ScaleBuffer(
     return;
   }
 
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsMulC_64f(pSourceBuffer, ScaleFactor, pSourceBuffer, NumberOfSamples));
   
+  #elif defined(MMac)
+    ::vDSP_vsmulD(pSourceBuffer, 1, &ScaleFactor, pSourceBuffer, 1, NumberOfSamples);
+
   #else
     MAssert(NumberOfSamples >= 0, "");
     for (int i = 0; i < NumberOfSamples; ++i)
     {
-      pSourceBuffer[i] = pSourceBuffer[i] * ScaleFactor;
+      pSourceBuffer[i] *= ScaleFactor;
     }
   #endif
 }
@@ -310,19 +337,52 @@ void TAudioMath::AddBufferScaled(
   int           NumberOfSamples,
   float         SrcScaleFactor)
 {
-  const TDisableSseDenormals DisableDenormals;
+  if (SrcScaleFactor == 1.0f)
+  {
+    AddBuffer(pSrcBuffer, pDestBuffer, NumberOfSamples);
+    return;
+  }
+
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
-    if (SrcScaleFactor == 1.0f)
+    MCheckIPPStatus(
+      ::ippsAddProductC_32f(pSrcBuffer, SrcScaleFactor, pDestBuffer, NumberOfSamples));
+
+  #elif defined(MMac)
+    ::vDSP_vsma(pSrcBuffer, 1, &SrcScaleFactor, pDestBuffer, 1, pDestBuffer, 1, NumberOfSamples);
+    
+  #else
+    MAssert(NumberOfSamples >= 0, "");
+    for (int i = 0; i < NumberOfSamples; ++i)
     {
-      MCheckIPPStatus(
-        ::ippsAdd_32f(pSrcBuffer, pDestBuffer, pDestBuffer, NumberOfSamples));
+      pDestBuffer[i] += pSrcBuffer[i] * SrcScaleFactor;
     }
-    else
-    {
-      MCheckIPPStatus(
-        ::ippsAddProductC_32f(pSrcBuffer, SrcScaleFactor, pDestBuffer, NumberOfSamples));
-    }
+  #endif
+}
+
+void TAudioMath::AddBufferScaled(
+  const double* pSrcBuffer,
+  double*       pDestBuffer,
+  int           NumberOfSamples,
+  double        SrcScaleFactor)
+{
+  if (SrcScaleFactor == 1.0f)
+  {
+    AddBuffer(pSrcBuffer, pDestBuffer, NumberOfSamples);
+    return;
+  }
+
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
+
+ // there is no ippsAddProductC_64f
+ 
+  #if defined(MMac)
+    ::vDSP_vsmaD(pSrcBuffer, 1, &SrcScaleFactor, pDestBuffer, 1, pDestBuffer, 1, NumberOfSamples);
   
   #else
     MAssert(NumberOfSamples >= 0, "");
@@ -340,12 +400,16 @@ void TAudioMath::ClearBuffer(
   int     NumberOfSamples)
 {
   // no TDisableSseDenormals needed here
-  
+
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsZero_32f(pBuffer, NumberOfSamples));
   
+  #elif defined(Mac)
+    ::vDSP_vclr(pDestBuffer, ByteCount);
+  
   #else
+  
     MAssert(NumberOfSamples >= 0, "");
     TMemory::Zero(pBuffer, NumberOfSamples * sizeof(float));
   #endif
@@ -358,6 +422,9 @@ void TAudioMath::ClearBuffer(
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsZero_64f(pBuffer, NumberOfSamples));
+  
+  #elif defined(Mac)
+    ::vDSP_vclrD(pDestBuffer, ByteCount);
   
   #else
     MAssert(NumberOfSamples >= 0, "");
@@ -373,15 +440,25 @@ void TAudioMath::Magnitude(
   float*       pDestBinBuffer,
   int          NumberOfBins)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsMagnitude_32f((Ipp32f*)pComplexBufferReal, (Ipp32f*)pComplexBufferImag,
         (Ipp32f*)pDestBinBuffer, NumberOfBins));
-  #else
-    MAssert(NumberOfBins > 0, "Invalid bin size");
 
+  #elif defined(MMac)
+    DSPSplitComplex Complex {
+      const_cast<float*>(pComplexBufferReal),
+      const_cast<float*>(pComplexBufferImag)
+    };
+    ::vDSP_zvmags(&Complex, 1, pDestBinBuffer, 1, NumberOfBins);
+    ::vvsqrtf(pDestBinBuffer, pDestBinBuffer, &NumberOfBins);
+        
+  #else
+    MAssert(NumberOfBins > 0, "");
     for (int i = 0; i < NumberOfBins; i++)
     {
       const float Real = *pComplexBufferReal++;
@@ -398,15 +475,25 @@ void TAudioMath::Magnitude(
   double*       pDestBinBuffer,
   int           NumberOfBins)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsMagnitude_64f((Ipp64f*)pComplexBufferReal, (Ipp64f*)pComplexBufferImag,
         (Ipp64f*)pDestBinBuffer, NumberOfBins));
-  #else
-    MAssert(NumberOfBins > 0, "Invalid bin size");
 
+  #elif defined(MMac)
+    DSPDoubleSplitComplex Complex {
+      const_cast<double*>(pComplexBufferReal),
+      const_cast<double*>(pComplexBufferImag)
+    };
+    ::vDSP_zvmagsD(&Complex, 1, pDestBinBuffer, 1, NumberOfBins);
+    ::vvsqrt(pDestBinBuffer, pDestBinBuffer, &NumberOfBins);
+        
+  #else
+    MAssert(NumberOfBins > 0, "");
     for (int i = 0; i < NumberOfBins; i++)
     {
       const double Real = *pComplexBufferReal++;
@@ -425,15 +512,24 @@ void TAudioMath::PowerSpectrum(
   float*       pDestBinBuffer,
   int          NumberOfBins)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsPowerSpectr_32f((Ipp32f*)pComplexBufferReal, (Ipp32f*)pComplexBufferImag,
         (Ipp32f*)pDestBinBuffer, NumberOfBins));
-  #else
-    MAssert(NumberOfBins > 0, "Invalid bin size");
 
+  #elif defined(MMac)
+    DSPSplitComplex Complex {
+      const_cast<float*>(pComplexBufferReal),
+      const_cast<float*>(pComplexBufferImag)
+    };
+    ::vDSP_zvmags(&Complex, 1, pDestBinBuffer, 1, NumberOfBins);
+        
+  #else
+    MAssert(NumberOfBins > 0, "");
     for (int i = 0; i < NumberOfBins; i++)
     {
       const float Real = *pComplexBufferReal++;
@@ -450,15 +546,24 @@ void TAudioMath::PowerSpectrum(
   double*       pDestBinBuffer,
   int           NumberOfBins)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsPowerSpectr_64f((Ipp64f*)pComplexBufferReal, (Ipp64f*)pComplexBufferImag,
         (Ipp64f*)pDestBinBuffer, NumberOfBins));
-  #else
-    MAssert(NumberOfBins > 0, "Invalid bin size");
 
+  #elif defined(MMac)
+    DSPDoubleSplitComplex Complex {
+      const_cast<double*>(pComplexBufferReal),
+      const_cast<double*>(pComplexBufferImag)
+    };
+    ::vDSP_zvmagsD(&Complex, 1, pDestBinBuffer, 1, NumberOfBins);
+        
+  #else
+    MAssert(NumberOfBins > 0, "");
     for (int i = 0; i < NumberOfBins; i++)
     {
       const double Real = *pComplexBufferReal++;
@@ -477,16 +582,24 @@ void TAudioMath::Phase(
   float*       pDestBinBuffer,
   int          NumberOfBins)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsPhase_32f((Ipp32f*)pComplexBufferReal, (Ipp32f*)pComplexBufferImag,
         (Ipp32f*)pDestBinBuffer, NumberOfBins));
   
+  #elif defined(MMac)
+    DSPSplitComplex Complex {
+      const_cast<float*>(pComplexBufferReal),
+      const_cast<float*>(pComplexBufferImag)
+    };
+    ::vDSP_zvphas(&Complex, 1, pDestBinBuffer, 1, NumberOfBins);
+  
   #else
-    MAssert(NumberOfBins > 0, "Invalid bin size");
-
+    MAssert(NumberOfBins > 0, "");
     for (int i = 0; i < NumberOfBins; i++)
     {
       const float Real = *pComplexBufferReal++;
@@ -503,16 +616,24 @@ void TAudioMath::Phase(
   double*       pDestBinBuffer,
   int           NumberOfBins)
 {
-  const TDisableSseDenormals DisableDenormals;
+  #if defined(MArch_X86) || defined(MArch_X64)
+    const TDisableSseDenormals DisableDenormals;
+  #endif
 
   #if defined(MHaveIntelIPP)
     MCheckIPPStatus(
       ::ippsPhase_64f((Ipp64f*)pComplexBufferReal, (Ipp64f*)pComplexBufferImag,
         (Ipp64f*)pDestBinBuffer, NumberOfBins));
   
+  #elif defined(MMac)
+    DSPDoubleSplitComplex Complex {
+      const_cast<double*>(pComplexBufferReal),
+      const_cast<double*>(pComplexBufferImag)
+    };
+    ::vDSP_zvphasD(&Complex, 1, pDestBinBuffer, 1, NumberOfBins);
+  
   #else
-    MAssert(NumberOfBins > 0, "Invalid bin size");
-
+    MAssert(NumberOfBins > 0, "");
     for (int i = 0; i < NumberOfBins; i++)
     {
       const double Real = *pComplexBufferReal++;

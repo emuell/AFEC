@@ -152,7 +152,7 @@ static double SInterpolateCubic(
   const double c = -1.5 * xxx + 2.0 * xx + 0.5 * x;
   const double d = 0.5  * xxx - 0.5 * xx;
 
-  return (float)(a * ym1 + b * y0 + c * y1 + d * y2);
+  return a * ym1 + b * y0 + c * y1 + d * y2;
 }
 
 // =================================================================================================
@@ -587,7 +587,7 @@ void TSampleAnalyser::LoadSample(
 
     const int DestSamplesWritten = ::resample_process(
       pResampler, 1.0 / Speed,
-      (float*)pSrcSamples, OldSizeInSamples, LastFlag, &SrcSamplesUsed,
+      const_cast<float*>(pSrcSamples), OldSizeInSamples, LastFlag, &SrcSamplesUsed,
       ResampledSampleBuffer.FirstWrite(), NewSizeInSamples);
 
     MUnused(DestSamplesWritten);
@@ -612,7 +612,7 @@ void TSampleAnalyser::LoadSample(
   double RmsValue = 0.0;
   for (int n = 0; n < NumberOfSampleFrames; ++n)
   {
-    RmsValue += TMathT<float>::Square(AnalyzationSampleBuffer[n] / sScaleFactor);
+    RmsValue += TMathT<double>::Square(AnalyzationSampleBuffer[n] / sScaleFactor);
   }
 
   SampleData.mRmsValue = (float)MMin(1.0,
@@ -832,7 +832,7 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(
         FftTransform.Re(), mFftFrameSize);
       TAudioMath::ClearBuffer(FftTransform.Im(), mFftFrameSize);
 
-      FftTransform.Forward();
+      FftTransform.ForwardInplace();
 
       TAudioMath::Magnitude(FftTransform.Re(), FftTransform.Im(), 
         MagnitudeSpectrum.FirstWrite(), mFftFrameSize / 2);

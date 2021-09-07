@@ -14,8 +14,6 @@
 // =================================================================================================
 
 //! audible signal consts
-#define MMinAudibleSignal 0.25f
-#define MMinAudibleVolumeFactor (1.0f / (2 << 15))
 #define MMinusInfInDb -200.0f
 
 //! frequency helpers
@@ -79,7 +77,7 @@ namespace TAudioMath
     double*       pDestBuffer,
     int           NumberOfSamples);
 
-
+    
   // ... Scale
 
   void ScaleBuffer(
@@ -90,9 +88,9 @@ namespace TAudioMath
     double* pSourceBuffer,
     int     NumberOfSamples,
     double  ScaleFactor);
+    
   
-
-
+  
   // ... Add Scaled
 
   void AddBufferScaled(
@@ -102,11 +100,12 @@ namespace TAudioMath
     float         SrcScaleFactor);
   void AddBufferScaled(
     const double* pSourceBuffer,
-    float*        pDestBuffer,
+    double*       pDestBuffer,
     int           NumberOfSamples,
-    float         SrcScaleFactor);
-
-
+    double        SrcScaleFactor);
+    
+  
+    
   // ... Copy Scaled
 
   void CopyBufferScaled(
@@ -120,8 +119,8 @@ namespace TAudioMath
     int           NumberOfSamples,
     float         ScaleFactor);
 
-
-
+    
+    
   // ... Products
 
   void MultiplyBuffers(
@@ -134,8 +133,8 @@ namespace TAudioMath
     const double* pSourceBufferB,
     double*       pDestBuffer,
     int           NumberOfSamples);
-
-
+    
+    
   // ... Clear
 
   void ClearBuffer(
@@ -145,7 +144,6 @@ namespace TAudioMath
     double* pBuffer,
     int     NumberOfSamples);
   
-
 
   // ... Magnitude and Power spectrum
 
@@ -185,12 +183,6 @@ namespace TAudioMath
     const double* pComplexBufferImag,
     double*       pDestBinBuffer,
     int           NumberOfBins);
-
-
-  // ... Note info
-
-  bool IsHalfNote(int NoteValue);
-  bool IsFullNote(int NoteValue);
 
 
   // ... Conversions

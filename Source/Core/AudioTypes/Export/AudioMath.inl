@@ -153,24 +153,22 @@ MForceInline float TAudioMath::NoteVolumeFromVelocity(int Velocity)
 
 // -------------------------------------------------------------------------------------------------
 
-MForceInline bool TAudioMath::IsHalfNote(int NoteValue)
+MForceInline void TAudioMath::FrequencyToNote(double Frequency, int& Note, int& CentsDeviation)
 {
-  return !IsFullNote(NoteValue);
-}
+  MAssert(Frequency >= 20.0 && Frequency <= 22050.0, "Invalid frequency value");
 
-// -------------------------------------------------------------------------------------------------
+  const double BaseFrequency = 440.0;
 
-MForceInline bool TAudioMath::IsFullNote(int NoteValue)
-{
-  MAssert(NoteValue >= 0 && NoteValue < 120, "Invalid note");
+  const double NoteFrac = 69.0 + 12.0 *
+    ::log(Frequency / BaseFrequency) / ::log(2.0);
 
-  switch (NoteValue % 12)
+  Note = TMath::d2iRound(NoteFrac);
+  CentsDeviation = TMath::d2iRound((NoteFrac - Note) * 100);
+
+  if (CentsDeviation >= 50)
   {
-  case 0: case 2: case 4: case 5: case 7: case 9: case 11:
-    return true;
-
-  default:
-    return false;
+    CentsDeviation -= 100;
+    Note++;
   }
 }
 
