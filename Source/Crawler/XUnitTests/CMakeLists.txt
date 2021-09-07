@@ -36,13 +36,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
       "Aubio_;Xtract_;Resample_;Shark_;LightGBM_;"
       "BoostUnitTest_;BoostSystem_;BoostSerialization_;"
       "OggVorbis_;Flac_;Sqlite_;Iconv_;z;${IPP_LIBS}")
-    target_link_libraries(XUnitTests "-framework Carbon")
     target_link_libraries(XUnitTests "-framework CoreFoundation")
     target_link_libraries(XUnitTests "-framework CoreServices")
-    target_link_libraries(XUnitTests "-framework Accelerate")
     target_link_libraries(XUnitTests "-framework AppKit")
     target_link_libraries(XUnitTests "-framework AudioToolBox")
     target_link_libraries(XUnitTests "-framework IOKit")
+    target_link_libraries(XUnitTests "-framework Accelerate")
   else()
     message(FATAL_ERROR "Unexpected platform/compiler setup")
   endif()

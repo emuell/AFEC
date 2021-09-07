@@ -37,8 +37,6 @@
 #include <Foundation/Foundation.h>
 #include <AppKit/AppKit.h>
 
-#include <Carbon/Carbon.h> // for AESend and TISInputSourceRef
-
 // =================================================================================================
 
 int gInMain = 0;

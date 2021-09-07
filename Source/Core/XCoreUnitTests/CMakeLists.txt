@@ -32,12 +32,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
     target_link_libraries(XCoreUnitTests
       "Shark_;BoostUnitTest_;BoostSystem_;BoostSerialization_;"
       "OggVorbis_;Flac_;Sqlite_;Iconv_;z;${IPP_LIBS}")
-    target_link_libraries(XCoreUnitTests "-framework Carbon")
     target_link_libraries(XCoreUnitTests "-framework CoreFoundation")
     target_link_libraries(XCoreUnitTests "-framework CoreServices")
     target_link_libraries(XCoreUnitTests "-framework AppKit")
     target_link_libraries(XCoreUnitTests "-framework AudioToolBox")
     target_link_libraries(XCoreUnitTests "-framework IOKit")
+    target_link_libraries(XCoreUnitTests "-framework Accelerate")
   else()
     message(FATAL_ERROR "Unexpected platform/compiler setup")
   endif()
