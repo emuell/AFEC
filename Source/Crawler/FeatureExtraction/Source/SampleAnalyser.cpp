@@ -832,7 +832,7 @@ void TSampleAnalyser::AnalyzeLowLevelDescriptors(
         FftTransform.Re(), mFftFrameSize);
       TAudioMath::ClearBuffer(FftTransform.Im(), mFftFrameSize);
 
-      FftTransform.Forward();
+      FftTransform.ForwardInplace();
 
       TAudioMath::Magnitude(FftTransform.Re(), FftTransform.Im(), 
         MagnitudeSpectrum.FirstWrite(), mFftFrameSize / 2);

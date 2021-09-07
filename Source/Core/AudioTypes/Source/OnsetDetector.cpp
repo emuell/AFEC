@@ -124,7 +124,7 @@ void TOnsetFftProcessor::LoadFrame(const double* pBuffer)
 
   // ... do the FFT
 
-  mFFT.Forward();
+  mFFT.ForwardInplace();
 
 
   // ... fetch magnitude and phase
@@ -167,9 +167,9 @@ void TOnsetFftProcessor::ApplyLogMags()
 
   if (mLogmags)
   {
-    static const double LogLowerLimit = 2e-42;
-    static const double LogOfLowerLimit = -96.0154267;
-    static const double AbsInfOfLowerLimit = 0.010414993;
+    constexpr double LogLowerLimit = 2e-42;
+    constexpr double LogOfLowerLimit = -96.0154267;
+    constexpr double AbsInfOfLowerLimit = 0.010414993;
 
     for (unsigned int i = 0; i < mNumbins; i++)
     {
