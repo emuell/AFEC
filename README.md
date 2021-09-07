@@ -116,7 +116,7 @@ Options:
 ```
 
 
-## Supported Audio File Formats
+# Supported Audio File Formats
 
 AFEC can read and thus analyze the following audio file-formats:
 
@@ -134,14 +134,14 @@ AFEC can read and thus analyze the following audio file-formats:
 - Apple SouND (**.snd**):	*Windows & OSX only*
 
 
-## Extracted Audio-Features
+# Extracted Audio-Features
 
 Internal analyzation **sample rate** currently is hardcoded to 44100 Hz.<br />
 The **FFT Frame Size** is 2048 samples.<br />
 The **FFT Hop Size** is 1024 samples.<br />
 
 
-### High-Level Features
+## High-Level Features
 
 High-level features are written in a sqlite database which uses the following column names and types.<br/>
 The column name ending specifies the data type (except for the first 3 columns):
@@ -151,7 +151,7 @@ The column name ending specifies the data type (except for the first 3 columns):
 - *VVR*: Vector of a vector of real numbers in JSON format
 - ...
 
-#### Filepath and analyzation status
+### Filepath and analyzation status
 * `filename` *(TEXT)*:<br/>
   Absolute or relative path from the database path and name of the analyzed file.
 * `modtime` *(INTEGER)*:<br/>
@@ -159,7 +159,7 @@ The column name ending specifies the data type (except for the first 3 columns):
 * `status` *(TEXT)*:<br/>
   "succeeded" or some human readable error message, in case the file could not be opened or read.
 
-#### Filetype info
+### Filetype info
 * `file_type_S` *(TEXT)*:<br/>
   The file's normalized file extension.
 * `file_size_R` *(INTEGER)*:<br/>
@@ -173,7 +173,7 @@ The column name ending specifies the data type (except for the first 3 columns):
 * `file_bit_depth_R` *(INTEGER)*:<br/>
   Audio file-format bit depth.
 
-#### Classification results
+### Classification results
 * `class_signature_VR` *(TEXT)*:<br/>
   JSON array of real numbers. Prediction result of the classification model.<br/>
   Can be used instad of the normalized `class_strengths_VR` to find similar sounds with a similar class signature.
@@ -182,7 +182,7 @@ The column name ending specifies the data type (except for the first 3 columns):
 * `class_strengths_VR` *(TEXT: JSON_TEXT_ARRAY)*:<br/>
   JSON array of real numbers. Normalized, clamped prediction result of the "strong" predicted classes - strongest ones first.
 
-#### Categorization results
+### Categorization results
 * `category_signature_VR` *(TEXT: JSON_NUMBER_ARRAY)*:<br/>
   JSON array of real numbers. Prediction result of the categorization model.<br/>
   Can be used instad of the normalized `category_strengths_VR` to find similar sounds with a similar category signature.
@@ -191,7 +191,7 @@ The column name ending specifies the data type (except for the first 3 columns):
 * `category_strengths_VR` *(TEXT: JSON_NUMBER_ARRAY)*:<br/>
   JSON array of real numbers. Normalized, clamped prediction result of the "strong" predicted categories - strongest ones first.
   
-#### Pitch, Peak and BPM
+### Pitch, Peak and BPM
 * `base_note_R` *(REAL)*:<br/>
   Most dominant key note (if any) in the entire file. Should be used in combination with `base_note_confidence_R` only.
 * `base_note_confidence_R` *(REAL)*:<br/>
@@ -205,7 +205,7 @@ The column name ending specifies the data type (except for the first 3 columns):
 * `bpm_confidence_R` *(REAL)*:<br/>
   Normalized detection confidence value of the BPM detection.
 
-#### Sound Characteristics
+### Sound Characteristics
 * `brightness_R` *(REAL)*:<br/>
   Overal sound's perceived brightness, calculated from the spectral centroid and rolloff.
 * `noisiness_R` *(REAL)*:<br/>
@@ -213,7 +213,7 @@ The column name ending specifies the data type (except for the first 3 columns):
 * `harmonicity_R` *(REAL)*:<br/>
   Overal sound's harmonicity level, calculated from the auto correlation, pitch confidence and spectral flatness.
 
-#### Spectral Features
+### Spectral Features
 * `spectral_flatness_R` *(REAL)*:<br/>
   Mean of audible low level spectral_flatness_VR (spectral [flatness](https://www.audiocontentanalysis.org/code/audio-features/spectral-flatness/))
 * `spectral_flux_R` *(REAL)*:<br/>
@@ -225,23 +225,23 @@ The column name ending specifies the data type (except for the first 3 columns):
 * `spectral_inharmonicity_R` *(REAL)*:<br/>
   Mean of audible low level spectral_inharmonicity_VR ([inharmonicity](https://essentia.upf.edu/reference/streaming_Inharmonicity.html) based on a sharpened spectrum)
 
-#### Spectrum Band Array
+### Spectrum Band Array
 * `spectrum_signature_VVR` *(TEXT: JSON_NUMBER_ARRAY_ARRAY)*:<br/>
   JSON array of an array of real numbers. 14 bands for 64 time frames (resampled), which can be used an iconic signature alike view of the entire audio file's spectrum.<br/>
   The 14 spectral bands end at 50, 100, 200, 400, 630, 920, 1270, 1720, 2320, 3150, 4400, 6400.0, 9500, 15500 HZ<br/>
 
-#### Pitch Array
+### Pitch Array
 * `pitch_VR` *(TEXT: JSON_NUMBER_ARRAY)*:<br/>
   JSON array of real numbers. Cleaned pitch note values for for each fft time frame.
 * `pitch_confidence_R` *(REAL)*:<br/>
   Mean value of all pitch note value detection confidences.
 
-#### Peak Array
+### Peak Array
 * `peak_VR` *(TEXT: JSON_NUMBER_ARRAY)*:<br/>
   JSON array of real numbers. Peak value in dB for for each fft time frame.
 
 
-### Low-Level Features
+## Low-Level Features
 
 Low-level features are written in a sqlite database which uses the following column names and types.<br/>
 Just like for high-level features, the column name ending specifies the data type.
@@ -251,12 +251,12 @@ Just like for high-level features, the column name ending specifies the data typ
 *Note*: All vector features contain the following additional statistical features as well:<br/>
 `min`, `max`, `median`, `mean`, `gmean` (geographic mean), `variance`, `centroid`, `spread`, `skewness`, `kurtosis`, `flatness`, `dmean`, `dvariance` (1st deviation)
 
-#### Filepath and analyzation status
+### Filepath and analyzation status
 * `filename` (absolute or relative path to the analyzed file)
 * `modtime` (file modification date in unix timestamps)
 * `status` ("succeeded" or some human readable error message)
 
-#### Filetype info
+### Filetype info
 * `file_type_S` (normalized file extension)
 * `file_size_R` (bytes)
 * `file_length_R` (seconds)
@@ -264,18 +264,18 @@ Just like for high-level features, the column name ending specifies the data typ
 * `file_channel_count_R`
 * `file_bit_depth_R`
   
-#### Effective Length (skipping leading & trailing silence)
+### Effective Length (skipping leading & trailing silence)
 * `effectve_length_48dB_R` (gate > 48dB)
 * `effectve_length_24dB_R`
 * `effectve_length_12dB_R`
 
-#### Amplitude
+### Amplitude
 * `amplitude_silence_VR` (1 for silence, 0 for non silence)
 * `amplitude_peak_VR`
 * `amplitude_rms_VR`
 * `amplitude_envelope_VR`
 
-#### Spectral Features
+### Spectral Features
 * `spectral_rms_VR` (spectral [rms](https://www.audiocontentanalysis.org/code/audio-features/rms/))
 * `spectral_centroid_VR` (spectral [centroid](https://www.audiocontentanalysis.org/code/audio-features/spectral-centroid/))
 * `spectral_spread_VR` (spectral [spread](https://www.audiocontentanalysis.org/code/audio-features/spectral-spread/))
@@ -288,34 +288,34 @@ Just like for high-level features, the column name ending specifies the data typ
 * `spectral_complexity_VR` (spectral [complexity](https://essentia.upf.edu/reference/streaming_SpectralComplexity.html) measure based on a sharpened spectrum)
 * `spectral_contrast_VR` (spectral [contrast](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.583.7201&rep=rep1&type=pdf))
 
-#### Fundamental Frequency
+### Fundamental Frequency
 * `f0_VR` (in Hz for each FFT frame)
 * `f0_confidence_VR` (0-1 for each F0)
 * `failsafe_f0_VR` (falling back to last *stable* F0)
 
-#### Tristimulus
+### Tristimulus
 * `tristimulus1_VR` (mixture of harmonics, [timbre](https://en.wikipedia.org/wiki/Timbre) based on the F0 detection)
 * `tristimulus2_VR`
 * `tristimulus3_VR`
 
-#### auto correlation
+### auto correlation
 * `auto_correlation_VR`
 
-#### Onsets (tuned for mixed/tonal sounds)
+### Onsets (tuned for mixed/tonal sounds)
 * `rhythm_complex_onsets_VR` (onset value for each fft frame)
 * `rhythm_complex_onset_count_R` (number of detected onsets)
 * `rhythm_complex_onset_contrast_R`
 * `rhythm_complex_onset_frequency_mean_R`
 * `rhythm_complex_onset_strength_R` (overall strength)
 
-#### Onsets (tuned for percussive sounds)
+### Onsets (tuned for percussive sounds)
 * `rhythm_percussive_onsets_VR` (see rhythm_complex)
 * `rhythm_percussive_onset_count_R` 
 * `rhythm_percussive_onset_contrast_R`
 * `rhythm_percussive_onset_frequency_mean_R`
 * `rhythm_percussive_onset_strength_R` 
 
-#### Tempo
+### Tempo
 * `rhythm_complex_tempo_R` (BPM)
 * `rhythm_complex_tempo_confidence_R` (0-1)
 * `rhythm_percussive_tempo_R` 
@@ -323,19 +323,19 @@ Just like for high-level features, the column name ending specifies the data typ
 * `rhythm_final_tempo_R`
 * `rhythm_final_tempo_confidence_R`
 
-#### Spectrum band features (14 bands)
+### Spectrum band features (14 bands)
 * `spectral_rms_bands_VVR` (14 RMS values for every band - see also *Spectral Features*)
 * `spectral_flatness_bands_VVR`
 * `spectral_flux_bands_VVR`
 * `spectral_complexity_bands_VVR`
 * `spectral_contrast_bands_VVR`
 
-#### Spectrum (28 bands)
+### Spectrum (28 bands)
 * `frequency_bands_VVR` (50, 100, 150, 200, 300, 400, 510, 630, 770, 920, 
     1080, 1270, 1480, 1720, 2000, 2320, 2700, 3150, 3700, 4400, 
     5300, 6400, 7700, 9500, 12000, 15500, 19000, 22050 Hz)
 
-#### Cepstrum (14 bands)
+### Cepstrum (14 bands)
 * `cepstrum_bands_VVR` (MFCC values)
 
 
@@ -387,6 +387,7 @@ AFEC uses the following third-party libraries, which are bundled in the `3rdPart
 * [Sqlite](https://sqlite.org/index.html): SQLite database support.
 * [ZLib](http://zlib.net/): Dependency of Sqlite.
 * [OpenBLAS](https://www.openblas.net/): Used on Windows as dependency of SharkC++
+* [CTPL](https://github.com/vit-vit/ctpl): Enabled multi-processing in the crawler via a thread pool
 * [Msgpack](https://msgpack.org/): Optionally packing of JSON in sqlite database (disabled).
 * [Iconv](http://www.gnu.org/software/libiconv/): Unicode string UTF8 and platform encoding.
 
