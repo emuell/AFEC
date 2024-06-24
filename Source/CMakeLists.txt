@@ -117,7 +117,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # warnings
   set(WARNING_FLAGS "-Wall -Wno-unknown-warning-option"
       "-Wno-reorder -Wno-unused-private-field -Wno-unused-local-typedefs"
-      "-Wno-null-dereference -Wno-deprecated-declarations -Wdeprecated-builtins"
+      "-Wno-null-dereference -Wno-deprecated-declarations -Wno-deprecated-builtins"
       "-Wno-expansion-to-defined -Wno-parentheses"
       "-Wno-unknown-pragmas")
   string(REGEX REPLACE ";" " " WARNING_FLAGS "${WARNING_FLAGS}") # list -> string
