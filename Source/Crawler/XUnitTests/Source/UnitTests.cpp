@@ -211,7 +211,10 @@ void TCrawlerTests::Crawler()
         else if (ColumnName.EndsWith("_R"))
         {
           // check if the content is a valid number
-          BOOST_CHECK_NO_THROW(std::stod(ConlumnContentCString));
+          BOOST_CHECK_NO_THROW(
+            double Result = std::stod(ConlumnContentCString);
+            (void)Result;
+          );
         }
         else if (ColumnName.EndsWith("_VR"))
         {
@@ -228,7 +231,10 @@ void TCrawlerTests::Crawler()
             {
               BOOST_CHECK_MESSAGE(ChildIter.first.empty(),
                 "expecting an array element (with no name)");
-              BOOST_CHECK_NO_THROW(std::stod(ChildIter.second.data()));
+              BOOST_CHECK_NO_THROW(
+                double Result = std::stod(ChildIter.second.data());
+                (void)Result;
+              );
               break;
             }
           }
@@ -252,7 +258,10 @@ void TCrawlerTests::Crawler()
               {
                 BOOST_CHECK_MESSAGE(ChildChildIter.first.empty(),
                   "expecting an array element (with no name)");
-                BOOST_CHECK_NO_THROW(std::stod(ChildChildIter.second.data()));
+                BOOST_CHECK_NO_THROW(
+                  double Result = std::stod(ChildChildIter.second.data());
+                  (void)Result;
+                );
                 break;
               }
             }
