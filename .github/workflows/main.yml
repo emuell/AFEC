@@ -45,6 +45,10 @@ jobs:
         sudo apt install -y cmake ninja-build libmpg123-dev
       if: ${{ matrix.config.name == 'Ubuntu' }}
 
+    - name: Setup (OSX)
+      run: sudo xcode-select -switch /Applications/Xcode_14.3.1.app
+      if: ${{ matrix.config.name == 'macOS' }}
+
     - name: Checkout
       uses: actions/checkout@v2
       with:
