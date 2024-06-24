@@ -15,7 +15,7 @@ target_link_libraries(XCrawler AudioTypes)
 target_link_libraries(XCrawler CoreTypes)
 
 # third party lib dependencies
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   if (WITH_INTEL_IPP)
     set(IPP_LIBS "ippi;ipps;ippvm;ippcore;imf;irc;svml")
   else()

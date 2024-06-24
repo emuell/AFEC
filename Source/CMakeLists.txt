@@ -1,7 +1,7 @@
 ###################################################################################################
 
 # Global cmake config
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 # Set CMAKE module path
 set(CMAKE_MODULE_PATH
@@ -100,10 +100,10 @@ else()
 endif()
 
 # Compiler specific flags
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # G++/Clang flags
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11 -DMCompiler_GCC")
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMCompiler_Clang") # yes, GCC AND Clang
   endif()
   if(ARCH MATCHES "i386")
@@ -117,8 +117,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
   # warnings
   set(WARNING_FLAGS "-Wall -Wno-unknown-warning-option"
       "-Wno-reorder -Wno-unused-private-field -Wno-unused-local-typedefs"
-      "-Wno-null-dereference -Wno-deprecated-declarations -Wno-unknown-pragmas"
-      "-Wno-expansion-to-defined")
+      "-Wno-null-dereference -Wno-deprecated-declarations -Wno-deprecated-builtins"
+      "-Wno-expansion-to-defined -Wno-parentheses"
+      "-Wno-unknown-pragmas")
   string(REGEX REPLACE ";" " " WARNING_FLAGS "${WARNING_FLAGS}") # list -> string
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS}")
 

@@ -17,7 +17,7 @@ target_link_libraries(XCoreUnitTests CoreFileFormats)
 target_link_libraries(XCoreUnitTests CoreTypes)
 
 # third party lib dependencies
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   if (WITH_INTEL_IPP)
     set(IPP_LIBS "ippi;ipps;ippvm;ippcore;imf;irc;svml")
   else()
