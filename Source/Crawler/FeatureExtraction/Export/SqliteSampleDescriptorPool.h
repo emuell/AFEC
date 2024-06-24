@@ -55,7 +55,7 @@ public:
 
   // db version: increase to force to recreate the database when running crawler on an 
   // existing db.
-  enum { kCurrentVersion = 1 };
+  enum { kCurrentVersion = 2 };
 
   // open databse. When \param ReadOnly is true, tables will not be created, in 
   // case they do not exist in the database.
