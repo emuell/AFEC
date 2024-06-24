@@ -1,7 +1,7 @@
 ###################################################################################################
 
 # Global cmake config
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 # Set CMAKE module path
 set(CMAKE_MODULE_PATH
@@ -118,7 +118,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
   set(WARNING_FLAGS "-Wall -Wno-unknown-warning-option"
       "-Wno-reorder -Wno-unused-private-field -Wno-unused-local-typedefs"
       "-Wno-null-dereference -Wno-deprecated-declarations -Wno-unknown-pragmas"
-      "-Wno-expansion-to-defined")
+      "-Wno-expansion-to-defined -Wno-parentheses")
   string(REGEX REPLACE ";" " " WARNING_FLAGS "${WARNING_FLAGS}") # list -> string
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS}")
 
