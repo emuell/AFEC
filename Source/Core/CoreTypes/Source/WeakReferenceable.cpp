@@ -1,27 +1,20 @@
 #include "CoreTypesPrecompiledHeader.h"
 
-#include "CoreTypes/Export/StlAllocator.h"
-
 #include <map>
 #include <set>
 #include <mutex>
 
 // =================================================================================================
 
-// avoid leak check overhead
-static const bool sUseSmallObjectAllocators = true;
-
 typedef std::set<
   TWeakRefOwner*, 
-  std::less<TWeakRefOwner*>,
-  TStlAllocator<TWeakRefOwner*, sUseSmallObjectAllocators> 
+  std::less<TWeakRefOwner*>
 > TWeakRefOwnerSet;
 
 typedef std::map<
   TWeakReferenceable*, 
   TWeakRefOwnerSet, 
-  std::less<TWeakReferenceable*>,
-  TStlMapAllocator<TWeakReferenceable*, TWeakRefOwnerSet, sUseSmallObjectAllocators> 
+  std::less<TWeakReferenceable*>
 > TWeakRefPool;
 
 
