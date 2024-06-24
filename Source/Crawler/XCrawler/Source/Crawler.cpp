@@ -88,7 +88,7 @@ namespace TProductDescription
 
   // use the AFEC GUI's version
   int MajorVersion() { return 1; }
-  int MinorVersion() { return 0; }
+  int MinorVersion() { return 1; }
   int RevisionVersion() { return 0; }
 
   TString AlphaOrBetaVersionString() { return ""; }
@@ -168,7 +168,7 @@ int gMain(const TList<TString>& Arguments)
     ("model,m", boost::program_options::value<std::vector<std::string>>()->multitoken(),
       "Specify the 'Classifiers' and 'OneShot-Categories' model files that should be used "
       "for level='high'. When not specified, the default models from the crawler's "
-      "resource dir are used. Set to 'none' to explicitely avoid loading the "
+      "resource dir are used. Set to 'none' to explicitly avoid loading the "
       "a default model - e.g. --model \"None\" --model \"None\" will disable both.")
     ("jobs,j", boost::program_options::value<int>()->default_value(-1),
       "Maximum number of samples that are analyzed simultaneously. "
