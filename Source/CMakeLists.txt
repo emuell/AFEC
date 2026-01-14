@@ -1,7 +1,7 @@
 ###################################################################################################
 
 # Global cmake config
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 # Set CMAKE module path
 set(CMAKE_MODULE_PATH
@@ -12,6 +12,8 @@ set(CMAKE_MODULE_PATH
 if(POLICY CMP0063)
   # use new CMAKE_CXX_VISIBILITY_PRESET behavior
   cmake_policy(SET CMP0063 NEW)
+  # use new add_custom_command behavior
+  cmake_policy(SET CMP0175 NEW)
 endif()
 
 if(WIN32)
