@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		341E1D9626D3B70600945B28 /* framing.c in Sources */ = {isa = PBXBuildFile; fileRef = 341E1D9226D3B70600945B28 /* framing.c */; };
+		341E1D9726D3B70600945B28 /* bitwise.c in Sources */ = {isa = PBXBuildFile; fileRef = 341E1D9526D3B70600945B28 /* bitwise.c */; };
 		34FCEB7A0AA249390033142A /* config_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 34FCEAF60AA249390033142A /* config_types.h */; };
 		34FCEB7B0AA249390033142A /* ogg.h in Headers */ = {isa = PBXBuildFile; fileRef = 34FCEAFA0AA249390033142A /* ogg.h */; };
 		34FCEB7C0AA249390033142A /* os_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 34FCEAFB0AA249390033142A /* os_types.h */; };
@@ -76,14 +78,14 @@
 		34FCEBC90AA249390033142A /* bookutil.h in Headers */ = {isa = PBXBuildFile; fileRef = 34FCEB6D0AA249390033142A /* bookutil.h */; };
 		34FCEBD00AA249390033142A /* vqgen.c in Sources */ = {isa = PBXBuildFile; fileRef = 34FCEB770AA249390033142A /* vqgen.c */; };
 		34FCEBD10AA249390033142A /* vqgen.h in Headers */ = {isa = PBXBuildFile; fileRef = 34FCEB780AA249390033142A /* vqgen.h */; };
-		34FCF2B70AA24E2C0033142A /* bitwise.c in Sources */ = {isa = PBXBuildFile; fileRef = 34FCF2B50AA24E2C0033142A /* bitwise.c */; };
-		34FCF2B80AA24E2C0033142A /* framing.c in Sources */ = {isa = PBXBuildFile; fileRef = 34FCF2B60AA24E2C0033142A /* framing.c */; };
 		34FCF2BC0AA24E780033142A /* sharedbook.c in Sources */ = {isa = PBXBuildFile; fileRef = 34FCF2BB0AA24E780033142A /* sharedbook.c */; };
 		34FCF2C10AA24EDE0033142A /* codebook.c in Sources */ = {isa = PBXBuildFile; fileRef = 34FCF2C00AA24EDE0033142A /* codebook.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		34186CC50979300900DAA865 /* libOggVorbis_.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libOggVorbis_.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		341E1D9226D3B70600945B28 /* framing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = framing.c; sourceTree = "<group>"; };
+		341E1D9526D3B70600945B28 /* bitwise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitwise.c; sourceTree = "<group>"; };
 		34FCEAF60AA249390033142A /* config_types.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = config_types.h; path = ../Dist/include/ogg/config_types.h; sourceTree = SOURCE_ROOT; };
 		34FCEAFA0AA249390033142A /* ogg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ogg.h; path = ../Dist/include/ogg/ogg.h; sourceTree = SOURCE_ROOT; };
 		34FCEAFB0AA249390033142A /* os_types.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = os_types.h; path = ../Dist/include/ogg/os_types.h; sourceTree = SOURCE_ROOT; };
@@ -154,8 +156,6 @@
 		34FCEB770AA249390033142A /* vqgen.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = vqgen.c; path = ../Dist/vq/vqgen.c; sourceTree = SOURCE_ROOT; };
 		34FCEB780AA249390033142A /* vqgen.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = vqgen.h; path = ../Dist/vq/vqgen.h; sourceTree = SOURCE_ROOT; };
 		34FCEB790AA249390033142A /* vqsplit.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = vqsplit.c; path = ../Dist/vq/vqsplit.c; sourceTree = SOURCE_ROOT; };
-		34FCF2B50AA24E2C0033142A /* bitwise.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = bitwise.c; path = ../Dist/src/bitwise.c; sourceTree = SOURCE_ROOT; };
-		34FCF2B60AA24E2C0033142A /* framing.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = framing.c; path = ../Dist/src/framing.c; sourceTree = SOURCE_ROOT; };
 		34FCF2BB0AA24E780033142A /* sharedbook.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = sharedbook.c; path = ../Dist/lib/sharedbook.c; sourceTree = SOURCE_ROOT; };
 		34FCF2C00AA24EDE0033142A /* codebook.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = codebook.c; path = ../Dist/lib/codebook.c; sourceTree = SOURCE_ROOT; };
 		743016280556BD2500D2A596 /* OggVorbis.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = OggVorbis.h; sourceTree = "<group>"; };
@@ -172,6 +172,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		341E1D9126D3B70600945B28 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				341E1D9226D3B70600945B28 /* framing.c */,
+				341E1D9526D3B70600945B28 /* bitwise.c */,
+			);
+			name = src;
+			path = ../../Ogg/Dist/src;
+			sourceTree = "<group>";
+		};
 		34FCEAF20AA249390033142A /* include */ = {
 			isa = PBXGroup;
 			children = (
@@ -318,16 +328,6 @@
 			path = ../Dist/lib/modes;
 			sourceTree = SOURCE_ROOT;
 		};
-		34FCEB650AA249390033142A /* src */ = {
-			isa = PBXGroup;
-			children = (
-				34FCF2B50AA24E2C0033142A /* bitwise.c */,
-				34FCF2B60AA24E2C0033142A /* framing.c */,
-			);
-			name = src;
-			path = ../Dist/src;
-			sourceTree = SOURCE_ROOT;
-		};
 		34FCEB6A0AA249390033142A /* vq */ = {
 			isa = PBXGroup;
 			children = (
@@ -361,9 +361,9 @@
 		743015D90556BD2400D2A596 /* Dist */ = {
 			isa = PBXGroup;
 			children = (
+				341E1D9126D3B70600945B28 /* src */,
 				34FCEAF20AA249390033142A /* include */,
 				34FCEB020AA249390033142A /* lib */,
-				34FCEB650AA249390033142A /* src */,
 				34FCEB6A0AA249390033142A /* vq */,
 			);
 			name = Dist;
@@ -461,6 +461,8 @@
 /* Begin PBXProject section */
 		557CB1990455FF95004EEA14 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = 346B8113086434B200BF4866 /* Build configuration list for PBXProject "OggVorbis" */;
 			compatibilityVersion = "Xcode 2.4";
 			developmentRegion = English;
@@ -488,6 +490,7 @@
 			files = (
 				34FCEB800AA249390033142A /* analysis.c in Sources */,
 				34FCEB830AA249390033142A /* bitrate.c in Sources */,
+				341E1D9626D3B70600945B28 /* framing.c in Sources */,
 				34FCEB850AA249390033142A /* block.c in Sources */,
 				34FCEB8C0AA249390033142A /* envelope.c in Sources */,
 				34FCEB8E0AA249390033142A /* floor0.c in Sources */,
@@ -508,8 +511,7 @@
 				34FCEBBE0AA249390033142A /* window.c in Sources */,
 				34FCEBC80AA249390033142A /* bookutil.c in Sources */,
 				34FCEBD00AA249390033142A /* vqgen.c in Sources */,
-				34FCF2B70AA24E2C0033142A /* bitwise.c in Sources */,
-				34FCF2B80AA24E2C0033142A /* framing.c in Sources */,
+				341E1D9726D3B70600945B28 /* bitwise.c in Sources */,
 				34FCF2BC0AA24E780033142A /* sharedbook.c in Sources */,
 				34FCF2C10AA24EDE0033142A /* codebook.c in Sources */,
 			);
@@ -521,119 +523,58 @@
 		34186CC80979302B00DAA865 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				HEADER_SEARCH_PATHS = (
-					../Dist/include,
-					../Mac,
-				);
-				INSTALL_PATH = /usr/local/lib;
-				PREBINDING = NO;
 				PRODUCT_NAME = OggVorbis_;
-				ZERO_LINK = YES;
 			};
 			name = Debug;
 		};
 		34186CC90979302B00DAA865 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				HEADER_SEARCH_PATHS = (
-					../Dist/include,
-					../Mac,
-				);
-				INSTALL_PATH = /usr/local/lib;
-				PREBINDING = NO;
 				PRODUCT_NAME = OggVorbis_;
-				STRIP_INSTALLED_PRODUCT = NO;
-				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
 		346B8114086434B200BF4866 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
+				ARCHS = "$(ARCHS_STANDARD)";
 				COPY_PHASE_STRIP = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[arch=x86_64]" = "";
-				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
-				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = NO;
 				HEADER_SEARCH_PATHS = (
-					../Dist/include,
-					../Dist/lib,
+					"$(PROJECT_DIR)/../Dist/include",
+					"$(PROJECT_DIR)/../Dist/lib",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OBJROOT = ../../../Temp;
-				OTHER_CFLAGS = (
-					"-DFT_CONFIG_OPTION_SYSTEM_ZLIB",
-					"-DDARWIN_NO_CARBON",
-					"-DTARGET_RT_MAC_MACHO",
-					"-DFT_CONFIG_CONFIG_H=<ftconfig.h>",
-				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-wnone",
-				);
-				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
-				"SDKROOT[arch=x86_64]" = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				SDKROOT = macosx;
+				"SDKROOT[arch=x86_64]" = macosx10.11;
 				SYMROOT = ../Library;
-				USER_HEADER_SEARCH_PATHS = "../Dist/include ../Dist/lib";
 			};
 			name = Debug;
 		};
 		346B8115086434B200BF4866 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
-				GCC_DEBUGGING_SYMBOLS = default;
+				ARCHS = "$(ARCHS_STANDARD)";
 				GCC_ENABLE_ASM_KEYWORD = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[arch=x86_64]" = "";
-				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = NO;
 				HEADER_SEARCH_PATHS = (
-					../Dist/include,
-					../Dist/lib,
+					"$(PROJECT_DIR)/../Dist/include",
+					"$(PROJECT_DIR)/../Dist/lib",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				OBJROOT = ../../../Temp;
-				OTHER_CFLAGS = (
-					"-DFT_CONFIG_OPTION_SYSTEM_ZLIB",
-					"-DDARWIN_NO_CARBON",
-					"-DTARGET_RT_MAC_MACHO",
-					"-DFT_CONFIG_CONFIG_H=<ftconfig.h>",
-				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-wnone",
-				);
-				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
-				"SDKROOT[arch=x86_64]" = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				SDKROOT = macosx;
+				"SDKROOT[arch=x86_64]" = macosx10.11;
 				STRIP_INSTALLED_PRODUCT = NO;
 				SYMROOT = ../Library;
-				USER_HEADER_SEARCH_PATHS = "../Dist/include ../Dist/lib";
 			};
 			name = Release;
 		};

@@ -25,7 +25,7 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id: zlib.ads 24316 2005-11-24 18:50:24Z taktik $
+--  $Id$
 
 with Ada.Streams;
 

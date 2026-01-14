@@ -26,7 +26,7 @@ static bool STestMatchOperator(
 void TCoreFileFormatsTest::Database()
 {
   // wrong linked version?
-  BOOST_CHECK_EQUAL(TDatabase::SSqliteVersionNumber(), 3019003);
+  BOOST_CHECK_EQUAL(TDatabase::SSqliteVersionNumber(), 3046000);
   
   const int sTableSize = 25;
   const int sBlobBlockSize = 128;

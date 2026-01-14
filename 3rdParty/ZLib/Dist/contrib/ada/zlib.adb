@@ -6,7 +6,7 @@
 --  Open source license information is in the zlib.ads file.  --
 ----------------------------------------------------------------
 
---  $Id: zlib.adb 24316 2005-11-24 18:50:24Z taktik $
+--  $Id$
 
 with Ada.Exceptions;
 with Ada.Unchecked_Conversion;

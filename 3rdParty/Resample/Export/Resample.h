@@ -1,8 +1,5 @@
 #pragma once 
 
-#if !defined(Resample_h)
-#define Resample_h
-
 // =================================================================================================
 
 #include "CoreTypes/Export/CompilerDefines.h"
@@ -23,8 +20,5 @@
 #if defined(MCompiler_VisualCPP)
   #pragma warning(pop)
   #pragma pack(pop)
-#endif
-
-
 #endif
 

@@ -1,7 +1,7 @@
 ;
 ; vorbisfile.def
 ;
-; last modified: $Id: vorbisfile.def 1524 2003-04-06 22:02:47Z taktik $
+; last modified: $Id$
 ;
 LIBRARY
 EXPORTS

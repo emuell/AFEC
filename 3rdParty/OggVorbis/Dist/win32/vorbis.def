@@ -1,5 +1,5 @@
 ;
-; $Id: vorbis.def 24314 2005-11-24 18:04:05Z taktik $
+; $Id$
 ; 
 LIBRARY
 EXPORTS

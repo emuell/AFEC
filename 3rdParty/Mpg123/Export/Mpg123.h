@@ -1,7 +1,7 @@
 #pragma once 
 
-#if !defined(Mpg123_h)
-#define Mpg123_h
+#ifndef _Mpg123_h_
+#define _Mpg123_h_
 
 // =================================================================================================
 
@@ -19,8 +19,7 @@
 #endif
 
 #define MPG123_NO_CONFIGURE
-#include <mpg123.h>
-// #include <libmpg123/mpg123.h>
+#include <libmpg123/mpg123.h>
 #undef MPG123_NO_CONFIGURE
 
 

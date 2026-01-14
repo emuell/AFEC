@@ -47,7 +47,7 @@
  *
  */
 
-/* @(#) $Id: deflate.c 24316 2005-11-24 18:50:24Z taktik $ */
+/* @(#) $Id$ */
 
 #include "deflate.h"
 

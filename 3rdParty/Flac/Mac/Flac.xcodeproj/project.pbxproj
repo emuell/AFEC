@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 45;
+	objectVersion = 44;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -495,6 +495,8 @@
 /* Begin PBXProject section */
 		F59E594B01972C6B01A8006D /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = 341359A10A9CC7350071F1C8 /* Build configuration list for PBXProject "Flac" */;
 			compatibilityVersion = "Xcode 2.4";
 			developmentRegion = English;
@@ -558,19 +560,13 @@
 		341359A20A9CC7350071F1C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
+				ARCHS = "$(ARCHS_STANDARD)";
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[sdk=macosx10.5][arch=x86_64]" = "";
 				HEADER_SEARCH_PATHS = (
-					../Dist/include,
-					../Dist/src/LibFlac/include,
+					"$(PROJECT_DIR)/../Dist/include",
+					"$(PROJECT_DIR)/../Dist/src/LibFlac/include",
 				);
 				OBJROOT = ../../../Temp;
 				OTHER_CFLAGS = (
@@ -579,13 +575,12 @@
 					"-DHAVE_SYS_PARAM_H",
 					"-DFLAC__SYS_DARWIN",
 				);
-				"OTHER_CFLAGS[arch=i386]" = (
+				"OTHER_CFLAGS[arch=arm64]" = (
 					"$(OTHER_CFLAGS_QUOTED_1)",
 					"-DHAVE_LROUND",
 					"-DHAVE_SYS_PARAM_H",
 					"-DFLAC__SYS_DARWIN",
-					"-DFLAC__HAS_X86INTRIN",
-					"-DFLAC_FLAC__CPU_IA32",
+					"-DFLAC__NO_ASM",
 				);
 				"OTHER_CFLAGS[arch=x86_64]" = (
 					"$(OTHER_CFLAGS_QUOTED_1)",
@@ -595,9 +590,8 @@
 					"-DFLAC__HAS_X86INTRIN",
 					"-DFLAC__CPU_X86_64",
 				);
-				SDKROOT = macosx10.4;
-				"SDKROOT[arch=x86_64]" = macosx10.5;
-				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = static;
+				SDKROOT = macosx;
+				"SDKROOT[arch=x86_64]" = macosx10.11;
 				SYMROOT = ../Library;
 			};
 			name = Debug;
@@ -605,21 +599,14 @@
 		341359A30A9CC7350071F1C8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
+				ARCHS = "$(ARCHS_STANDARD)";
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
+				GCC_OPTIMIZATION_LEVEL = 1;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[sdk=macosx10.5][arch=x86_64]" = "";
 				HEADER_SEARCH_PATHS = (
-					../Dist/include,
-					../Dist/src/LibFlac/include,
+					"$(PROJECT_DIR)/../Dist/include",
+					"$(PROJECT_DIR)/../Dist/src/LibFlac/include",
 				);
-				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
-				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				OBJROOT = ../../../Temp;
 				OTHER_CFLAGS = (
 					"$(OTHER_CFLAGS_QUOTED_1)",
@@ -632,8 +619,7 @@
 					"-DHAVE_LROUND",
 					"-DHAVE_SYS_PARAM_H",
 					"-DFLAC__SYS_DARWIN",
-					"-DFLAC__HAS_X86INTRIN",
-					"-DFLAC_FLAC__CPU_IA32",
+					"-DFLAC__NO_ASM",
 				);
 				"OTHER_CFLAGS[arch=x86_64]" = (
 					"$(OTHER_CFLAGS_QUOTED_1)",
@@ -643,11 +629,8 @@
 					"-DFLAC__HAS_X86INTRIN",
 					"-DFLAC__CPU_X86_64",
 				);
-				SDKROOT = macosx10.4;
-				"SDKROOT[arch=x86_64]" = macosx10.5;
-				SDKROOT_i386 = "$(SYSTEM_DEVELOPER_DIR)/SDKs/MacOSX10.4u.sdk";
-				SDKROOT_ppc = "$(SYSTEM_DEVELOPER_DIR)/SDKs/MacOSX10.4u.sdk";
-				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = static;
+				SDKROOT = macosx;
+				"SDKROOT[arch=x86_64]" = macosx10.11;
 				SYMROOT = ../Library;
 			};
 			name = Release;
@@ -655,30 +638,18 @@
 		341359BC0A9CC8950071F1C8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = NO;
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				INSTALL_PATH = /usr/local/lib;
-				PREBINDING = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = Flac_;
-				ZERO_LINK = YES;
 			};
 			name = Debug;
 		};
 		341359BD0A9CC8950071F1C8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = G5;
-				INSTALL_PATH = /usr/local/lib;
-				PREBINDING = NO;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				PRODUCT_NAME = Flac_;
-				ZERO_LINK = NO;
 			};
 			name = Release;
 		};

@@ -1,6 +1,8 @@
 #ifndef __CONFIG_TYPES_H__
 #define __CONFIG_TYPES_H__
 
+#include <stdint.h>
+
 /* these are filled in by configure */
 typedef @SIZE16@ ogg_int16_t;
 typedef @SIZE32@ ogg_int32_t;

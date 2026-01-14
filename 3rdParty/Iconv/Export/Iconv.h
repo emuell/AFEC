@@ -1,8 +1,5 @@
 #pragma once
 
-#if !defined(_Iconv_h_)
-#define _Iconv_h_
-
 // =================================================================================================
 
 #include "CoreTypes/Export/CompilerDefines.h"
@@ -31,8 +28,5 @@ extern "C"
 #if defined(MCompiler_VisualCPP)
   #pragma warning(pop)
   #pragma pack(pop)
-#endif
-
-
 #endif
 

@@ -11,7 +11,7 @@
  ********************************************************************
 
  function: highlevel encoder setup struct seperated out for vorbisenc clarity
- last mod: $Id: highlevel.h 1524 2003-04-06 22:02:47Z taktik $
+ last mod: $Id$
 
  ********************************************************************/
 
