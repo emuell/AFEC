@@ -736,14 +736,10 @@ MForceInline int TMath::f2i(float f)
       __asm__ ( "cvttss2si %1, %0" : "=r" (i) : "m" (f) ); 
       return i;
   
-    #elif defined(MArch_X64)
-      // compiler will always use cvttss2si here
+    #elif defined(MArch_X64) || defined(MArch_ARM64) || defined(MArch_PPC) 
+      // compilers cast is fast enough
       return (int)f;
 
-    #elif defined(MArch_PPC)
-      // PPC cast is fast enough...
-      return (int)f;
-    
     #else
       #error "Unknown Architecture"
     #endif
@@ -801,12 +797,8 @@ MForceInline int TMath::d2i(double dbl)
       __asm__ ( "cvttsd2si %1, %0" : "=r" (i) : "m" (dbl) ); 
       return i;
   
-    #elif defined(MArch_X64)
-      // compiler will always use cvttss2si here
-      return (int)dbl;
-
-    #elif defined(MArch_PPC)
-      // PPC cast is fast enough...
+    #elif defined(MArch_X64) || defined(MArch_ARM64) || defined(MArch_PPC) 
+      // compilers cast is fast enough
       return (int)dbl;
     
     #else
