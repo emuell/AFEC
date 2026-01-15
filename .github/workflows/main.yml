@@ -27,13 +27,13 @@ jobs:
           }
         - {
             name: "Ubuntu", artifact: "Linux.tar.xz",
-            os: ubuntu-20.04,
+            os: ubuntu-22.04,
             build_type: "Release", cc: "gcc", cxx: "g++",
             build_script: "build.sh",
           }
         - {
             name: "macOS", artifact: "macOS.tar.xz",
-            os: macos-13,
+            os: macos-15,
             build_type: "Release", cc: "clang", cxx: "clang++",
             build_script: "build.sh",
           }
@@ -44,10 +44,6 @@ jobs:
         sudo apt update
         sudo apt install -y cmake ninja-build libmpg123-dev
       if: ${{ matrix.config.name == 'Ubuntu' }}
-
-    - name: Setup (OSX)
-      run: sudo xcode-select -switch /Applications/Xcode_14.3.1.app
-      if: ${{ matrix.config.name == 'macOS' }}
 
     - name: Checkout
       uses: actions/checkout@v2
