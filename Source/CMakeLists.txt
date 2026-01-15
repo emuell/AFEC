@@ -31,6 +31,9 @@ if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
       REALPATH BASE_DIR "${CMAKE_BINARY_DIR}")
 endif()
 
+# enable generation of `compile_commands.json` for make and ninja generators
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Set project name
 project(AFEC)
 

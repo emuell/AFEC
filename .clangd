@@ -1,0 +1,23 @@
+Index:
+  Background: Build
+
+CompileFlags:
+  CompilationDatabase: ./Build/Out
+
+Diagnostics:
+  ClangTidy:    
+    Add:      
+      - modernize-*
+      - performance-*
+    Remove:
+      - modernize-use-trailing-return-type
+      - modernize-deprecated-headers
+      - performance-no-int-to-ptr
+
+InlayHints:
+  Enabled: True
+  ParameterNames: True
+  DeducedTypes: True
+
+Completion:
+  AllScopes: True
