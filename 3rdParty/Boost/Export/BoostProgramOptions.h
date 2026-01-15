@@ -25,7 +25,7 @@
 
 // create a TString compatible boost command line parser instance
 
-static inline boost::program_options::command_line_parser 
+static inline boost::program_options::command_line_parser
   CreateBoostCommandLineParser(const TList<TString>& Arguments)
 {
   // convert TStrings to UTF8
@@ -67,7 +67,7 @@ static inline TList<TString> ArgumentToStringList(
   // convert UTF8 to TStrings
   TList<TString> Ret;
   Ret.PreallocateSpace((int)CStrings.size());
-  for (const std::string CString : CStrings)
+  for (const std::string& CString : CStrings)
   {
     Ret.Append(TString(CString.c_str(), TString::kUtf8));
   }
@@ -77,4 +77,3 @@ static inline TList<TString> ArgumentToStringList(
 
 
 #endif // _BoostProgramOptions_h_
-

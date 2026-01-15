@@ -28,6 +28,8 @@
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-variable"
   #pragma clang diagnostic ignored "-Wshift-count-overflow"
+  #pragma clang diagnostic ignored "-Wtautological-overlap-compare"
+  #pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #endif
 
 // =================================================================================================
@@ -67,4 +69,3 @@
 
 
 #endif // _SharkCsvm_h_
-

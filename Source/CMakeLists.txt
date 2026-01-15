@@ -26,7 +26,7 @@ endif(WIN32)
 if (CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   # ensure CMAKE_RUNTIME_OUTPUT_DIRECTORY points to an abs path:
   # cmake-js sets it to a relatove path, which is causing weired problems
-  get_filename_component(CMAKE_RUNTIME_OUTPUT_DIRECTORY 
+  get_filename_component(CMAKE_RUNTIME_OUTPUT_DIRECTORY
       "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
       REALPATH BASE_DIR "${CMAKE_BINARY_DIR}")
 endif()
@@ -92,10 +92,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DMDebug")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DMRelease")
 
 if(ARCH MATCHES "x86_64")
-  # 64bit builds
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMArch_X64")
+elseif(ARCH MATCHES "arm64")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMArch_ARM64")
 elseif(ARCH MATCHES "i386")
-  # 32bit builds
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMArch_X86")
 else()
   message(FATAL_ERROR "Unexpected or unsupported ARCH: ${ARCH}")
@@ -120,6 +120,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(WARNING_FLAGS "-Wall -Wno-unknown-warning-option"
       "-Wno-reorder -Wno-unused-private-field -Wno-unused-local-typedefs"
       "-Wno-null-dereference -Wno-deprecated-declarations -Wno-deprecated-builtins"
+      "-Wno-shorten-64-to-32"
       "-Wno-expansion-to-defined -Wno-parentheses"
       "-Wno-unknown-pragmas")
   string(REGEX REPLACE ";" " " WARNING_FLAGS "${WARNING_FLAGS}") # list -> string
@@ -150,6 +151,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMLinux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   # Osx Systems
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "13.3")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMMac")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMNoMp3LibMpg")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -196,7 +198,7 @@ endif()
 
 # make all "3rdParty" lib dirs visible to the linker
 set(THIRD_PARTY_LIBRARIES
-    "Aubio" "Boost" "Flac" "Iconv" "IPP" "LibXtract" "LightGBM" "Mpg123" 
+    "Aubio" "Boost" "Flac" "Iconv" "IPP" "LibXtract" "LightGBM" "Mpg123"
     "Ogg" "OggVorbis" "OpenBLAS" "Resample" "Shark" "Sqlite" "ZLib")
 
 # add link directories for all third party libs

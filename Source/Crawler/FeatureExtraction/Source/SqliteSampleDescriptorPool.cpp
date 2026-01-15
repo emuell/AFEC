@@ -220,7 +220,6 @@ static void SFromJSON(
   {
     int Pos = SFindNextChar(pDataBegin, pDataEnd, '[', 0) + 1; // skip initial [
     int NextPos = -1;
-    int ItemCount = 1;
 
     while ((NextPos = SFindNextChar(pDataBegin, pDataEnd, ']', Pos)) != -1)
     {
@@ -229,7 +228,6 @@ static void SFromJSON(
       VectorOfVectors.Append(Vector);
 
       Pos = NextPos + 2; // skip ']' and ','
-      ++ItemCount;
     }
 
     MAssert(Pos == DataSize, "should have skipped/consumed everything here");
@@ -293,7 +291,6 @@ static void SFromJSON(
   {
     int Pos = SFindNextChar(pDataBegin, pDataEnd, '[', 0) + 1; // skip initial [
     int NextPos = -1;
-    int ItemCount = 1;
 
     while ((NextPos = SFindNextChar(pDataBegin, pDataEnd, ']', Pos)) != -1)
     {
@@ -302,7 +299,6 @@ static void SFromJSON(
       VectorOfArrays.Append(Array);
 
       Pos = NextPos + 2; // skip ']' and ','
-      ++ItemCount;
     }
 
     MAssert(Pos == DataSize, "should have skipped/consumed everything here");

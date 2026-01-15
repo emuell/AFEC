@@ -386,7 +386,6 @@
 		B97FD560075C4334B91403AA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 0620;
 			};
 			buildConfigurationList = 8EAF8A47B8D042C5AAF0416B /* Build configuration list for PBXProject "LightGBM" */;
@@ -394,6 +393,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = D9BF3D257A6E487D8854CA99;
@@ -490,7 +490,7 @@
 				);
 				OBJROOT = ../../../Temp;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx13.3;
 				SYMROOT = ../Library;
 			};
 			name = Debug;
@@ -536,7 +536,7 @@
 				);
 				OBJROOT = ../../../Temp;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = macosx10.11;
+				SDKROOT = macosx13.3;
 				SYMROOT = ../Library;
 			};
 			name = Release;
