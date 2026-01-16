@@ -1,8 +1,5 @@
 #pragma once 
 
-#if !defined(Sqlite_h)
-#define Sqlite_h
-
 // =================================================================================================
 
 #include "CoreTypes/Export/CompilerDefines.h"
@@ -25,6 +22,4 @@
   #pragma pack(pop)
 #endif
 
-
-#endif
 

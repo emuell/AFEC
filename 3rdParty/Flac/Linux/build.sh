@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 CURDIR=`pwd`; cd `dirname $0`; ABSPATH=`pwd`; cd $CURDIR
 SCRIPT_DIR=$ABSPATH
 
@@ -9,18 +7,25 @@ cd $SRCDIR
 export CFLAGS="-fPIC -fvisibility=hidden"
 export CXXFLAGS="-fPIC -fvisibility=hidden -fvisibility-inlines-hidden"
 
-chmod +x ./configure && ./configure --disable-doxygen-docs --enable-shared=NO --enable-static=YES || {
-  echo "** configure FAILED"; exit 1
-}
+# arm32 build: --build=aarch64-linux-gnu --host=arm-linux-gnueabihf 
 
-make -C src/libFLAC && make -C src/libFLAC++ || {
-  echo "** make libFLAC FAILED"; exit 1
-}
+chmod +x ./configure && ./configure --disable-ogg --enable-shared=NO --enable-static=YES
+if [[ $? != 0 ]] ; then
+  echo "** configure FAILED"
+  exit $?
+fi
+
+make -C src/libFLAC && make -C src/libFLAC++
+if [[ $? != 0 ]] ; then
+  echo "** make libFLAC FAILED"
+  exit $?
+fi
 
 cp src/libFLAC/.libs/libFLAC-static.a $SCRIPT_DIR/libFlac_.a  &&
-  cp src/libFLAC++/.libs/libFLAC++-static.a $SCRIPT_DIR/libFlac++_.a || {
-  echo "** cp libFLAC FAILED"; exit 1
-}
+  cp src/libFLAC++/.libs/libFLAC++-static.a $SCRIPT_DIR/libFlac++_.a  || \
+if [[ $? != 0 ]] ; then
+  echo "** cp libFLAC FAILED"
+  exit $?
+fi
 
 echo "** Build succeeded -> `ls $SCRIPT_DIR/*.a`"
-

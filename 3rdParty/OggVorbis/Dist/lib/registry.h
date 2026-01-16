@@ -11,7 +11,7 @@
  ********************************************************************
 
  function: registry for time, floor, res backends and channel mappings
- last mod: $Id: registry.h 1524 2003-04-06 22:02:47Z taktik $
+ last mod: $Id$
 
  ********************************************************************/
 

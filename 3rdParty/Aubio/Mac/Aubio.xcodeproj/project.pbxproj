@@ -402,7 +402,6 @@
 		B97FD560075C4334B91403AA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 0620;
 			};
 			buildConfigurationList = 8EAF8A47B8D042C5AAF0416B /* Build configuration list for PBXProject "Aubio" */;
@@ -410,6 +409,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = D9BF3D257A6E487D8854CA99;
@@ -495,6 +495,7 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HAVE_CONFIG_H=1",
 					"HAVE_AUBIO_DOUBLE=1",
 					"NULL=0",
 				);
@@ -528,10 +529,10 @@
 		3FD29E83A31B4C32B864BB15 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				OBJROOT = ../../../Temp;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = macosx10.9;
+				SDKROOT = macosx13.3;
 				SYMROOT = ../Library;
 			};
 			name = Debug;
@@ -547,6 +548,7 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HAVE_CONFIG_H=1",
 					"HAVE_AUBIO_DOUBLE=1",
 					"NULL=0",
 				);
@@ -579,10 +581,10 @@
 		799D1B50A65C40369F40473B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				OBJROOT = ../../../Temp;
 				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = macosx10.9;
+				SDKROOT = macosx13.3;
 				SYMROOT = ../Library;
 			};
 			name = Release;

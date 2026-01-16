@@ -17,7 +17,7 @@
   #if defined(MRelease)
     #pragma MAddLibrary("OpenBLAS")
   #endif
-  
+
   #pragma warning (push)
   #pragma warning (disable: 4800 4702 4297 4267 4244 4189 4100)
 
@@ -28,6 +28,7 @@
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-variable"
   #pragma clang diagnostic ignored "-Wshift-count-overflow"
+  #pragma clang diagnostic ignored "-Wbitwise-instead-of-logical"
 #endif
 
 // =================================================================================================
@@ -66,4 +67,3 @@
 
 
 #endif // _SharkANN_h_
-

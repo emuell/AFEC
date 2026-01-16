@@ -56,10 +56,8 @@ cd $OUT_DIR || {
 }
 
 if [ "$(uname)" == "Darwin" ]; then
-  # force compiling x86_64 on Apple M1 systems
-  CMAKE_TARGET_OPTIONS="$CMAKE_TARGET_OPTIONS -DCMAKE_APPLE_SILICON_PROCESSOR=x86_64"
   # generate xcode projects on darwin
-  cmake -G Xcode $CMAKE_TARGET_OPTIONS $SOURCE_DIR || { 
+  cmake -G Xcode $CMAKE_TARGET_OPTIONS $SOURCE_DIR || {
     echo "*** cmake configure failed"; exit 1
   }
   # build
@@ -77,4 +75,3 @@ else
     echo "*** build failed"; exit 1
   }
 fi
-

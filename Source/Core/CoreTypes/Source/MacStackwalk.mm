@@ -23,6 +23,11 @@ static void* SBuiltinReturnAddress (const int level)
     return (__builtin_frame_address (level) ? \
       __builtin_return_address (level) : NULL);
 
+  #if defined(MCompiler_Clang)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wframe-address"
+  #endif
+
   switch (level)
   {
     case  0: GET_STACK_ADDRESS (1)
@@ -59,6 +64,10 @@ static void* SBuiltinReturnAddress (const int level)
 
     default: return (void*)0;
   }
+
+  #if defined(MCompiler_Clang)
+    #pragma clang diagnostic pop
+  #endif
 }
 
 // -------------------------------------------------------------------------------------------------

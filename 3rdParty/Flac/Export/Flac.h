@@ -1,14 +1,15 @@
 #pragma once
 
-#if !defined(_Freetype_h_)
-#define _Freetype_h_
-
 // =================================================================================================
 
 #include "CoreTypes/Export/CompilerDefines.h"
 
 #if defined(MCompiler_VisualCPP)
   #pragma MAddLibrary("Flac")
+
+#elif defined(MCompiler_Clang)
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Woverloaded-virtual"
 #endif
 
 // =================================================================================================
@@ -16,10 +17,6 @@
 #if defined(MCompiler_VisualCPP)
   #pragma pack(push)
   #pragma warning(push)
-
-#elif defined(MCompiler_Clang)
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Woverloaded-virtual"
 #endif
 
 #if defined(MCompiler_VisualCPP)
@@ -43,6 +40,4 @@ extern "C" {
   #pragma clang diagnostic pop
 #endif
 
-
-#endif
 

@@ -13,9 +13,9 @@
 #define MMotorolaByteOrder 0
 #define MIntelByteOrder    1
 
-#if defined(MArch_X86) || defined(MArch_X64)
+#if defined(MArch_X86) || defined(MArch_X64) || defined(MArch_ARM64)
   #define MSystemByteOrder MIntelByteOrder
-  
+
 #elif defined(MArch_PPC)
   #define MSystemByteOrder MMotorolaByteOrder
 
@@ -31,18 +31,18 @@ namespace TByteOrder
   {
     kIntel    = MIntelByteOrder,    // LittleEndian
     kMotorola = MMotorolaByteOrder, // BigEndian
-    
+
     kSystemByteOrder = MSystemByteOrder
   };
 
 
   //@{ ... Swap single basetype values
-  
-  template<typename T> 
+
+  template<typename T>
   void Swap(T& Value)
   {
     // Should be only used for basetypes
-    MStaticAssert(sizeof(T) == 1 || sizeof(T) == 2 || 
+    MStaticAssert(sizeof(T) == 1 || sizeof(T) == 2 ||
       sizeof(T) == 4 || sizeof(T) == 8);
 
     const T Temp(Value);
@@ -56,7 +56,7 @@ namespace TByteOrder
   // the generic version will not compile for T24
   template<> inline void Swap(T24& Value)
   {
-    const char Temp(Value[0]); 
+    const char Temp(Value[0]);
     Value[0] = Value[2];
     Value[2] = Temp;
   }
@@ -67,17 +67,17 @@ namespace TByteOrder
   template<> inline void Swap(signed char&) { }
   template<> inline void Swap(unsigned char&) { }
   //@}
-  
-  
+
+
   //@{ ... swap basetype buffers
-  
-  template<typename T> 
+
+  template<typename T>
   void Swap(T *pBuffer, size_t BufferSize)
   {
     // Should be only used for basetypes
-    MStaticAssert(sizeof(T) == 1 || sizeof(T) == 2 || 
+    MStaticAssert(sizeof(T) == 1 || sizeof(T) == 2 ||
       sizeof(T) == 3 || sizeof(T) == 4 || sizeof(T) == 8);
-    
+
     for (size_t i = 0; i < BufferSize; ++i)
     {
       Swap(pBuffer[i]);
@@ -94,4 +94,3 @@ namespace TByteOrder
 
 
 #endif // _Byteorder_h_
-

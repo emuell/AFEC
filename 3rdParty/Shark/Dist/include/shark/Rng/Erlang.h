@@ -100,9 +100,8 @@ class Erlang_distribution
         friend std::basic_ostream<CharT,Traits>&
         operator<<(std::basic_ostream<CharT,Traits>& os, const Erlang_distribution& d)
         {
-            os << d.alphas.size();
-            for(int i=0;i!=d.alphas_.size();++i)
-                os << d.alphas_[i];
+            os << d.k;
+            os << d.a;
             return os;
         }
 
@@ -110,14 +109,8 @@ class Erlang_distribution
         friend std::basic_istream<CharT,Traits>&
         operator>>(std::basic_istream<CharT,Traits>& is, Erlang_distribution& d)
         {
-            size_t size;
-            is >> size;
-            for(int i=0;i!=size;++i)
-            {
-                double element;
-                is >> element;
-                d.alphas_.push_back(element);
-            }
+            is >> d.k;
+            is >> d.a;
             return is;
         }
 #endif

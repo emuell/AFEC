@@ -1,18 +1,12 @@
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMCoreFileFormats")
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  pkg_check_modules(MPG123 libmpg123 REQUIRED)
-  if(NOT MPG123_FOUND)
-    message(FATAL_ERROR "libmpg123 is required for linux builds")
-  else()
-    include_directories(${MPG123_INCLUDE_DIRS})
-  endif()
-endif()
-
 include_directories(../../../3rdParty/Boost/Dist)
 include_directories(../../../3rdParty/OggVorbis/Dist/include)
 include_directories(../../../3rdParty/Sqlite/Dist/src)
 include_directories(../../../3rdParty/Flac/Dist/include)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	include_directories(../../../3rdParty/Mpg123/Dist/src)
+endif()
 
 include_directories(Source)
 

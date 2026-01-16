@@ -1,3 +1,4 @@
+
 #include "CoreTypesPrecompiledHeader.h"
 
 #include <sys/sysctl.h>
@@ -9,16 +10,15 @@ namespace TCpuImpl
 {
   void Init();
 
-  unsigned int mHz = 0;
   TCpu::TCpuCapsFlags mCaps = 0;
 
   unsigned int mNumAvailablePhysicalProcessors = 1;
   unsigned int mNumAvailableProcessorCores = 1;
   unsigned int mNumAvailableLogicalProcessors = 1;
 
-  #if defined(MDebug)
-    bool m__Initialized = false;
-  #endif
+#if defined(MDebug)
+  bool m__Initialized = false;
+#endif
 }
 
 // =================================================================================================
@@ -27,112 +27,78 @@ namespace TCpuImpl
 
 void TCpuImpl::Init()
 {
-  size_t Length = 0;
+  // ... Caps
 
-  // ... Hz
-  
-  unsigned int  Freq;
-  Length = sizeof(Freq);
+  mCaps = 0;
 
-  int FreqMib[2] = { CTL_HW, HW_CPU_FREQ };
+#if defined(MArch_X86) || defined(MArch_X64)
+  unsigned int Mmx;
+  size_t Length = sizeof(Mmx);
 
-  // sysctlbyname fails here, dont ask me why...
-  if (::sysctl(FreqMib, 2, &Freq, &Length, NULL, 0) != -1)
+  if (::sysctlbyname("hw.optional.mmx", &Mmx, &Length, nullptr, 0) != -1)
   {
-    mHz = Freq;
+    if (Mmx)
+    {
+      mCaps |= TCpu::kMmx;
+    }
   }
   else
   {
-    MInvalid("Failed to query hw.cpufrequency");
-    ::perror("Failed to query sysctl hw.cpufrequency. Assuming 2000000000");
-    
-    mHz = 2000000000;
+    MInvalid("Failed to query hw.optional.mmx");
+    ::perror("Failed to query sysctl hw.optional.mmx. Assuming false");
   }
-    
-    
-  // ... Caps
-  
-  mCaps = 0;
-  
-  #if defined(MArch_PPC)
-    unsigned int VectorUnit;
-    Length = sizeof(VectorUnit);
 
-    if (::sysctlbyname("hw.vectorunit", &VectorUnit, &Length, NULL, 0) != -1)
-    {
-      if (VectorUnit != 0)
-      {
-        mCaps |= TCpu::kAltiVec;
-      }
-    }
-    else
-    {
-      MInvalid("Failed to query hw.vectorunit");
-      ::perror("Failed to query sysctl hw.vectorunit. Assuming false");
-    }
+  unsigned int sse;
+  Length = sizeof(sse);
 
-  #elif defined(MArch_X86) || defined(MArch_X64)
-    unsigned int  Mmx;
-    Length = sizeof(Mmx);
-  
-    if (::sysctlbyname("hw.optional.mmx", &Mmx, &Length, NULL, 0) != -1)
+  if (::sysctlbyname("hw.optional.sse", &sse, &Length, nullptr, 0) != -1)
+  {
+    if (sse)
     {
-      if (Mmx)
-      {
-        mCaps |= TCpu::kMmx;
-      }
+      mCaps |= TCpu::kSse;
     }
-    else
-    {
-      MInvalid("Failed to query hw.optional.mmx");
-      ::perror("Failed to query sysctl hw.optional.mmx. Assuming false");
-    }
+  }
+  else
+  {
+    MInvalid("Failed to query hw.optional.sse");
+    ::perror("Failed to query sysctl hw.optional.sse. Assuming false");
+  }
 
-    unsigned int  sse;
-    Length = sizeof(sse);
-  
-    if (::sysctlbyname("hw.optional.sse", &sse, &Length, NULL, 0) != -1)
-    {
-      if (sse)
-      {
-        mCaps |= TCpu::kSse;
-      }
-    }
-    else
-    {
-      MInvalid("Failed to query hw.optional.sse");
-      ::perror("Failed to query sysctl hw.optional.sse. Assuming false");
-    }
-    
-    unsigned int  sse2;
-    Length = sizeof(sse2);
-  
-    if (::sysctlbyname("hw.optional.sse2", &sse2, &Length, NULL, 0) != -1)
-    {
-      if (sse2)
-      {
-        mCaps |= TCpu::kSse2;
-      }
-    }
-    else
-    {
-      MInvalid("Failed to query hw.optional.sse2");
-      ::perror("Failed to query sysctl hw.optional.sse2. Assuming false");
-    }
-    
-  #else
-    #error "unknown platform"
+  unsigned int sse2;
+  Length = sizeof(sse2);
 
-  #endif
+  if (::sysctlbyname("hw.optional.sse2", &sse2, &Length, nullptr, 0) != -1)
+  {
+    if (sse2)
+    {
+      mCaps |= TCpu::kSse2;
+    }
+  }
+  else
+  {
+    MInvalid("Failed to query hw.optional.sse2");
+    ::perror("Failed to query sysctl hw.optional.sse2. Assuming false");
+  }
 
-        
+#elif defined(MArch_ARM64)
+  // nothing to do for ARM64 yet
+
+#else
+  #error "unknown platform"
+
+#endif
+
+
   // ... Processors / Cores
-  
+
   struct host_basic_info hostinfo;
   mach_msg_type_number_t count = HOST_BASIC_INFO_COUNT;
-  kern_return_t result = ::host_info(mach_host_self(), 
-    HOST_BASIC_INFO, reinterpret_cast<host_info_t>(&hostinfo), &count);
-                                                
+  kern_return_t result = ::host_info(
+    mach_host_self(),
+    HOST_BASIC_INFO,
+    reinterpret_cast<host_info_t>(&hostinfo),
+    &count);
+
   if (result == KERN_SUCCESS)
   {
     mNumAvailablePhysicalProcessors = hostinfo.physical_cpu;
@@ -143,15 +109,15 @@ void TCpuImpl::Init()
   {
     MInvalid("Failed to query host_info");
     ::perror("Failed to query host_info. Assume running on 1 CPU");
-    
+
     mNumAvailablePhysicalProcessors = 1;
     mNumAvailableProcessorCores = 1;
     mNumAvailableLogicalProcessors = 1;
   }
 
-  #if defined(MDebug)
-    m__Initialized = true;
-  #endif  
+#if defined(MDebug)
+  m__Initialized = true;
+#endif
 }
 
 // =================================================================================================
@@ -161,15 +127,6 @@ void TCpuImpl::Init()
 void TCpu::Init()
 {
   TCpuImpl::Init();
-}
-
-// -------------------------------------------------------------------------------------------------
-
-unsigned int TCpu::Hz()
-{
-  MAssert(TCpuImpl::m__Initialized, "Not yet initialized");
-
-  return TCpuImpl::mHz;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -220,9 +177,8 @@ int TCpu::NumberOfEnabledLogicalProcessors()
 int TCpu::NumberOfCoresPerUnit()
 {
   MAssert(TCpuImpl::m__Initialized, "Not yet initialized");
-  
-  return TCpuImpl::mNumAvailableProcessorCores / 
-  TCpuImpl::mNumAvailablePhysicalProcessors;
+
+  return TCpuImpl::mNumAvailableProcessorCores / TCpuImpl::mNumAvailablePhysicalProcessors;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -231,7 +187,5 @@ int TCpu::NumberOfLogicalProcessorsPerUnit()
 {
   MAssert(TCpuImpl::m__Initialized, "Not yet initialized");
 
-  return TCpuImpl::mNumAvailableLogicalProcessors / 
-    TCpuImpl::mNumAvailablePhysicalProcessors;
+  return TCpuImpl::mNumAvailableLogicalProcessors / TCpuImpl::mNumAvailablePhysicalProcessors;
 }
-

@@ -1,0 +1,128 @@
+# Format Style Options - Created with Clang Power Tools
+---
+AccessModifierOffset: -2
+AlignAfterOpenBracket: Align
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: DontAlign
+AllowAllArgumentsOnNextLine: false
+AllowAllConstructorInitializersOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Inline
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakBeforeMultilineStrings: true
+AlwaysBreakTemplateDeclarations: Yes
+BasedOnStyle: LLVM
+BinPackArguments: false
+BinPackParameters: false
+BraceWrapping: 
+  AfterCaseLabel: false
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterObjCDeclaration: false
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+  BeforeLambdaBody: false
+  BeforeWhile: true
+BreakBeforeBraces: Custom
+BreakInheritanceList: BeforeComma
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeComma
+ColumnLimit: 100
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerIndentWidth : 2
+ContinuationIndentWidth: 2
+Cpp11BracedListStyle: false
+DerivePointerAlignment: true
+FixNamespaceComments: false
+IndentCaseBlocks: false
+IndentCaseLabels: false
+IndentPPDirectives: BeforeHash
+IndentWidth: 2
+IndentWrappedFunctionNames: true
+KeepEmptyLinesAtTheStartOfBlocks: true
+MaxEmptyLinesToKeep: 2
+NamespaceIndentation: All
+PenaltyBreakAssignment: 200
+PenaltyBreakBeforeFirstCallParameter: 10
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 200
+PenaltyBreakString: 1000
+PenaltyBreakTemplateDeclaration: 10
+PenaltyExcessCharacter: 1000000
+PenaltyIndentedWhitespace: 20
+PenaltyReturnTypeOnItsOwnLine: 600
+PointerAlignment: Left
+SortIncludes: false
+SortUsingDeclarations: false
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: true
+SpaceAfterTemplateKeyword: true
+SpaceAroundPointerQualifiers: After
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: true
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+Standard: c++17
+StatementMacros: 
+  - MAssert
+  - MInvalid
+  - MDeclareDebugNewAndDelete
+  - MImplementDebugNewAndDelete
+  - MImplementSmallObjDebugNewAndDelete
+  - M__DisableFloatingPointAssertions
+  - M__EnableFloatingPointAssertions
+  - MInitAllocaArray
+  - MInitAllocaList
+  - MNoFastMathPush
+  - MNoFastMathPop
+  - MTry_SystemException
+  - MCatch_SystemException
+  - MCatch_SystemExceptionAndDumpStack
+  - MFinalize_SystemException
+  - MBeginAddProperties
+  - MAddProperty
+  - MAddPropertyArray
+  - MAddAttribute
+  - MAddCommentNode
+  - MEndAddProperties
+  - MBeginCallVstFunction
+  - MEndCallVstFunction
+  - MBeginCallVst3Function
+  - MEndCallVst3Function
+  - MBeginCallAudioUnitFunction
+  - MEndCallAudioUnitFunction
+  - MBeginCallLadspaFunction
+  - MEndCallLadspaFunction
+  - MPrepareInvoke
+  - MEndInvoke
+  - MProfileTraceStart
+  - MProfileTrace
+  - MProfileTraceStop
+
+TabWidth: 2
+TypenameMacros: 
+  ['STACK_OF', 'LIST']
+UseCRLF: false
+UseTab: false
+...

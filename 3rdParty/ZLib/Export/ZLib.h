@@ -1,8 +1,5 @@
 #pragma once 
 
-#if !defined(ZLib_h)
-#define ZLib_h
-
 // =================================================================================================
 
 #include "CoreTypes/Export/CompilerDefines.h"
@@ -25,6 +22,4 @@
   #pragma pack(pop)
 #endif
 
-
-#endif
 

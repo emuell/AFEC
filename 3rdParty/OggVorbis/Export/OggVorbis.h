@@ -1,8 +1,5 @@
 #pragma once
 
-#if !defined(_OggVorbis_h_)
-#define _OggVorbis_h_
-
 // =================================================================================================
 
 #include "CoreTypes/Export/CompilerDefines.h"
@@ -27,6 +24,4 @@
   #pragma pack(pop)
 #endif
 
-
-#endif
 

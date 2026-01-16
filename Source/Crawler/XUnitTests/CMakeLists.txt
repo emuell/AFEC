@@ -69,20 +69,20 @@ if (CMAKE_GENERATOR MATCHES "^Visual Studio" OR
           ${EXECUTABLE_DEST_PATH} ${UNIT_TEST_ARGUMENTS}
         )
       COMMAND ${CMAKE_COMMAND} -E touch "${unittest_stamp}"
-      POST_BUILD
-      DEPENDS XUnitTests)
+      DEPENDS XUnitTests
+      VERBATIM)
   elseif (CMAKE_GENERATOR MATCHES "^Xcode")
     add_custom_command(OUTPUT "${unittest_stamp}"
       COMMAND [ $<CONFIG:Release> -eq 1 ] && ${EXECUTABLE_DEST_PATH} ${UNIT_TEST_ARGUMENTS}
       COMMAND ${CMAKE_COMMAND} -E touch "${unittest_stamp}"
-      POST_BUILD
-      DEPENDS XUnitTests)
+      DEPENDS XUnitTests
+      VERBATIM)
   else()
     add_custom_command(OUTPUT "${unittest_stamp}"
       COMMAND ${EXECUTABLE_DEST_PATH} ${UNIT_TEST_ARGUMENTS}
       COMMAND ${CMAKE_COMMAND} -E touch "${unittest_stamp}"
-      POST_BUILD
-      DEPENDS XUnitTests)
+      DEPENDS XUnitTests
+      VERBATIM)
   endif()
   add_custom_target(RUN_CRAWLER_TESTS ALL DEPENDS "${unittest_stamp}")
   set_property(TARGET RUN_CRAWLER_TESTS PROPERTY FOLDER "CMakePredefinedTargets")

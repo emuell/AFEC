@@ -6,7 +6,7 @@
 --  Open source license information is in the zlib.ads file.  --
 ----------------------------------------------------------------
 --
---  $Id: buffer_demo.adb 24316 2005-11-24 18:50:24Z taktik $
+--  $Id$
 
 --  This demo program provided by Dr Steve Sangwine <sjs@essex.ac.uk>
 --

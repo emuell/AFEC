@@ -28,6 +28,7 @@
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-variable"
   #pragma clang diagnostic ignored "-Wshift-count-overflow"
+  #pragma clang diagnostic ignored "-Wbitwise-instead-of-logical"
 #endif
 
 // =================================================================================================
@@ -51,7 +52,7 @@
 
 #include <shark/ObjectiveFunctions/ErrorFunction.h>
 #include <shark/ObjectiveFunctions/NoisyErrorFunction.h>
-#include <shark/ObjectiveFunctions/Loss/SquaredLoss.h> 
+#include <shark/ObjectiveFunctions/Loss/SquaredLoss.h>
 #include <shark/ObjectiveFunctions/Loss/CrossEntropy.h>
 #include <shark/ObjectiveFunctions/Loss/ZeroOneLoss.h>
 #include <shark/ObjectiveFunctions/Regularizer.h>
@@ -67,4 +68,3 @@
 
 
 #endif // _SharkRBM_h_
-

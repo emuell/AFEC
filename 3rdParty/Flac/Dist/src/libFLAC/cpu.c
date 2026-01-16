@@ -37,6 +37,7 @@
 #include "private/cpu.h"
 #include <stdlib.h>
 #include <memory.h>
+#include <string.h>
 #ifdef DEBUG
 # include <stdio.h>
 #endif

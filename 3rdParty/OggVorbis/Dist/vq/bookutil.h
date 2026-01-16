@@ -11,7 +11,7 @@
  ********************************************************************
 
  function: utility functions for loading .vqh and .vqd files
- last mod: $Id: bookutil.h 1524 2003-04-06 22:02:47Z taktik $
+ last mod: $Id$
 
  ********************************************************************/
 

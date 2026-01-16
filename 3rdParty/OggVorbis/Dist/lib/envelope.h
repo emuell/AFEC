@@ -11,7 +11,7 @@
  ********************************************************************
 
  function: PCM data envelope analysis and manipulation
- last mod: $Id: envelope.h 1524 2003-04-06 22:02:47Z taktik $
+ last mod: $Id$
 
  ********************************************************************/
 

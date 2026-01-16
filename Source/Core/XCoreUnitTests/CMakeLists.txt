@@ -54,7 +54,6 @@ set(unittest_stamp
 add_custom_command(OUTPUT "${unittest_stamp}"
   COMMAND ${EXECUTABLE_DEST_PATH} --log_level=message
   COMMAND ${CMAKE_COMMAND} -E touch "${unittest_stamp}"
-  POST_BUILD
   DEPENDS XCoreUnitTests)
 add_custom_target(RUN_CORE_TESTS ALL DEPENDS "${unittest_stamp}")
 set_property(TARGET RUN_CORE_TESTS PROPERTY FOLDER "CMakePredefinedTargets")

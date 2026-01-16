@@ -272,35 +272,6 @@ static void SSetFileProperties(
 
 // -------------------------------------------------------------------------------------------------
 
-static NSMutableArray* SCreateExtensionListNSArray(const TList<TString>& FileExtensions)
-{
-  NSMutableArray* pFileTypes;
-  
-  // allow all extensions ?
-  if (FileExtensions.Size() == 1 && FileExtensions[0] == "*.*")
-  {
-    pFileTypes = nil;
-  }
-  else
-  {
-    pFileTypes = [NSMutableArray arrayWithCapacity: FileExtensions.Size()];
-    
-    for (int i = 0; i < FileExtensions.Size(); ++i)
-    {
-      if (FileExtensions[i] != "*.*")
-      {
-        const TString Ext = TString(FileExtensions[i]).RemoveFirst("*.");
-        
-        [pFileTypes addObject:gCreateNSString(Ext)];
-      }
-    }
-  }
-  
-  return pFileTypes;
-}
-
-// -------------------------------------------------------------------------------------------------
-
 static TString SEscapeFileName(const TString& FileName)
 {
   return TString("'") + TString(FileName).Replace("'", "'\\''") + TString("'");

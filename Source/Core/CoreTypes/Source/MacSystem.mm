@@ -26,7 +26,7 @@
 #include <sys/utsname.h>
 #include <sys/wait.h>
 
-#include <objc/message.h> 
+#include <objc/message.h>
 
 #include <IOKit/IOKitLib.h>
 #include <IOKit/network/IOEthernetInterface.h>
@@ -48,36 +48,36 @@ static bool sProcessKilled = false;
 
 // -------------------------------------------------------------------------------------------------
 
-//! Returns an iterator containing the primary (built-in) Ethernet interface. 
+//! Returns an iterator containing the primary (built-in) Ethernet interface.
 //! The caller is responsible for releasing the iterator after the caller is done with it.
 
 static kern_return_t SFindEthernetInterfaces(io_iterator_t *matchingServices)
 {
-  kern_return_t kernResult; 
+  kern_return_t kernResult;
   CFMutableDictionaryRef matchingDict;
   CFMutableDictionaryRef propertyMatchDict;
-    
-  // Ethernet interfaces are instances of class kIOEthernetInterfaceClass. 
-  // IOServiceMatching is a convenience function to create a dictionary with 
+
+  // Ethernet interfaces are instances of class kIOEthernetInterfaceClass.
+  // IOServiceMatching is a convenience function to create a dictionary with
   // the key kIOProviderClassKey and the specified value.
   matchingDict = IOServiceMatching(kIOEthernetInterfaceClass);
 
   // Note that another option here would be:
   // matchingDict = IOBSDMatching("en0");
-        
-  if (NULL == matchingDict) 
+
+  if (NULL == matchingDict)
   {
     MInvalid("IOServiceMatching returned a NULL dictionary.");
   }
-  else 
+  else
   {
-    // Each IONetworkInterface object has a Boolean property with the key 
-    // kIOPrimaryInterface. Only the primary (built-in) interface has this 
+    // Each IONetworkInterface object has a Boolean property with the key
+    // kIOPrimaryInterface. Only the primary (built-in) interface has this
     // property set to TRUE.
 
     // IOServiceGetMatchingServices uses the default matching criteria defined
-    // by IOService. This considers only the following properties plus any 
-    // family-specific matching in this order of precedence 
+    // by IOService. This considers only the following properties plus any
+    // family-specific matching in this order of precedence
     // (see IOService::passiveMatch):
     //
     // kIOProviderClassKey (IOServiceMatching)
@@ -89,122 +89,122 @@ static kern_return_t SFindEthernetInterfaces(io_iterator_t *matchingServices)
     // kIOBSDNameKey (IOBSDNameMatching)
     // kIOLocationMatchKey
 
-    // The IONetworkingFamily does not define any family-specific matching. 
-    // This means that in order to have IOServiceGetMatchingServices consider 
-    // the kIOPrimaryInterface property, we must add that property to a separate 
-    // dictionary and then add that to our matching dictionary specifying 
+    // The IONetworkingFamily does not define any family-specific matching.
+    // This means that in order to have IOServiceGetMatchingServices consider
+    // the kIOPrimaryInterface property, we must add that property to a separate
+    // dictionary and then add that to our matching dictionary specifying
     // kIOPropertyMatchKey.
-            
+
     propertyMatchDict = CFDictionaryCreateMutable(kCFAllocatorDefault, 0,
       &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-    
-    if (NULL == propertyMatchDict) 
+
+    if (NULL == propertyMatchDict)
     {
       MInvalid("CFDictionaryCreateMutable returned a NULL dictionary.");
     }
-    else 
+    else
     {
-      // Set the value in the dictionary of the property with the given key, 
-      // or add the key to the dictionary if it doesn't exist. This call retains 
+      // Set the value in the dictionary of the property with the given key,
+      // or add the key to the dictionary if it doesn't exist. This call retains
       // the value object passed in.
-      CFDictionarySetValue(propertyMatchDict, 
-        CFSTR(kIOPrimaryInterface), kCFBooleanTrue); 
-      
+      CFDictionarySetValue(propertyMatchDict,
+        CFSTR(kIOPrimaryInterface), kCFBooleanTrue);
+
       // Now add the dictionary containing the matching value for kIOPrimaryInterface
-      // to our main matching dictionary. This call will retain propertyMatchDict, so 
+      // to our main matching dictionary. This call will retain propertyMatchDict, so
       // we can release our reference on propertyMatchDict after adding it to matchingDict.
-      CFDictionarySetValue(matchingDict, 
+      CFDictionarySetValue(matchingDict,
         CFSTR(kIOPropertyMatchKey), propertyMatchDict);
-      
+
       CFRelease(propertyMatchDict);
     }
   }
-    
-  // IOServiceGetMatchingServices retains the returned iterator, so release the 
-  // iterator when we're done with it. IOServiceGetMatchingServices also consumes a 
-  // reference on the matching dictionary so we don't need to release the dictionary 
+
+  // IOServiceGetMatchingServices retains the returned iterator, so release the
+  // iterator when we're done with it. IOServiceGetMatchingServices also consumes a
+  // reference on the matching dictionary so we don't need to release the dictionary
   // explicitly.
   kernResult = IOServiceGetMatchingServices(
-    kIOMasterPortDefault, matchingDict, matchingServices);    
-  
-  if (KERN_SUCCESS != kernResult) 
+    kIOMasterPortDefault, matchingDict, matchingServices);
+
+  if (KERN_SUCCESS != kernResult)
   {
     MInvalid("IOServiceGetMatchingServices failed");
   }
-      
+
   return kernResult;
 }
-    
+
 // -------------------------------------------------------------------------------------------------
-  
+
 // Given an iterator across a set of Ethernet interfaces, return the MAC address
 // of the last one.
 // If no interfaces are found the MAC address is set to an empty string.
 
 static kern_return_t SGetMACAddress(
-  io_iterator_t intfIterator, 
+  io_iterator_t intfIterator,
   UInt8*        MACAddress,
   UInt8         bufferSize)
 {
   io_object_t intfService;
   io_object_t controllerService;
   kern_return_t kernResult = KERN_FAILURE;
-    
-  // Make sure the caller provided enough buffer space. 
+
+  // Make sure the caller provided enough buffer space.
   // Protect against buffer overflow problems.
-  if (bufferSize < kIOEthernetAddressSize) 
+  if (bufferSize < kIOEthernetAddressSize)
   {
     return kernResult;
   }
-  
+
   // Initialize the returned address
   bzero(MACAddress, bufferSize);
-    
-  // IOIteratorNext retains the returned object, so release it when 
+
+  // IOIteratorNext retains the returned object, so release it when
   // we're done with it.
   while ((intfService = IOIteratorNext(intfIterator)))
   {
-    CFTypeRef  MACAddressAsCFData;        
+    CFTypeRef  MACAddressAsCFData;
 
-    // IONetworkControllers can't be found directly by the 
-    // IOServiceGetMatchingServices call, since they are hardware nubs and 
-    // do not participate in driver matching. In other words, registerService() 
-    // is never called on them. So we've found the IONetworkInterface and will 
+    // IONetworkControllers can't be found directly by the
+    // IOServiceGetMatchingServices call, since they are hardware nubs and
+    // do not participate in driver matching. In other words, registerService()
+    // is never called on them. So we've found the IONetworkInterface and will
     // get its parent controller by asking for it specifically.
-        
-    // IORegistryEntryGetParentEntry retains the returned object, so release it 
+
+    // IORegistryEntryGetParentEntry retains the returned object, so release it
     // when we're done with it.
     kernResult = IORegistryEntryGetParentEntry(intfService,
       kIOServicePlane, &controllerService);
-    
-    if (KERN_SUCCESS != kernResult) 
+
+    if (KERN_SUCCESS != kernResult)
     {
       MInvalid("IORegistryEntryGetParentEntry failed");
     }
-    else 
+    else
     {
-      // Retrieve the MAC address property from the I/O Registry in the 
+      // Retrieve the MAC address property from the I/O Registry in the
       // form of a CFData
       MACAddressAsCFData = IORegistryEntryCreateCFProperty(controllerService,
         CFSTR(kIOMACAddress), kCFAllocatorDefault, 0);
-                                 
-      if (MACAddressAsCFData) 
+
+      if (MACAddressAsCFData)
       {
         // Get the raw bytes of the MAC address from the CFData
-        CFDataGetBytes((CFDataRef)MACAddressAsCFData, 
+        CFDataGetBytes((CFDataRef)MACAddressAsCFData,
           CFRangeMake(0, kIOEthernetAddressSize), MACAddress);
-                
+
         CFRelease(MACAddressAsCFData);
       }
-                
+
       // Done with the parent Ethernet controller object so we release it.
       (void)IOObjectRelease(controllerService);
     }
-        
+
     // Done with the Ethernet interface object so we release it.
     (void)IOObjectRelease(intfService);
   }
-        
+
   return kernResult;
 }
 
@@ -230,7 +230,7 @@ static int SGetBSDProcessList(kinfo_proc** ppProcList, size_t* ProcCount)
     {
       err = errno;
     }
-    
+
     // Now, proper length is optained
     if (err == 0)
     {
@@ -244,7 +244,7 @@ static int SGetBSDProcessList(kinfo_proc** ppProcList, size_t* ProcCount)
 
     if (err == 0)
     {
-      err = ::sysctl((int *)name, 
+      err = ::sysctl((int *)name,
         (sizeof(name)/sizeof(*name))-1, result, &length, NULL, 0);
 
       if (err == -1)
@@ -259,7 +259,7 @@ static int SGetBSDProcessList(kinfo_proc** ppProcList, size_t* ProcCount)
 
         done = true;
       }
-        
+
       else if (err == ENOMEM)
       {
         ::free(result);
@@ -290,6 +290,7 @@ void __attribute__ ((constructor)) gInit()
 {
   // To suppress startup allocation warnings. Never gets released.
   static NSAutoreleasePool* spAutoReleasePool = NULL;
+  MUnused(spAutoReleasePool);
   spAutoReleasePool = [[NSAutoreleasePool alloc] init];
 
   // setup max files limit (older OSX versions start with a limit of 25)
@@ -302,7 +303,7 @@ void __attribute__ ((constructor)) gInit()
     MInvalid("setrlimit(RLIMIT_NOFILE) failed!!");
     ::perror("setrlimit(RLIMIT_NOFILE) failed");
   }
- 
+
   // se locale to C, to emulate the default Windows behaviour
   if (::setlocale(LC_ALL, "C") == NULL)
   {
@@ -311,8 +312,8 @@ void __attribute__ ((constructor)) gInit()
   }
 
   ++gInMain;
-  
-  // do not try to run API initilalizers here. This is called 
+
+  // do not try to run API initilalizers here. This is called
   // before other base project's statics got initialized.
 }
 
@@ -320,7 +321,7 @@ void __attribute__ ((constructor)) gInit()
 
 void __attribute__ ((destructor)) gExit()
 {
-  // do not try to cleanly release the autorelease pool or API here. This is 
+  // do not try to cleanly release the autorelease pool or API here. This is
   // called after the base projects statics are released.
   --gInMain;
 }
@@ -349,14 +350,14 @@ bool TSystem::RunningInDebugger()
 {
   // Initialize the flags so that, if sysctl fails for some bizarre
   // reason, we get a predictable result.
-  
+
   struct kinfo_proc info;
   info.kp_proc.p_flag = 0;
   size_t size = sizeof(info);
-  
+
   // Initialize mib, which tells sysctl the info we want, in this case
   // we're looking for information about a specific process ID.
-  
+
   int mib[4];
   mib[0] = CTL_KERN;
   mib[1] = KERN_PROC;
@@ -364,7 +365,7 @@ bool TSystem::RunningInDebugger()
   mib[3] = ::getpid();
 
   // Call sysctl.
-  
+
   const int junk = ::sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
   MAssert(junk == 0, ""); MUnused(junk);
 
@@ -393,10 +394,10 @@ TString TSystem::ApplicationPathAndFileName(bool ResolveDllName)
   if (ResolveDllName)
   {
     // use dladdr exe to resolve shared libraries paths
-    Dl_info dl_info; 
+    Dl_info dl_info;
     ::memset(&dl_info, 0, sizeof(Dl_info));
-  
-    if (::dladdr((void*)ApplicationPathAndFileName, &dl_info) && 
+
+    if (::dladdr((void*)ApplicationPathAndFileName, &dl_info) &&
         dl_info.dli_fname != NULL)
     {
       return TString(dl_info.dli_fname, TString::kFileSystemEncoding);
@@ -405,15 +406,15 @@ TString TSystem::ApplicationPathAndFileName(bool ResolveDllName)
 
   // then the main bundle as fallback
   NSBundle* pBundle = [NSBundle mainBundle];
-  
+
   if (pBundle == NULL)
   {
     MInvalid("Couldn't find Application Bundle!");
 
-    return TString("/Applications/" + MProductString + 
+    return TString("/Applications/" + MProductString +
       ".app/Contents/MacOS/" + MProductString);
-  } 
-  else 
+  }
+  else
   {
     return gCreateStringFromCFString(
       (CFStringRef)[pBundle executablePath]);
@@ -433,25 +434,28 @@ TString TSystem::GetOsAsString()
   #elif defined(MArch_X64)
     const TString ArchString = "(x86_64)";
 
+  #elif defined(MArch_ARM64)
+    const TString ArchString = "(arm_64)";
+
   #else
     #error "Unknown Architecture"
   #endif
-  
-  NSDictionary* pDict = [NSDictionary 
+
+  NSDictionary* pDict = [NSDictionary
     dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
-  
+
   if (pDict)
   {
     NSString* pProductString = [pDict objectForKey:@"ProductName"];
     NSString* pVersionString = [pDict objectForKey:@"ProductVersion"];
-    
+
     if (pProductString && pVersionString)
     {
-      return gCreateStringFromCFString((CFStringRef)pProductString) + " " + 
+      return gCreateStringFromCFString((CFStringRef)pProductString) + " " +
         gCreateStringFromCFString((CFStringRef)pVersionString) + " " + ArchString;
     }
   }
-  
+
   return TString("Unknown Mac OS X Version ") + ArchString;
 }
 
@@ -463,6 +467,9 @@ bool TSystem::Is64BitOs()
     return false; // definitely is not
 
   #elif defined(MArch_X64)
+    return true; // definitely is
+
+  #elif defined(MArch_ARM64)
     return true; // definitely is
 
   #elif defined(MArch_X86)
@@ -483,6 +490,9 @@ bool TSystem::Is32BitProcessIn64BitOs()
   #elif defined(MArch_X64)
     return false; // always 64bit
 
+  #elif defined(MArch_ARM64)
+    return false; // always 64bit
+
   #elif defined(MArch_X86)
     // OSX 10.6 (Snow Leopard) or later is 64bit
     return true;
@@ -501,26 +511,26 @@ TString TSystem::MacAdress()
   UInt8 MACAddress[kIOEthernetAddressSize];
 
   kernResult = ::SFindEthernetInterfaces(&intfIterator);
-  
+
   TString MacAdressString = TString("00:00:00:00:00:00");
-  
-  if (kernResult == KERN_SUCCESS) 
+
+  if (kernResult == KERN_SUCCESS)
   {
     kernResult = ::SGetMACAddress(intfIterator, MACAddress, sizeof(MACAddress));
-    
-    if (KERN_SUCCESS == kernResult) 
+
+    if (KERN_SUCCESS == kernResult)
     {
       char CharBuffer[1024];
-      ::sprintf(CharBuffer, "%02x:%02x:%02x:%02x:%02x:%02x", 
-        MACAddress[0], MACAddress[1], MACAddress[2], 
+      ::sprintf(CharBuffer, "%02x:%02x:%02x:%02x:%02x:%02x",
+        MACAddress[0], MACAddress[1], MACAddress[2],
         MACAddress[3], MACAddress[4], MACAddress[5]);
-    
+
       MacAdressString = TString(CharBuffer);
     }
   }
-  
+
   ::IOObjectRelease(intfIterator);
-  
+
   return MacAdressString;
 }
 
@@ -532,23 +542,23 @@ TList<TSystem::TArchInfo> TSystem::ExecutableArchitectures(const TString& FileNa
   {
     TFile File(FileName);
     File.SetByteOrder(TByteOrder::kMotorola);
-    
+
     if (! File.Open(TFile::kRead))
     {
       throw TReadableException("Failed to open the file!");
     }
-    
+
     fat_header Header;
     File.Read(Header.magic);
     File.Read(Header.nfat_arch);
-    
+
 
     // ... FAT binary
-       
+
     if (Header.magic == FAT_MAGIC)
     {
       TList<TArchInfo> Ret;
-    
+
       for (size_t i = 0; i < Header.nfat_arch; ++i)
       {
         fat_arch Arch;
@@ -557,12 +567,12 @@ TList<TSystem::TArchInfo> TSystem::ExecutableArchitectures(const TString& FileNa
         File.Read(Arch.offset);
         File.Read(Arch.size);
         File.Read(Arch.align);
-            
-        TArchInfo Info;  
+
+        TArchInfo Info;
         Info.mCpuType = TArchInfo::kUnknown;
         Info.mOffset = Arch.offset;
         Info.mLength = Arch.size;
-        
+
         switch (Arch.cputype)
         {
         case CPU_TYPE_POWERPC:
@@ -579,32 +589,32 @@ TList<TSystem::TArchInfo> TSystem::ExecutableArchitectures(const TString& FileNa
           // unknown or unsupported machine
           break;
         }
-        
+
         Ret.Append(Info);
       }
-      
+
       return Ret;
     }
 
     // ... No FAT binary
 
-    else  
+    else
     {
       File.SetPosition(0);
       File.SetByteOrder(TByteOrder::kIntel);
 
-      TArchInfo Info;  
+      TArchInfo Info;
       Info.mCpuType = TArchInfo::kUnknown;
       Info.mOffset = 0;
       Info.mLength = File.SizeInBytes();
-      
+
       uint32_t HeaderMagic;
       cpu_type_t CpuType;
-      
+
       File.Read(HeaderMagic);
       File.Read(CpuType);
-    
-      if (HeaderMagic == MH_MAGIC || 
+
+      if (HeaderMagic == MH_MAGIC ||
           HeaderMagic == MH_MAGIC_64)
       {
         switch (CpuType)
@@ -680,7 +690,7 @@ unsigned int TSystem::TimeInMsSinceStartup()
   ::Microseconds((UnsignedWide*)&Now);
 
   unsigned int IntTime = (unsigned int)(Now / 1000.0);
-    
+
   return IntTime;
 }
 
@@ -690,10 +700,10 @@ bool TSystem::SetProcessPriority(TProcessPriority NewPriority)
 {
   // pri values are -20 to 20. 0 is the default
   int PriorityNiceValue;
-  
+
   switch (NewPriority)
   {
-  default: 
+  default:
     MInvalid("Unknown priority");
 
   case kPriorityHigh:
@@ -703,17 +713,17 @@ bool TSystem::SetProcessPriority(TProcessPriority NewPriority)
   case kPriorityNormal:
     PriorityNiceValue = 0;
     break;
-    
+
   case kPriorityLow:
     PriorityNiceValue = -10;
     break;
   }
-  
+
   if ((::setpriority(PRIO_PROCESS, ::getpid(), PriorityNiceValue) != 0))
   {
     MInvalid("setpriority failed (permissions?)");
     return false;
-  } 
+  }
   else
   {
     return true;
@@ -730,7 +740,7 @@ int TSystem::CurrentProcessId()
 // -------------------------------------------------------------------------------------------------
 
 int TSystem::LaunchProcess(
-  const TString&          FileName, 
+  const TString&          FileName,
   const TList<TString>&   Args,
   bool                    WaitTilFinished)
 {
@@ -739,10 +749,10 @@ int TSystem::LaunchProcess(
     MInvalid("Should validate the executable's filename before launching");
     return (WaitTilFinished) ? EXIT_FAILURE : kInvalidProcessId;
   }
-  
+
   if (WaitTilFinished)
   {
-    // make sure we can wait for children 
+    // make sure we can wait for children
     ::signal(SIGCHLD, SIG_DFL);
   }
 
@@ -754,14 +764,14 @@ int TSystem::LaunchProcess(
   }
   DebugString += "'";
   TLog::SLog()->AddLineNoVarArgs("System", DebugString.StdCString().c_str());
-  
+
   // fork
   int ProcessId = ::fork();
 
   if (ProcessId == 0)
   {
     // > new child process
-    
+
     // suppress stdout and stderr to avoid that they get redirected to the parent
     const int FdNull = ::open("/dev/null", O_WRONLY);
     ::dup2(FdNull, 1); // stdout
@@ -773,7 +783,7 @@ int TSystem::LaunchProcess(
     const std::string FileNameCString = FileName.StdCString(TString::kFileSystemEncoding);
     FileChars.SetSize((int)FileNameCString.size() + 1);
     ::strcpy(FileChars.FirstWrite(), FileNameCString.c_str());
-    
+
     TList< TArray<char> > ArgChars;
     ArgChars.PreallocateSpace(Args.Size());
     for (int i = 0; i < Args.Size(); ++i)
@@ -783,22 +793,22 @@ int TSystem::LaunchProcess(
       TArray<char> Chars;
       Chars.SetSize((int)Arg.size() + 1);
       ::strcpy(Chars.FirstWrite(), Arg.c_str());
-      
+
       ArgChars.Append(Chars);
     }
-    
+
     TList<char*> ArgCharPtrs;
     ArgCharPtrs.PreallocateSpace(Args.Size() + 2);
     ArgCharPtrs.Append(FileChars.FirstWrite());
     for (int i = 0; i < Args.Size(); ++i)
-    {      
+    {
       ArgCharPtrs.Append(ArgChars[i].FirstWrite());
     }
     ArgCharPtrs.Append(NULL);
-    
+
     // exec
     ::execv(ArgCharPtrs[0], ArgCharPtrs.FirstRead());
-    
+
     return ::raise(SIGKILL); // no exit (will crash)
   }
   else if (ProcessId > 0)
@@ -808,7 +818,7 @@ int TSystem::LaunchProcess(
     {
       int WaitStatus = 0;
       ProcessId = ::waitpid(ProcessId, &WaitStatus, 0);
-      
+
       if (WIFEXITED(WaitStatus))
       {
         return WEXITSTATUS(WaitStatus);
@@ -827,12 +837,12 @@ int TSystem::LaunchProcess(
   }
   else
   {
-    TLog::SLog()->AddLine("System", 
+    TLog::SLog()->AddLine("System",
       "Failed to fork a child process (error %d).", errno);
-      
+
     return (WaitTilFinished) ? EXIT_FAILURE : kInvalidProcessId;
   }
-  
+
   if (!TFile(FileName).Exists())
   {
     MInvalid("Should validate the executable's filename before launching");
@@ -868,7 +878,7 @@ bool TSystem::ProcessIsRunning(int ProcessId)
       size_t ProcListCount = 0;
       kinfo_proc* pProcList = (kinfo_proc*)::malloc(sizeof(kinfo_proc));
       ::SGetBSDProcessList(&pProcList, &ProcListCount);
-      for (size_t i = 0; i < ProcListCount; ++i) 
+      for (size_t i = 0; i < ProcListCount; ++i)
       {
         if (pProcList[i].kp_proc.p_pid == ProcessId)
         {
@@ -876,7 +886,7 @@ bool TSystem::ProcessIsRunning(int ProcessId)
           return true;
         }
       }
-      
+
       ::free(pProcList);
       return false;
     }
@@ -904,7 +914,7 @@ void TSystem::KillProcess()
   TSystemGlobals::TPProcessKilledHandlerList& ProcessKilledHandlers =
     TSystemGlobals::SSystemGlobals()->mProcessKilledHandlers;
 
-  TSystemGlobals::TPProcessKilledHandlerList::const_iterator Iter = 
+  TSystemGlobals::TPProcessKilledHandlerList::const_iterator Iter =
     ProcessKilledHandlers.begin();
 
   for (; Iter != ProcessKilledHandlers.end(); ++Iter)
@@ -935,15 +945,15 @@ TString TSystem::DefaultFileViewerName()
 bool TSystem::OpenURL(const TString& Url)
 {
   NSWorkspace* pWorkspace = [NSWorkspace sharedWorkspace];
-    
-  const bool IsUrl = 
-    (Url.StartsWithIgnoreCase("http://") || 
+
+  const bool IsUrl =
+    (Url.StartsWithIgnoreCase("http://") ||
      Url.StartsWithIgnoreCase("https://") ||
      Url.StartsWithIgnoreCase("www."));
-  
+
   if (IsUrl)
   {
-    NSString* pEscapedUrl = [gCreateNSString(Url) 
+    NSString* pEscapedUrl = [gCreateNSString(Url)
       stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
 
     const bool Result = [pWorkspace openURL: [NSURL URLWithString:pEscapedUrl]];
@@ -953,21 +963,21 @@ bool TSystem::OpenURL(const TString& Url)
   else
   {
     NSString* pDefaultBrowserName = @"Safari";
-    
+
     // Hack: need a valid html file, an URL wont work...
-    NSURL* pTestUrl = [NSURL URLWithString: 
+    NSURL* pTestUrl = [NSURL URLWithString:
       @"/Library/Documentation/Commands/grep/grep.html"];
-    
-    NSString* pAppName = NULL; 
+
+    NSString* pAppName = NULL;
     NSString* pType = NULL;
-    
-    if ([pWorkspace getInfoForFile:[pTestUrl path] 
+
+    if ([pWorkspace getInfoForFile:[pTestUrl path]
           application:&pAppName type:&pType])
     {
       pDefaultBrowserName = pAppName;
     }
-     
-    return [pWorkspace openFile:gCreateNSString(Url) 
+
+    return [pWorkspace openFile:gCreateNSString(Url)
       withApplication:pDefaultBrowserName];
   }
 }
@@ -977,10 +987,10 @@ bool TSystem::OpenURL(const TString& Url)
 bool TSystem::OpenPath(const TDirectory& Directory, const TString& SelectFilename)
 {
   NSWorkspace* pWorkspace = [NSWorkspace sharedWorkspace];
-  
+
   if (!SelectFilename.IsEmpty())
   {
-    return [pWorkspace selectFile:gCreateNSString(Directory.Path() + SelectFilename) 
+    return [pWorkspace selectFile:gCreateNSString(Directory.Path() + SelectFilename)
       inFileViewerRootedAtPath:gCreateNSString(Directory.Path())];
   }
   else
@@ -988,4 +998,3 @@ bool TSystem::OpenPath(const TDirectory& Directory, const TString& SelectFilenam
     return [pWorkspace openFile:gCreateNSString(Directory.Path())];
   }
 }
-

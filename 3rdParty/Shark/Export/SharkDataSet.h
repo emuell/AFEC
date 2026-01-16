@@ -28,6 +28,7 @@
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wunused-variable"
   #pragma clang diagnostic ignored "-Wshift-count-overflow"
+  #pragma clang diagnostic ignored "-Wtautological-overlap-compare"
 #endif
 
 // =================================================================================================
@@ -57,4 +58,3 @@
 
 
 #endif // _SharkDataSet_h_
-

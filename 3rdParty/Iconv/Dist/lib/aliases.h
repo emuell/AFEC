@@ -1598,7 +1598,7 @@ static const struct alias aliases[] =
   };
 
 #ifdef __GNUC__
-__inline
+static __inline
 #endif
 const struct alias *
 aliases_lookup (register const char *str, register unsigned int len)
