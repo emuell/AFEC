@@ -110,7 +110,8 @@ static int SRunExtractor(
   const TString&                      ClassificationModelNameAndPath,
   const TString&                      OneShotCategorizationModelNameAndPath,
   TSampleDescriptors::TDescriptorSet  DescriptorSet,
-  int                                 MaxAnalyzeThreads);
+  int                                 MaxAnalyzeThreads,
+  bool                                CollectRecursively);
 
 static bool SIgnoreRootDirectory(const TDirectory& BaseDirectory);
 static bool SIgnoreSubDirectory(const TString& SubDirName);
@@ -118,6 +119,7 @@ static bool SIgnoreFile(const TString& Filename);
 
 static void SCollectFiles(
   const TString&                      DirectoryOrFileNames,
+  bool                                CollectRecursively,
   TDirectory::TSymLinkRecursionTest&  RecursionTester,
   TList<TString>&                     AudioFiles);
 
@@ -173,9 +175,12 @@ int gMain(const TList<TString>& Arguments)
     ("jobs,j", boost::program_options::value<int>()->default_value(-1),
       "Maximum number of samples that are analyzed simultaneously. "
       "By default all available concurrent CPU threads in the system.")
+    ("recursive,r", boost::program_options::value<bool>()->default_value(true),
+        "When passing one or more directories, scan those directories recursively "
+        "and follow symbolic links.")
     ("out,o", boost::program_options::value<std::string>(), (std::string() +
       "Set destination directory/db_name.db or just a directory. When only a directory "
-      "is specified, the database filename will be: '" + std::string(MDefaultLowLevelDatabaseName) + 
+      "is specified, the database filename will be: '" + std::string(MDefaultLowLevelDatabaseName) +
       "' or '" + std::string(MDefaultHighLevelDatabaseName) + "', depending on the level. "
       "When no directory or file is specified, the database will be written into the current "
       "working dir.").c_str())
@@ -198,6 +203,7 @@ int gMain(const TList<TString>& Arguments)
   TSampleDescriptors::TDescriptorSet DescriptorSet =
     TSampleDescriptors::kLowLevelDescriptors;
 
+  int CollectRecursively = true;
   int MaxAnalyzeThreads = -1;
 
   try
@@ -289,7 +295,13 @@ int gMain(const TList<TString>& Arguments)
         }
       }
     }
-    
+
+    // recursive -> CollectRecursively
+    if (ProgramVariablesMap.find("recursive") != ProgramVariablesMap.end())
+    {
+      CollectRecursively = ProgramVariablesMap["recursive"].as<bool>();
+    }
+
     // jobs -> MaxAnalyzeThreads
     if (ProgramVariablesMap.find("jobs") != ProgramVariablesMap.end()) 
     {
@@ -475,8 +487,9 @@ int gMain(const TList<TString>& Arguments)
   const int Result = SRunExtractor(
     DirectoriesOrFiles, DbNameAndPath, DbBasePath,
     ClassificationModelNameAndPath, CategorizationModelNameAndPath,
-    DescriptorSet, 
-    MaxAnalyzeThreads);
+    DescriptorSet,
+    MaxAnalyzeThreads,
+    CollectRecursively);
 
 
   // ... Finalize 
@@ -570,7 +583,8 @@ int SRunExtractor(
   const TString&                      ClassificationModelNameAndPath,
   const TString&                      CategorizationModelNameAndPath,
   TSampleDescriptors::TDescriptorSet  DescriptorSet,
-  int                                 MaxAnalyzeThreads)
+  int                                 MaxAnalyzeThreads,
+  bool                                CollectRecursively)
 {
   bool GotCrawlError = false;
 
@@ -651,14 +665,21 @@ int SRunExtractor(
     }
 
     // collect files
-    TLog::SLog()->AddLine(MLogPrefix, "Collecting files...");
+    if (CollectRecursively)
+    {
+      TLog::SLog()->AddLine(MLogPrefix, "Collecting files (recursively)...");
+    }
+    else
+    {
+      TLog::SLog()->AddLine(MLogPrefix, "Collecting files...");
+    }
 
     TList<TString> AllAudioFiles;
 
     for (int i = 0; i < DirectoriesOrFiles.Size() && !sAbortProcessing; ++i)
     {
       TDirectory::TSymLinkRecursionTest RecursionTester;
-      SCollectFiles(DirectoriesOrFiles[i], RecursionTester, AllAudioFiles);
+      SCollectFiles(DirectoriesOrFiles[i], CollectRecursively, RecursionTester, AllAudioFiles);
     }
 
     // build change list
@@ -871,6 +892,7 @@ bool SIgnoreFile(const TString& Filename)
 
 void SCollectFiles(
   const TString&                      DirectoryOrFileName,
+  bool                                CollectRecursively,
   TDirectory::TSymLinkRecursionTest&  RecursionTester,
   TList<TString>&                     DestAudioFiles)
 {
@@ -879,7 +901,7 @@ void SCollectFiles(
   {
     return;
   }
-  
+
   if (TDirectory(DirectoryOrFileName).Exists()) // is directory?
   {
     const TDirectory Directory(DirectoryOrFileName);
@@ -906,21 +928,24 @@ void SCollectFiles(
     }
 
     // collect recursively within all sub paths
-    const TList<TString> SubDirNames = Directory.FindSubDirNames("*", &RecursionTester);
-    for (int i = 0; i < SubDirNames.Size() && !sAbortProcessing; ++i)
+    if (CollectRecursively)
     {
-      const TDirectory FullSubDir = TDirectory(Directory).Descend(SubDirNames[i]);
-
-      // check for ignored sub folders
-      if (SIgnoreSubDirectory(SubDirNames[i]))
+      const TList<TString> SubDirNames = Directory.FindSubDirNames("*", &RecursionTester);
+      for (int i = 0; i < SubDirNames.Size() && !sAbortProcessing; ++i)
       {
-        TLog::SLog()->AddLine(MLogPrefix,
-          "Ignoring contents of (sub)directory: '%s'", FullSubDir.Path().StdCString().c_str());
+        const TDirectory FullSubDir = TDirectory(Directory).Descend(SubDirNames[i]);
 
-        continue;
+        // check for ignored sub folders
+        if (SIgnoreSubDirectory(SubDirNames[i]))
+        {
+          TLog::SLog()->AddLine(MLogPrefix,
+            "Ignoring contents of (sub)directory: '%s'", FullSubDir.Path().StdCString().c_str());
+
+          continue;
+        }
+
+        SCollectFiles(FullSubDir.Path(), CollectRecursively, RecursionTester, DestAudioFiles);
       }
-      
-      SCollectFiles(FullSubDir.Path(), RecursionTester, DestAudioFiles);
     }
   }
   else if (TFile(DirectoryOrFileName).Exists()) // is a file?
