@@ -12,6 +12,8 @@ set(CMAKE_MODULE_PATH
 if(POLICY CMP0063)
   # use new CMAKE_CXX_VISIBILITY_PRESET behavior
   cmake_policy(SET CMP0063 NEW)
+endif()
+if(POLICY CMP0175)
   # use new add_custom_command behavior
   cmake_policy(SET CMP0175 NEW)
 endif()

@@ -19,7 +19,7 @@
 #endif
 
 #define MPG123_NO_CONFIGURE
-#include <mpg123.h>
+#include <libmpg123/mpg123.h>
 #undef MPG123_NO_CONFIGURE
 
 

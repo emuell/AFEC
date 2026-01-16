@@ -5,7 +5,6 @@
 #include <signal.h> 
 
 #include <sys/unistd.h>
-#include <sys/sysctl.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <sys/types.h>
