@@ -14,6 +14,7 @@ template<typename MatrixType> void replicate(const MatrixType& m)
   /* this test covers the following files:
      Replicate.cpp
   */
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, Dynamic, Dynamic> MatrixX;
@@ -68,7 +69,7 @@ template<typename MatrixType> void replicate(const MatrixType& m)
   VERIFY_IS_APPROX(vx1, v1.colwise().replicate(f2));
 }
 
-EIGEN_DECLARE_TEST(array_replicate)
+void test_array_replicate()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( replicate(Matrix<float, 1, 1>()) );

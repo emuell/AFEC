@@ -75,7 +75,8 @@ class companion
     void setPolynomial( const VectorType& poly )
     {
       const Index deg = poly.size()-1;
-      m_monic = -poly.head(deg)/poly[deg];
+      m_monic = Scalar(-1)/poly[deg] * poly.head(deg);
+      //m_bl_diag.setIdentity( deg-1 );
       m_bl_diag.setOnes(deg-1);
     }
 
@@ -88,13 +89,13 @@ class companion
     {
       const Index deg   = m_monic.size();
       const Index deg_1 = deg-1;
-      DenseCompanionMatrixType companMat(deg,deg);
-      companMat <<
+      DenseCompanionMatrixType companion(deg,deg);
+      companion <<
         ( LeftBlock(deg,deg_1)
           << LeftBlockFirstRow::Zero(1,deg_1),
           BottomLeftBlock::Identity(deg-1,deg-1)*m_bl_diag.asDiagonal() ).finished()
         , m_monic;
-      return companMat;
+      return companion;
     }
 
 
@@ -103,7 +104,7 @@ class companion
     /** Helper function for the balancing algorithm.
      * \returns true if the row and the column, having colNorm and rowNorm
      * as norms, are balanced, false otherwise.
-     * colB and rowB are respectively the multipliers for
+     * colB and rowB are repectively the multipliers for
      * the column and the row in order to balance them.
      * */
     bool balanced( RealScalar colNorm, RealScalar rowNorm,
@@ -112,7 +113,7 @@ class companion
     /** Helper function for the balancing algorithm.
      * \returns true if the row and the column, having colNorm and rowNorm
      * as norms, are balanced, false otherwise.
-     * colB and rowB are respectively the multipliers for
+     * colB and rowB are repectively the multipliers for
      * the column and the row in order to balance them.
      * */
     bool balancedR( RealScalar colNorm, RealScalar rowNorm,

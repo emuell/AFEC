@@ -21,14 +21,12 @@ template< typename T,
           bool is_integer = NumTraits<T>::IsInteger>
 struct default_digits10_impl
 {
-  EIGEN_DEVICE_FUNC
   static int run() { return std::numeric_limits<T>::digits10; }
 };
 
 template<typename T>
 struct default_digits10_impl<T,false,false> // Floating point
 {
-  EIGEN_DEVICE_FUNC
   static int run() {
     using std::log10;
     using std::ceil;
@@ -40,7 +38,6 @@ struct default_digits10_impl<T,false,false> // Floating point
 template<typename T>
 struct default_digits10_impl<T,false,true> // Integer
 {
-  EIGEN_DEVICE_FUNC
   static int run() { return 0; }
 };
 
@@ -52,14 +49,12 @@ template< typename T,
           bool is_integer = NumTraits<T>::IsInteger>
 struct default_digits_impl
 {
-  EIGEN_DEVICE_FUNC
   static int run() { return std::numeric_limits<T>::digits; }
 };
 
 template<typename T>
 struct default_digits_impl<T,false,false> // Floating point
 {
-  EIGEN_DEVICE_FUNC
   static int run() {
     using std::log;
     using std::ceil;
@@ -71,7 +66,6 @@ struct default_digits_impl<T,false,false> // Floating point
 template<typename T>
 struct default_digits_impl<T,false,true> // Integer
 {
-  EIGEN_DEVICE_FUNC
   static int run() { return 0; }
 };
 
@@ -173,8 +167,7 @@ template<typename T> struct GenericNumTraits
 
   EIGEN_DEVICE_FUNC
   static inline T lowest()  {
-    return IsInteger ? (numext::numeric_limits<T>::min)()
-                     : static_cast<T>(-(numext::numeric_limits<T>::max)());
+    return IsInteger ? (numext::numeric_limits<T>::min)() : (-(numext::numeric_limits<T>::max)());
   }
 
   EIGEN_DEVICE_FUNC
@@ -283,8 +276,6 @@ private:
 
 // Empty specialization for void to allow template specialization based on NumTraits<T>::Real with T==void and SFINAE.
 template<> struct NumTraits<void> {};
-
-template<> struct NumTraits<bool> : GenericNumTraits<bool> {};
 
 } // end namespace Eigen
 

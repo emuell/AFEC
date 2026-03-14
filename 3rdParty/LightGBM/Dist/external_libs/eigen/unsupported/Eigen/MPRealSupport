@@ -12,7 +12,7 @@
 #ifndef EIGEN_MPREALSUPPORT_MODULE_H
 #define EIGEN_MPREALSUPPORT_MODULE_H
 
-#include "../../Eigen/Core"
+#include <Eigen/Core>
 #include <mpreal.h>
 
 namespace Eigen {
@@ -162,7 +162,6 @@ int main()
       typedef ResScalar LhsPacket;
       typedef ResScalar RhsPacket;
       typedef ResScalar ResPacket;
-      typedef LhsPacket LhsPacket4Packing;
       
     };
 

@@ -4,12 +4,10 @@
 \alias{dim.lgb.Dataset}
 \title{Dimensions of an \code{lgb.Dataset}}
 \usage{
-\method{dim}{lgb.Dataset}(x, ...)
+\method{dim}{lgb.Dataset}(x)
 }
 \arguments{
 \item{x}{Object of class \code{lgb.Dataset}}
-
-\item{...}{other parameters}
 }
 \value{
 a vector of numbers of rows and of columns
@@ -23,6 +21,8 @@ be directly used with an \code{lgb.Dataset} object.
 }
 \examples{
 \donttest{
+\dontshow{setLGBMthreads(2L)}
+\dontshow{data.table::setDTthreads(1L)}
 data(agaricus.train, package = "lightgbm")
 train <- agaricus.train
 dtrain <- lgb.Dataset(train$data, label = train$label)

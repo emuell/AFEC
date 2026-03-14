@@ -35,6 +35,8 @@ contribution of a feature. Features are shown ranked in a decreasing contributio
 }
 \examples{
 \donttest{
+\dontshow{setLGBMthreads(2L)}
+\dontshow{data.table::setDTthreads(1L)}
 Logit <- function(x) {
   log(x / (1.0 - x))
 }
@@ -44,7 +46,11 @@ dtrain <- lgb.Dataset(
   agaricus.train$data
   , label = labels
 )
-setinfo(dtrain, "init_score", rep(Logit(mean(labels)), length(labels)))
+set_field(
+  dataset = dtrain
+  , field_name = "init_score"
+  , data = rep(Logit(mean(labels)), length(labels))
+)
 
 data(agaricus.test, package = "lightgbm")
 
@@ -54,6 +60,7 @@ params <- list(
   , max_depth = -1L
   , min_data_in_leaf = 1L
   , min_sum_hessian_in_leaf = 1.0
+  , num_threads = 2L
 )
 model <- lgb.train(
   params = params

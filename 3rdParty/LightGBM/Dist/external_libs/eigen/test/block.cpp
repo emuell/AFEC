@@ -39,6 +39,7 @@ is_same_block(const T1& a, const T2& b)
 
 template<typename MatrixType> void block(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
@@ -161,18 +162,9 @@ template<typename MatrixType> void block(const MatrixType& m)
   // expressions without direct access
   VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,rows-r1,cols-c1).block(r2-r1,c2-c1,rows-r2,cols-c2)) , ((m1+m2).block(r2,c2,rows-r2,cols-c2)) );
   VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).row(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)) );
-  VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).row(0)) , ((m1+m2).eval().row(r1).segment(c1,c2-c1+1)) );
   VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).col(0)) , ((m1+m2).col(c1).segment(r1,r2-r1+1)) );
   VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).transpose().col(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)).transpose() );
   VERIFY_IS_APPROX( ((m1+m2).transpose().block(c1,r1,c2-c1+1,r2-r1+1).col(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)).transpose() );
-  VERIFY_IS_APPROX( ((m1+m2).template block<Dynamic,1>(r1,c1,r2-r1+1,1)) , ((m1+m2).eval().col(c1).eval().segment(r1,r2-r1+1)) );
-  VERIFY_IS_APPROX( ((m1+m2).template block<1,Dynamic>(r1,c1,1,c2-c1+1)) , ((m1+m2).eval().row(r1).eval().segment(c1,c2-c1+1)) );
-  VERIFY_IS_APPROX( ((m1+m2).transpose().template block<1,Dynamic>(c1,r1,1,r2-r1+1)) , ((m1+m2).eval().col(c1).eval().segment(r1,r2-r1+1)).transpose() );
-  VERIFY_IS_APPROX( (m1+m2).row(r1).eval(), (m1+m2).eval().row(r1) );
-  VERIFY_IS_APPROX( (m1+m2).adjoint().col(r1).eval(), (m1+m2).adjoint().eval().col(r1) );
-  VERIFY_IS_APPROX( (m1+m2).adjoint().row(c1).eval(), (m1+m2).adjoint().eval().row(c1) );
-  VERIFY_IS_APPROX( (m1*1).row(r1).segment(c1,c2-c1+1).eval(), m1.row(r1).eval().segment(c1,c2-c1+1).eval() );
-  VERIFY_IS_APPROX( m1.col(c1).reverse().segment(r1,r2-r1+1).eval(),m1.col(c1).reverse().eval().segment(r1,r2-r1+1).eval() );
 
   VERIFY_IS_APPROX( (m1*1).topRows(r1),  m1.topRows(r1) );
   VERIFY_IS_APPROX( (m1*1).leftCols(c1), m1.leftCols(c1) );
@@ -220,29 +212,13 @@ template<typename MatrixType> void block(const MatrixType& m)
     VERIFY_RAISES_ASSERT( m1.array() *= m1.col(0).array() );
     VERIFY_RAISES_ASSERT( m1.array() /= m1.col(0).array() );
   }
-
-  VERIFY_IS_EQUAL( m1.template subVector<Horizontal>(r1), m1.row(r1) );
-  VERIFY_IS_APPROX( (m1+m1).template subVector<Horizontal>(r1), (m1+m1).row(r1) );
-  VERIFY_IS_EQUAL( m1.template subVector<Vertical>(c1), m1.col(c1) );
-  VERIFY_IS_APPROX( (m1+m1).template subVector<Vertical>(c1), (m1+m1).col(c1) );
-  VERIFY_IS_EQUAL( m1.template subVectors<Horizontal>(), m1.rows() );
-  VERIFY_IS_EQUAL( m1.template subVectors<Vertical>(), m1.cols() );
-
-  if (rows>=2 || cols>=2) {
-    VERIFY_IS_EQUAL( int(m1.middleCols(0,0).IsRowMajor), int(m1.IsRowMajor) );
-    VERIFY_IS_EQUAL( m1.middleCols(0,0).outerSize(), m1.IsRowMajor ? rows : 0);
-    VERIFY_IS_EQUAL( m1.middleCols(0,0).innerSize(), m1.IsRowMajor ? 0 : rows);
-
-    VERIFY_IS_EQUAL( int(m1.middleRows(0,0).IsRowMajor), int(m1.IsRowMajor) );
-    VERIFY_IS_EQUAL( m1.middleRows(0,0).outerSize(), m1.IsRowMajor ? 0 : cols);
-    VERIFY_IS_EQUAL( m1.middleRows(0,0).innerSize(), m1.IsRowMajor ? cols : 0);
-  }
 }
 
 
 template<typename MatrixType>
 void compare_using_data_and_stride(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   Index rows = m.rows();
   Index cols = m.cols();
   Index size = m.size();
@@ -276,6 +252,7 @@ void compare_using_data_and_stride(const MatrixType& m)
 template<typename MatrixType>
 void data_and_stride(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   Index rows = m.rows();
   Index cols = m.cols();
 
@@ -293,18 +270,15 @@ void data_and_stride(const MatrixType& m)
   compare_using_data_and_stride(m1.col(c1).transpose());
 }
 
-EIGEN_DECLARE_TEST(block)
+void test_block()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( block(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST_1( block(Matrix<float, 1, Dynamic>(internal::random(2,50))) );
-    CALL_SUBTEST_1( block(Matrix<float, Dynamic, 1>(internal::random(2,50))) );
     CALL_SUBTEST_2( block(Matrix4d()) );
-    CALL_SUBTEST_3( block(MatrixXcf(internal::random(2,50), internal::random(2,50))) );
-    CALL_SUBTEST_4( block(MatrixXi(internal::random(2,50), internal::random(2,50))) );
-    CALL_SUBTEST_5( block(MatrixXcd(internal::random(2,50), internal::random(2,50))) );
-    CALL_SUBTEST_6( block(MatrixXf(internal::random(2,50), internal::random(2,50))) );
-    CALL_SUBTEST_7( block(Matrix<int,Dynamic,Dynamic,RowMajor>(internal::random(2,50), internal::random(2,50))) );
+    CALL_SUBTEST_3( block(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_4( block(MatrixXi(8, 12)) );
+    CALL_SUBTEST_5( block(MatrixXcd(20, 20)) );
+    CALL_SUBTEST_6( block(MatrixXf(20, 20)) );
 
     CALL_SUBTEST_8( block(Matrix<float,Dynamic,4>(3, 4)) );
 

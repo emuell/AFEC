@@ -7,12 +7,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#if defined(_MSC_VER) && (_MSC_VER==1800)
-// This unit test takes forever to compile in Release mode with MSVC 2013,
-// multiple hours. So let's switch off optimization for this one.
-#pragma optimize("",off)
-#endif
-
 static long int nb_temporaries;
 
 inline void on_temporary_creation() {
@@ -103,7 +97,7 @@ template<typename SparseMatrixType> void sparse_product()
     // make sure the right product implementation is called:
     if((!SparseMatrixType::IsRowMajor) && m2.rows()<=m3.cols())
     {
-      VERIFY_EVALUATION_COUNT(m4 = m2*m3, 2); // 2 for transposing and get a sorted result.
+      VERIFY_EVALUATION_COUNT(m4 = m2*m3, 3); // 1 temp for the result + 2 for transposing and get a sorted result.
       VERIFY_EVALUATION_COUNT(m4 = (m2*m3).pruned(0), 1);
       VERIFY_EVALUATION_COUNT(m4 = (m2*m3).eval().pruned(0), 4);
     }
@@ -459,7 +453,7 @@ void test_mixing_types()
   VERIFY_IS_APPROX( dC2 = sC1 * dR1.col(0), dC3 = sC1 * dR1.template cast<Cplx>().col(0) );
 }
 
-EIGEN_DECLARE_TEST(sparse_product)
+void test_sparse_product()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( (sparse_product<SparseMatrix<double,ColMajor> >()) );

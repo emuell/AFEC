@@ -23,95 +23,8 @@ CB_ENV <- R6::R6Class(
   )
 )
 
-cb.reset.parameters <- function(new_params) {
-
-  if (!identical(class(new_params), "list")) {
-    stop(sQuote("new_params"), " must be a list")
-  }
-
-  # Deparse parameter list
-  pnames  <- gsub("\\.", "_", names(new_params))
-  nrounds <- NULL
-
-  # Run some checks in the beginning
-  init <- function(env) {
-
-    # Check for model environment
-    if (is.null(env$model)) {
-      stop("Env should have a ", sQuote("model"))
-    }
-
-    # Store boosting rounds
-    nrounds <<- env$end_iteration - env$begin_iteration + 1L
-
-    # Check parameter names
-    for (n in pnames) {
-
-      # Set name
-      p <- new_params[[n]]
-
-      # Check if function for parameter
-      if (is.function(p)) {
-
-        # Check if requires at least two arguments
-        if (length(formals(p)) != 2L) {
-          stop("Parameter ", sQuote(n), " is a function but not of two arguments")
-        }
-
-        # Check if numeric or character
-      } else if (is.numeric(p) || is.character(p)) {
-
-        # Check if length is matching
-        if (length(p) != nrounds) {
-          stop("Length of ", sQuote(n), " has to be equal to length of ", sQuote("nrounds"))
-        }
-
-      } else {
-
-        stop("Parameter ", sQuote(n), " is not a function or a vector")
-
-      }
-
-    }
-
-    return(invisible(NULL))
-
-  }
-
-  callback <- function(env) {
-
-    # Check if rounds is null
-    if (is.null(nrounds)) {
-      init(env = env)
-    }
-
-    # Store iteration
-    i <- env$iteration - env$begin_iteration
-
-    # Apply list on parameters
-    pars <- lapply(new_params, function(p) {
-      if (is.function(p)) {
-        return(p(i, nrounds))
-      }
-      p[i]
-    })
-
-    if (!is.null(env$model)) {
-      return(env$model$reset_parameter(params = pars))
-    }
-
-    return(invisible(NULL))
-
-  }
-
-  attr(callback, "call") <- match.call()
-  attr(callback, "is_pre_iteration") <- TRUE
-  attr(callback, "name") <- "cb.reset.parameters"
-  return(callback)
-}
-
 # Format the evaluation metric string
-format.eval.string <- function(eval_res, eval_err = NULL) {
+.format_eval_string <- function(eval_res, eval_err) {
 
   # Check for empty evaluation string
   if (is.null(eval_res) || length(eval_res) == 0L) {
@@ -127,7 +40,7 @@ format.eval.string <- function(eval_res, eval_err = NULL) {
 
 }
 
-merge.eval.string <- function(env) {
+.merge_eval_string <- function(env) {
 
   # Check length of evaluation list
   if (length(env$eval_list) <= 0L) {
@@ -150,15 +63,15 @@ merge.eval.string <- function(env) {
     }
 
     # Set error message
-    msg <- c(msg, format.eval.string(eval_res = env$eval_list[[j]], eval_err = eval_err))
+    msg <- c(msg, .format_eval_string(eval_res = env$eval_list[[j]], eval_err = eval_err))
 
   }
 
-  return(paste0(msg, collapse = "  "))
+  return(paste(msg, collapse = "  "))
 
 }
 
-cb.print.evaluation <- function(period = 1L) {
+cb_print_evaluation <- function(period) {
 
   # Create callback
   callback <- function(env) {
@@ -173,11 +86,11 @@ cb.print.evaluation <- function(period = 1L) {
       if ((i - 1L) %% period == 0L || is.element(i, c(env$begin_iteration, env$end_iteration))) {
 
         # Merge evaluation string
-        msg <- merge.eval.string(env = env)
+        msg <- .merge_eval_string(env = env)
 
         # Check if message is existing
         if (nchar(msg) > 0L) {
-          print(merge.eval.string(env = env))
+          cat(.merge_eval_string(env = env), "\n")
         }
 
       }
@@ -190,13 +103,13 @@ cb.print.evaluation <- function(period = 1L) {
 
   # Store attributes
   attr(callback, "call") <- match.call()
-  attr(callback, "name") <- "cb.print.evaluation"
+  attr(callback, "name") <- "cb_print_evaluation"
 
   return(callback)
 
 }
 
-cb.record.evaluation <- function() {
+cb_record_evaluation <- function() {
 
   # Create callback
   callback <- function(env) {
@@ -265,13 +178,13 @@ cb.record.evaluation <- function() {
 
   # Store attributes
   attr(callback, "call") <- match.call()
-  attr(callback, "name") <- "cb.record.evaluation"
+  attr(callback, "name") <- "cb_record_evaluation"
 
   return(callback)
 
 }
 
-cb.early.stop <- function(stopping_rounds, first_metric_only = FALSE, verbose = TRUE) {
+cb_early_stop <- function(stopping_rounds, first_metric_only, verbose) {
 
   factor_to_bigger_better <- NULL
   best_iter <- NULL
@@ -295,9 +208,9 @@ cb.early.stop <- function(stopping_rounds, first_metric_only = FALSE, verbose = 
       msg <- paste0(
         "Will train until there is no improvement in "
         , stopping_rounds
-        , " rounds."
+        , " rounds.\n"
       )
-      print(msg)
+      cat(msg)
     }
 
     # Internally treat everything as a maximization task
@@ -324,7 +237,7 @@ cb.early.stop <- function(stopping_rounds, first_metric_only = FALSE, verbose = 
   }
 
   # Create callback
-  callback <- function(env, finalize = FALSE) {
+  callback <- function(env) {
 
     # Check for empty evaluation
     if (is.null(eval_len)) {
@@ -357,7 +270,7 @@ cb.early.stop <- function(stopping_rounds, first_metric_only = FALSE, verbose = 
 
           # Prepare to print if verbose
           if (verbose) {
-            best_msg[[i]] <<- as.character(merge.eval.string(env = env))
+            best_msg[[i]] <<- as.character(.merge_eval_string(env = env))
           }
 
         } else {
@@ -365,17 +278,13 @@ cb.early.stop <- function(stopping_rounds, first_metric_only = FALSE, verbose = 
           # Check if early stopping is required
           if (cur_iter - best_iter[i] >= stopping_rounds) {
 
-            # Check if model is not null
             if (!is.null(env$model)) {
               env$model$best_score <- best_score[i]
               env$model$best_iter <- best_iter[i]
             }
 
-            # Print message if verbose
             if (isTRUE(verbose)) {
-
-              print(paste0("Early stopping, best iteration is: ", best_msg[[i]]))
-
+              cat(paste0("Early stopping, best iteration is: ", best_msg[[i]], "\n"))
             }
 
             # Store best iteration and stop
@@ -386,15 +295,14 @@ cb.early.stop <- function(stopping_rounds, first_metric_only = FALSE, verbose = 
         }
 
       if (!isTRUE(env$met_early_stop) && cur_iter == env$end_iteration) {
-        # Check if model is not null
+
         if (!is.null(env$model)) {
           env$model$best_score <- best_score[i]
           env$model$best_iter <- best_iter[i]
         }
 
-        # Print message if verbose
         if (isTRUE(verbose)) {
-          print(paste0("Did not meet early stopping, best iteration is: ", best_msg[[i]]))
+          cat(paste0("Did not meet early stopping, best iteration is: ", best_msg[[i]], "\n"))
         }
 
         # Store best iteration and stop
@@ -408,42 +316,40 @@ cb.early.stop <- function(stopping_rounds, first_metric_only = FALSE, verbose = 
   }
 
   attr(callback, "call") <- match.call()
-  attr(callback, "name") <- "cb.early.stop"
+  attr(callback, "name") <- "cb_early_stop"
 
   return(callback)
 
 }
 
 # Extract callback names from the list of callbacks
-callback.names <- function(cb_list) {
+.callback_names <- function(cb_list) {
   return(unlist(lapply(cb_list, attr, "name")))
 }
 
-add.cb <- function(cb_list, cb) {
+.add_cb <- function(cb_list, cb) {
 
   # Combine two elements
   cb_list <- c(cb_list, cb)
 
   # Set names of elements
-  names(cb_list) <- callback.names(cb_list = cb_list)
+  names(cb_list) <- .callback_names(cb_list = cb_list)
 
-  # Check for existence
-  if ("cb.early.stop" %in% names(cb_list)) {
+  if ("cb_early_stop" %in% names(cb_list)) {
 
     # Concatenate existing elements
-    cb_list <- c(cb_list, cb_list["cb.early.stop"])
+    cb_list <- c(cb_list, cb_list["cb_early_stop"])
 
     # Remove only the first one
-    cb_list["cb.early.stop"] <- NULL
+    cb_list["cb_early_stop"] <- NULL
 
   }
 
-  # Return element
   return(cb_list)
 
 }
 
-categorize.callbacks <- function(cb_list) {
+.categorize_callbacks <- function(cb_list) {
 
   # Check for pre-iteration or post-iteration
   return(

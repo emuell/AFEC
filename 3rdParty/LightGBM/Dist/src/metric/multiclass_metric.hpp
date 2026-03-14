@@ -63,7 +63,7 @@ class MulticlassMetric: public Metric {
     }
     if (objective != nullptr) {
       if (weights_ == nullptr) {
-        #pragma omp parallel for schedule(static) reduction(+:sum_loss)
+        #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           std::vector<double> raw_score(num_tree_per_iteration);
           for (int k = 0; k < num_tree_per_iteration; ++k) {
@@ -76,7 +76,7 @@ class MulticlassMetric: public Metric {
           sum_loss += PointWiseLossCalculator::LossOnPoint(label_[i], &rec, config_);
         }
       } else {
-        #pragma omp parallel for schedule(static) reduction(+:sum_loss)
+        #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           std::vector<double> raw_score(num_tree_per_iteration);
           for (int k = 0; k < num_tree_per_iteration; ++k) {
@@ -91,7 +91,7 @@ class MulticlassMetric: public Metric {
       }
     } else {
       if (weights_ == nullptr) {
-        #pragma omp parallel for schedule(static) reduction(+:sum_loss)
+        #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           std::vector<double> rec(num_tree_per_iteration);
           for (int k = 0; k < num_tree_per_iteration; ++k) {
@@ -102,7 +102,7 @@ class MulticlassMetric: public Metric {
           sum_loss += PointWiseLossCalculator::LossOnPoint(label_[i], &rec, config_);
         }
       } else {
-        #pragma omp parallel for schedule(static) reduction(+:sum_loss)
+        #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           std::vector<double> rec(num_tree_per_iteration);
           for (int k = 0; k < num_tree_per_iteration; ++k) {
@@ -179,7 +179,7 @@ class MultiSoftmaxLoglossMetric: public MulticlassMetric<MultiSoftmaxLoglossMetr
   }
 };
 
-/*! \brief Auc-mu for multiclass task*/
+/*! \brief AUC mu for multiclass task*/
 class AucMuMetric : public Metric {
  public:
   explicit AucMuMetric(const Config& config) : config_(config) {
@@ -275,7 +275,7 @@ class AucMuMetric : public Metric {
             return false;
           }
         });
-        // calculate auc
+        // calculate AUC
         double num_j = 0;
         double last_j_dist = 0;
         double num_current_j = 0;

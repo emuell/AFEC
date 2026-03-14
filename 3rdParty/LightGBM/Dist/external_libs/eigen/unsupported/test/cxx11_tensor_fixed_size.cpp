@@ -250,7 +250,7 @@ static void test_array()
   }
 }
 
-EIGEN_DECLARE_TEST(cxx11_tensor_fixed_size)
+void test_cxx11_tensor_fixed_size()
 {
   CALL_SUBTEST(test_0d());
   CALL_SUBTEST(test_1d());

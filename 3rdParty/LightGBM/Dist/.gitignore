@@ -139,8 +139,6 @@ publish/
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml
-# TODO: Comment the next line if you want to checkin your web deploy settings 
-# but database connection strings (with potential passwords) will be unencrypted
 *.pubxml
 *.publishproj
 
@@ -268,7 +266,7 @@ _Pvt_Extensions
 *.out
 *.app
 /windows/LightGBM.VC.db
-lightgbm
+/lightgbm
 /testlightgbm
 
 # Created by https://www.gitignore.io/api/python
@@ -326,7 +324,7 @@ coverage.xml
 .hypothesis/
 **/coverage.html
 **/coverage.html.zip
-R-package/tests/testthat/Rplots.pdf
+**/Rplots.pdf
 
 # Translations
 *.mo
@@ -346,6 +344,7 @@ instance/
 # Sphinx documentation
 docs/_build/
 docs/pythonapi/
+*.flag
 
 # Doxygen documentation
 docs/doxyoutput/
@@ -384,6 +383,7 @@ lightgbm.model
 *.model
 *.pkl
 *.bin
+*.h5
 
 # macOS
 **/.DS_Store
@@ -397,6 +397,7 @@ lightgbm.model
 /cmake-build-debug/
 
 # Files from local Python install
+lightgbm-python/
 python-package/LICENSE
 python-package/build_cpp/
 python-package/compile/
@@ -404,7 +405,7 @@ python-package/lightgbm/VERSION.txt
 
 # R build artefacts
 **/autom4te.cache/
-conftest*
+R-package/conftest*
 R-package/config.status
 !R-package/data/agaricus.test.rda
 !R-package/data/agaricus.train.rda
@@ -425,11 +426,18 @@ lightgbm.Rcheck/
 miktex*.zip
 *.def
 
-# Files created by R and Python examples and tests
+# Files created by examples and tests
+*.buffer
 **/lgb-Dataset.data
 **/lgb.Dataset.data
 **/model.txt
 **/lgb-model.txt
+examples/**/*.txt
+tests/distributed/mlist.txt
+tests/distributed/train*
+tests/distributed/model*
+tests/distributed/predict*
+
 
 # Files from interactive R sessions
 .Rproj.user

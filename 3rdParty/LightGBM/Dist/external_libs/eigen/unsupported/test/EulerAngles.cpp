@@ -72,9 +72,9 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
     }
   }
   
-  const Vector3 I_ = EulerAnglesType::AlphaAxisVector();
-  const Vector3 J_ = EulerAnglesType::BetaAxisVector();
-  const Vector3 K_ = EulerAnglesType::GammaAxisVector();
+  const Vector3 I = EulerAnglesType::AlphaAxisVector();
+  const Vector3 J = EulerAnglesType::BetaAxisVector();
+  const Vector3 K = EulerAnglesType::GammaAxisVector();
   
   // Is approx checks
   VERIFY(e.isApprox(e));
@@ -97,7 +97,7 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
   VERIFY_APPROXED_RANGE(betaRangeStart, ebis.beta(), betaRangeEnd);
   VERIFY_APPROXED_RANGE(-PI, ebis.gamma(), PI);
 
-  const Matrix3 mbis(AngleAxisType(ebis.alpha(), I_) * AngleAxisType(ebis.beta(), J_) * AngleAxisType(ebis.gamma(), K_));
+  const Matrix3 mbis(AngleAxisType(ebis.alpha(), I) * AngleAxisType(ebis.beta(), J) * AngleAxisType(ebis.gamma(), K));
   VERIFY_IS_APPROX(Scalar(mbis.determinant()), ONE);
   VERIFY_IS_APPROX(mbis, ebis.toRotationMatrix());
   /*std::cout << "===================\n" <<
@@ -197,7 +197,6 @@ template<typename Scalar> void check_singular_cases(const Scalar& singularBeta)
 template<typename Scalar> void eulerangles_manual()
 {
   typedef Matrix<Scalar,3,1> Vector3;
-  typedef Matrix<Scalar,Dynamic,1> VectorX;
   const Vector3 Zero = Vector3::Zero();
   const Scalar PI = Scalar(EIGEN_PI);
   
@@ -214,13 +213,13 @@ template<typename Scalar> void eulerangles_manual()
   check_singular_cases(-PI);
   
   // non-singular cases
-  VectorX alpha = VectorX::LinSpaced(20, Scalar(-0.99) * PI, PI);
-  VectorX beta =  VectorX::LinSpaced(20, Scalar(-0.49) * PI, Scalar(0.49) * PI);
-  VectorX gamma = VectorX::LinSpaced(20, Scalar(-0.99) * PI, PI);
+  VectorXd alpha = VectorXd::LinSpaced(Eigen::Sequential, 20, Scalar(-0.99) * PI, PI);
+  VectorXd beta = VectorXd::LinSpaced(Eigen::Sequential, 20, Scalar(-0.49) * PI, Scalar(0.49) * PI);
+  VectorXd gamma = VectorXd::LinSpaced(Eigen::Sequential, 20, Scalar(-0.99) * PI, PI);
   for (int i = 0; i < alpha.size(); ++i) {
     for (int j = 0; j < beta.size(); ++j) {
       for (int k = 0; k < gamma.size(); ++k) {
-        check_all_var(Vector3(alpha(i), beta(j), gamma(k)));
+        check_all_var(Vector3d(alpha(i), beta(j), gamma(k)));
       }
     }
   }
@@ -273,7 +272,7 @@ template<typename Scalar> void eulerangles_rand()
   check_all_var(ea);
 }
 
-EIGEN_DECLARE_TEST(EulerAngles)
+void test_EulerAngles()
 {
   // Simple cast test
   EulerAnglesXYZd onesEd(1, 1, 1);

@@ -21,10 +21,13 @@ TEMP_SOURCE_DIR <- file.path(TEMP_R_DIR, "src")
   out_list <- list(
     "flags" = character(0L)
     , "keyword_args" = character(0L)
+    , "make_args" = character(0L)
   )
   for (arg in args) {
-    if (any(grepl("=", arg))) {
-      split_arg <- strsplit(arg, "=")[[1L]]
+    if (any(grepl("^\\-j[0-9]+", arg))) {  # nolint: non_portable_path
+        out_list[["make_args"]] <- arg
+    } else if (any(grepl("=", arg, fixed = TRUE))) {
+      split_arg <- strsplit(arg, "=", fixed = TRUE)[[1L]]
       arg_name <- split_arg[[1L]]
       arg_value <- split_arg[[2L]]
       out_list[["keyword_args"]][[arg_name]] <- arg_value
@@ -36,6 +39,7 @@ TEMP_SOURCE_DIR <- file.path(TEMP_R_DIR, "src")
 }
 parsed_args <- .parse_args(args)
 
+SKIP_VIGNETTES <- "--no-build-vignettes" %in% parsed_args[["flags"]]
 USING_GPU <- "--use-gpu" %in% parsed_args[["flags"]]
 USING_MINGW <- "--use-mingw" %in% parsed_args[["flags"]]
 USING_MSYS2 <- "--use-msys2" %in% parsed_args[["flags"]]
@@ -51,7 +55,8 @@ ARGS_TO_DEFINES <- c(
 )
 
 recognized_args <- c(
-  "--skip-install"
+  "--no-build-vignettes"
+  , "--skip-install"
   , "--use-gpu"
   , "--use-mingw"
   , "--use-msys2"
@@ -65,7 +70,7 @@ unrecognized_args <- setdiff(given_args, recognized_args)
 if (length(unrecognized_args) > 0L) {
   msg <- paste0(
     "Unrecognized arguments: "
-    , paste0(unrecognized_args, collapse = ", ")
+    , toString(unrecognized_args)
   )
   stop(msg)
 }
@@ -95,17 +100,32 @@ if (length(keyword_args) > 0L) {
   for (i in seq_len(length(keyword_args))) {
     arg_name <- names(keyword_args)[[i]]
     define_name <- ARGS_TO_DEFINES[[arg_name]]
-    arg_value <- shQuote(keyword_args[[arg_name]])
+    arg_value <- shQuote(normalizePath(keyword_args[[arg_name]], winslash = "/"))
     cmake_args_to_add <- c(cmake_args_to_add, paste0(define_name, "=", arg_value))
   }
   install_libs_content <- gsub(
     pattern = paste0("command_line_args <- NULL")
     , replacement = paste0(
-      "command_line_args <- c(\""
-      , paste(cmake_args_to_add, collapse = "\", \"")
+      "command_line_args <- c(\'"
+      , paste(cmake_args_to_add, collapse = "', '")
+      , "')"
+    )
+    , x = install_libs_content
+    , fixed = TRUE
+  )
+}
+
+# if provided, set '-j' in 'make' commands in install.libs.R
+if (length(parsed_args[["make_args"]]) > 0L) {
+  install_libs_content <- gsub(
+    pattern = "make_args_from_build_script <- character(0L)"
+    , replacement = paste0(
+      "make_args_from_build_script <- c(\""
+      , paste(parsed_args[["make_args"]], collapse = "\", \"")
       , "\")"
     )
     , x = install_libs_content
+    , fixed = TRUE
   )
 }
 
@@ -127,7 +147,7 @@ if (length(keyword_args) > 0L) {
     on_windows <- .Platform$OS.type == "windows"
     has_processx <- suppressMessages({
       suppressWarnings({
-        require("processx")  # nolint
+        require("processx")  # nolint: undesirable_function
       })
     })
     if (has_processx && on_windows) {
@@ -147,7 +167,7 @@ if (length(keyword_args) > 0L) {
           , "make this faster."
         ))
       }
-      cmd <- paste0(cmd, " ", paste0(args, collapse = " "))
+      cmd <- paste0(cmd, " ", paste(args, collapse = " "))
       exit_code <- system(cmd)
     }
 
@@ -301,7 +321,7 @@ for (submodule in list.dirs(
   , recursive = FALSE
 )) {
   # compute/ is a submodule with boost, only needed if
-  # building the R package with GPU support;
+  # building the R-package with GPU support;
   # eigen/ has a special treatment due to licensing aspects
   if ((submodule == "compute" && !USING_GPU) || submodule == "eigen") {
     next
@@ -324,7 +344,7 @@ result <- file.copy(
   , overwrite = TRUE
 )
 .handle_result(result)
-for (src_file in c("lightgbm_R.cpp", "lightgbm_R.h", "R_object_helper.h")) {
+for (src_file in c("lightgbm_R.cpp", "lightgbm_R.h")) {
   result <- file.copy(
     from = file.path(TEMP_SOURCE_DIR, src_file)
     , to = file.path(TEMP_SOURCE_DIR, "src", src_file)
@@ -351,6 +371,7 @@ LGB_VERSION <- gsub(
   pattern = "rc"
   , replacement = "-"
   , x = LGB_VERSION
+  , fixed = TRUE
 )
 
 # DESCRIPTION has placeholders for version
@@ -361,28 +382,42 @@ description_contents <- gsub(
   pattern = "~~VERSION~~"
   , replacement = LGB_VERSION
   , x = description_contents
+  , fixed = TRUE
 )
 description_contents <- gsub(
   pattern = "~~DATE~~"
   , replacement = as.character(Sys.Date())
   , x = description_contents
+  , fixed = TRUE
+)
+description_contents <- gsub(
+  pattern = "~~CXXSTD~~"
+  , replacement = "C++11"
+  , x = description_contents
+  , fixed = TRUE
 )
 writeLines(description_contents, DESCRIPTION_FILE)
 
 # NOTE: --keep-empty-dirs is necessary to keep the deep paths expected
 #       by CMake while also meeting the CRAN req to create object files
 #       on demand
-.run_shell_command("R", c("CMD", "build", TEMP_R_DIR, "--keep-empty-dirs"))
+r_build_args <- c("CMD", "build", TEMP_R_DIR, "--keep-empty-dirs")
+if (isTRUE(SKIP_VIGNETTES)) {
+  r_build_args <- c(r_build_args, "--no-build-vignettes")
+}
+.run_shell_command("R", r_build_args)
 
 # Install the package
 version <- gsub(
-  "Version: ",
-  "",
-  grep(
-    "Version: "
-    , readLines(con = file.path(TEMP_R_DIR, "DESCRIPTION"))
+  pattern = "Version: ",
+  replacement = "",
+  x = grep(
+    pattern = "Version: "
+    , x = readLines(con = file.path(TEMP_R_DIR, "DESCRIPTION"))
     , value = TRUE
+    , fixed = TRUE
   )
+  , fixed = TRUE
 )
 tarball <- file.path(getwd(), sprintf("lightgbm_%s.tar.gz", version))
 
@@ -391,6 +426,6 @@ install_args <- c("CMD", "INSTALL", "--no-multiarch", "--with-keep.source", tarb
 if (INSTALL_AFTER_BUILD) {
   .run_shell_command(install_cmd, install_args)
 } else {
-  cmd <- paste0(install_cmd, " ", paste0(install_args, collapse = " "))
+  cmd <- paste0(install_cmd, " ", paste(install_args, collapse = " "))
   print(sprintf("Skipping installation. Install the package with command '%s'", cmd))
 }

@@ -11,6 +11,7 @@
 
 template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, 1, MatrixType::RowsAtCompileTime> RowVectorType;
@@ -59,7 +60,7 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
   }
 }
 
-EIGEN_DECLARE_TEST(product_selfadjoint)
+void test_product_selfadjoint()
 {
   int s = 0;
   for(int i = 0; i < g_repeat ; i++) {

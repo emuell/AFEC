@@ -13,6 +13,7 @@
 
 template<typename MatrixType> void eigen2support(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   Index rows = m.rows();
@@ -52,7 +53,7 @@ template<typename MatrixType> void eigen2support(const MatrixType& m)
   m1.minor(0,0);
 }
 
-EIGEN_DECLARE_TEST(eigen2support)
+void test_eigen2support()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( eigen2support(Matrix<double,1,1>()) );

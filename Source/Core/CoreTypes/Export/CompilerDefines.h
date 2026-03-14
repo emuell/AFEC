@@ -155,6 +155,9 @@
 // Warnings
 
 #if defined(MCompiler_VisualCPP)
+  // The file contains a character hat is illegal in the current source character set
+  #pragma warning(disable : 4828)
+
   // 'typedef' ignored on left of XX when no variable is declared
   #pragma warning(disable: 4091)
 

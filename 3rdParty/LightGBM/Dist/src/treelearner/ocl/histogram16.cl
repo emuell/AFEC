@@ -8,7 +8,7 @@
 #ifndef __OPENCL_VERSION__
 // If we are including this file in C++,
 // the entire source file following (except the last #endif) will become
-// a raw string literal. The extra ")" is just for mathcing parentheses
+// a raw string literal. The extra ")" is just for matching parentheses
 // to make the editor happy. The extra ")" and extra endif will be skipped.
 // DO NOT add anything between here and the next #ifdef, otherwise you need
 // to modify the skip count at the end of this file.
@@ -73,12 +73,12 @@ typedef uint acc_int_type;
 // local memory size in bytes
 #define LOCAL_MEM_SIZE (DWORD_FEATURES * (sizeof(uint) + 2 * sizeof(acc_type)) * NUM_BINS * NUM_BANKS)
 
-// unroll the atomic operation for a few times. Takes more code space, 
+// unroll the atomic operation for a few times. Takes more code space,
 // but compiler can generate better code for faster atomics.
 #define UNROLL_ATOMIC 1
 
 // Options passed by compiler at run time:
-// IGNORE_INDICES will be set when the kernel does not 
+// IGNORE_INDICES will be set when the kernel does not
 // #define IGNORE_INDICES
 // #define POWER_FEATURE_WORKGROUPS 10
 
@@ -161,7 +161,7 @@ R""()
 // this function will be called by histogram16
 // we have one sub-histogram of one feature in registers, and need to read others
 void within_kernel_reduction16x8(uchar8 feature_mask,
-                           __global const acc_type* restrict feature4_sub_hist, 
+                           __global const acc_type* restrict feature4_sub_hist,
                            const uint skip_id,
                            acc_type stat_val,
                            const ushort num_sub_hist,
@@ -173,19 +173,19 @@ void within_kernel_reduction16x8(uchar8 feature_mask,
     uchar is_hessian_first = (ltid >> LOG2_DWORD_FEATURES) & 1; // hessian or gradient
     ushort bin_id = ltid >> (LOG2_DWORD_FEATURES + 1); // range 0 - 16
     ushort i;
-    #if POWER_FEATURE_WORKGROUPS != 0 
+    #if POWER_FEATURE_WORKGROUPS != 0
     // if there is only 1 work group, no need to do the reduction
     // add all sub-histograms for 4 features
     __global const acc_type* restrict p = feature4_sub_hist + ltid;
     for (i = 0; i < skip_id; ++i) {
-            // 256 threads working on 8 features' 16 bins, gradient and hessian
+            // 256 threads working on 8 features' 16 bins, gradient and Hessian
             stat_val += *p;
             p += NUM_BINS * DWORD_FEATURES * 2;
     }
     // skip the counters we already have
     p += 2 * DWORD_FEATURES * NUM_BINS;
     for (i = i + 1; i < num_sub_hist; ++i) {
-            stat_val += *p; 
+            stat_val += *p;
             p += NUM_BINS * DWORD_FEATURES * 2;
     }
     #endif
@@ -208,12 +208,12 @@ R""()
 
 __attribute__((reqd_work_group_size(LOCAL_SIZE_0, 1, 1)))
 #if USE_CONSTANT_BUF == 1
-__kernel void histogram16(__global const uchar4* restrict feature_data_base, 
+__kernel void histogram16(__global const uchar4* restrict feature_data_base,
                       __constant const uchar8* restrict feature_masks __attribute__((max_constant_size(65536))),
                       const data_size_t feature_size,
-                      __constant const data_size_t* restrict data_indices __attribute__((max_constant_size(65536))), 
-                      const data_size_t num_data, 
-                      __constant const score_t* restrict ordered_gradients __attribute__((max_constant_size(65536))), 
+                      __constant const data_size_t* restrict data_indices __attribute__((max_constant_size(65536))),
+                      const data_size_t num_data,
+                      __constant const score_t* restrict ordered_gradients __attribute__((max_constant_size(65536))),
 #if CONST_HESSIAN == 0
                       __constant const score_t* restrict ordered_hessians __attribute__((max_constant_size(65536))),
 #else
@@ -223,18 +223,18 @@ __kernel void histogram16(__global const uchar4* restrict feature_data_base,
                       __global volatile int * sync_counters,
                       __global acc_type* restrict hist_buf_base) {
 #else
-__kernel void histogram16(__global const uchar4* feature_data_base, 
+__kernel void histogram16(__global const uchar4* feature_data_base,
                       __constant const uchar8* restrict feature_masks __attribute__((max_constant_size(65536))),
                       const data_size_t feature_size,
-                      __global const data_size_t* data_indices, 
-                      const data_size_t num_data, 
-                      __global const score_t*  ordered_gradients, 
+                      __global const data_size_t* data_indices,
+                      const data_size_t num_data,
+                      __global const score_t*  ordered_gradients,
 #if CONST_HESSIAN == 0
                       __global const score_t*  ordered_hessians,
 #else
                       const score_t const_hessian,
 #endif
-                      __global char* restrict output_buf, 
+                      __global char* restrict output_buf,
                       __global volatile int * sync_counters,
                       __global acc_type* restrict hist_buf_base) {
 #endif
@@ -260,38 +260,38 @@ __kernel void histogram16(__global const uchar4* feature_data_base,
     // there are 8 banks (sub-histograms) used by 256 threads total 8 KB
     /* memory layout of gh_hist:
        -----------------------------------------------------------------------------------------------
-       bk0_g_f0_bin0   bk0_g_f1_bin0   bk0_g_f2_bin0   bk0_g_f3_bin0   bk0_g_f4_bin0   bk0_g_f5_bin0   bk0_g_f6_bin0   bk0_g_f7_bin0   
+       bk0_g_f0_bin0   bk0_g_f1_bin0   bk0_g_f2_bin0   bk0_g_f3_bin0   bk0_g_f4_bin0   bk0_g_f5_bin0   bk0_g_f6_bin0   bk0_g_f7_bin0
        bk0_h_f0_bin0   bk0_h_f1_bin0   bk0_h_f2_bin0   bk0_h_f3_bin0   bk0_h_f4_bin0   bk0_h_f5_bin0   bk0_h_f6_bin0   bk0_h_f7_bin0
-       bk1_g_f0_bin0   bk1_g_f1_bin0   bk1_g_f2_bin0   bk1_g_f3_bin0   bk1_g_f4_bin0   bk1_g_f5_bin0   bk1_g_f6_bin0   bk1_g_f7_bin0   
+       bk1_g_f0_bin0   bk1_g_f1_bin0   bk1_g_f2_bin0   bk1_g_f3_bin0   bk1_g_f4_bin0   bk1_g_f5_bin0   bk1_g_f6_bin0   bk1_g_f7_bin0
        bk1_h_f0_bin0   bk1_h_f1_bin0   bk1_h_f2_bin0   bk1_h_f3_bin0   bk1_h_f4_bin0   bk1_h_f5_bin0   bk1_h_f6_bin0   bk1_h_f7_bin0
-       bk2_g_f0_bin0   bk2_g_f1_bin0   bk2_g_f2_bin0   bk2_g_f3_bin0   bk2_g_f4_bin0   bk2_g_f5_bin0   bk2_g_f6_bin0   bk2_g_f7_bin0   
+       bk2_g_f0_bin0   bk2_g_f1_bin0   bk2_g_f2_bin0   bk2_g_f3_bin0   bk2_g_f4_bin0   bk2_g_f5_bin0   bk2_g_f6_bin0   bk2_g_f7_bin0
        bk2_h_f0_bin0   bk2_h_f1_bin0   bk2_h_f2_bin0   bk2_h_f3_bin0   bk2_h_f4_bin0   bk2_h_f5_bin0   bk2_h_f6_bin0   bk2_h_f7_bin0
-       bk3_g_f0_bin0   bk3_g_f1_bin0   bk3_g_f2_bin0   bk3_g_f3_bin0   bk3_g_f4_bin0   bk3_g_f5_bin0   bk3_g_f6_bin0   bk3_g_f7_bin0   
+       bk3_g_f0_bin0   bk3_g_f1_bin0   bk3_g_f2_bin0   bk3_g_f3_bin0   bk3_g_f4_bin0   bk3_g_f5_bin0   bk3_g_f6_bin0   bk3_g_f7_bin0
        bk3_h_f0_bin0   bk3_h_f1_bin0   bk3_h_f2_bin0   bk3_h_f3_bin0   bk3_h_f4_bin0   bk3_h_f5_bin0   bk3_h_f6_bin0   bk3_h_f7_bin0
-       bk4_g_f0_bin0   bk4_g_f1_bin0   bk4_g_f2_bin0   bk4_g_f3_bin0   bk4_g_f4_bin0   bk4_g_f5_bin0   bk4_g_f6_bin0   bk4_g_f7_bin0   
+       bk4_g_f0_bin0   bk4_g_f1_bin0   bk4_g_f2_bin0   bk4_g_f3_bin0   bk4_g_f4_bin0   bk4_g_f5_bin0   bk4_g_f6_bin0   bk4_g_f7_bin0
        bk4_h_f0_bin0   bk4_h_f1_bin0   bk4_h_f2_bin0   bk4_h_f3_bin0   bk4_h_f4_bin0   bk4_h_f5_bin0   bk4_h_f6_bin0   bk4_h_f7_bin0
-       bk5_g_f0_bin0   bk5_g_f1_bin0   bk5_g_f2_bin0   bk5_g_f3_bin0   bk5_g_f4_bin0   bk5_g_f5_bin0   bk5_g_f6_bin0   bk5_g_f7_bin0   
+       bk5_g_f0_bin0   bk5_g_f1_bin0   bk5_g_f2_bin0   bk5_g_f3_bin0   bk5_g_f4_bin0   bk5_g_f5_bin0   bk5_g_f6_bin0   bk5_g_f7_bin0
        bk5_h_f0_bin0   bk5_h_f1_bin0   bk5_h_f2_bin0   bk5_h_f3_bin0   bk5_h_f4_bin0   bk5_h_f5_bin0   bk5_h_f6_bin0   bk5_h_f7_bin0
-       bk6_g_f0_bin0   bk6_g_f1_bin0   bk6_g_f2_bin0   bk6_g_f3_bin0   bk6_g_f4_bin0   bk6_g_f5_bin0   bk6_g_f6_bin0   bk6_g_f7_bin0   
+       bk6_g_f0_bin0   bk6_g_f1_bin0   bk6_g_f2_bin0   bk6_g_f3_bin0   bk6_g_f4_bin0   bk6_g_f5_bin0   bk6_g_f6_bin0   bk6_g_f7_bin0
        bk6_h_f0_bin0   bk6_h_f1_bin0   bk6_h_f2_bin0   bk6_h_f3_bin0   bk6_h_f4_bin0   bk6_h_f5_bin0   bk6_h_f6_bin0   bk6_h_f7_bin0
-       bk7_g_f0_bin0   bk7_g_f1_bin0   bk7_g_f2_bin0   bk7_g_f3_bin0   bk7_g_f4_bin0   bk7_g_f5_bin0   bk7_g_f6_bin0   bk7_g_f7_bin0   
+       bk7_g_f0_bin0   bk7_g_f1_bin0   bk7_g_f2_bin0   bk7_g_f3_bin0   bk7_g_f4_bin0   bk7_g_f5_bin0   bk7_g_f6_bin0   bk7_g_f7_bin0
        bk7_h_f0_bin0   bk7_h_f1_bin0   bk7_h_f2_bin0   bk7_h_f3_bin0   bk7_h_f4_bin0   bk7_h_f5_bin0   bk7_h_f6_bin0   bk7_h_f7_bin0
        ...
-       bk0_g_f0_bin16  bk0_g_f1_bin16  bk0_g_f2_bin16  bk0_g_f3_bin16  bk0_g_f4_bin16  bk0_g_f5_bin16  bk0_g_f6_bin16  bk0_g_f7_bin16 
+       bk0_g_f0_bin16  bk0_g_f1_bin16  bk0_g_f2_bin16  bk0_g_f3_bin16  bk0_g_f4_bin16  bk0_g_f5_bin16  bk0_g_f6_bin16  bk0_g_f7_bin16
        bk0_h_f0_bin16  bk0_h_f1_bin16  bk0_h_f2_bin16  bk0_h_f3_bin16  bk0_h_f4_bin16  bk0_h_f5_bin16  bk0_h_f6_bin16  bk0_h_f7_bin16
-       bk1_g_f0_bin16  bk1_g_f1_bin16  bk1_g_f2_bin16  bk1_g_f3_bin16  bk1_g_f4_bin16  bk1_g_f5_bin16  bk1_g_f6_bin16  bk1_g_f7_bin16 
+       bk1_g_f0_bin16  bk1_g_f1_bin16  bk1_g_f2_bin16  bk1_g_f3_bin16  bk1_g_f4_bin16  bk1_g_f5_bin16  bk1_g_f6_bin16  bk1_g_f7_bin16
        bk1_h_f0_bin16  bk1_h_f1_bin16  bk1_h_f2_bin16  bk1_h_f3_bin16  bk1_h_f4_bin16  bk1_h_f5_bin16  bk1_h_f6_bin16  bk1_h_f7_bin16
-       bk2_g_f0_bin16  bk2_g_f1_bin16  bk2_g_f2_bin16  bk2_g_f3_bin16  bk2_g_f4_bin16  bk2_g_f5_bin16  bk2_g_f6_bin16  bk2_g_f7_bin16 
+       bk2_g_f0_bin16  bk2_g_f1_bin16  bk2_g_f2_bin16  bk2_g_f3_bin16  bk2_g_f4_bin16  bk2_g_f5_bin16  bk2_g_f6_bin16  bk2_g_f7_bin16
        bk2_h_f0_bin16  bk2_h_f1_bin16  bk2_h_f2_bin16  bk2_h_f3_bin16  bk2_h_f4_bin16  bk2_h_f5_bin16  bk2_h_f6_bin16  bk2_h_f7_bin16
-       bk3_g_f0_bin16  bk3_g_f1_bin16  bk3_g_f2_bin16  bk3_g_f3_bin16  bk3_g_f4_bin16  bk3_g_f5_bin16  bk3_g_f6_bin16  bk3_g_f7_bin16 
+       bk3_g_f0_bin16  bk3_g_f1_bin16  bk3_g_f2_bin16  bk3_g_f3_bin16  bk3_g_f4_bin16  bk3_g_f5_bin16  bk3_g_f6_bin16  bk3_g_f7_bin16
        bk3_h_f0_bin16  bk3_h_f1_bin16  bk3_h_f2_bin16  bk3_h_f3_bin16  bk3_h_f4_bin16  bk3_h_f5_bin16  bk3_h_f6_bin16  bk3_h_f7_bin16
-       bk4_g_f0_bin16  bk4_g_f1_bin16  bk4_g_f2_bin16  bk4_g_f3_bin16  bk4_g_f4_bin16  bk4_g_f5_bin16  bk4_g_f6_bin16  bk4_g_f7_bin16 
+       bk4_g_f0_bin16  bk4_g_f1_bin16  bk4_g_f2_bin16  bk4_g_f3_bin16  bk4_g_f4_bin16  bk4_g_f5_bin16  bk4_g_f6_bin16  bk4_g_f7_bin16
        bk4_h_f0_bin16  bk4_h_f1_bin16  bk4_h_f2_bin16  bk4_h_f3_bin16  bk4_h_f4_bin16  bk4_h_f5_bin16  bk4_h_f6_bin16  bk4_h_f7_bin16
-       bk5_g_f0_bin16  bk5_g_f1_bin16  bk5_g_f2_bin16  bk5_g_f3_bin16  bk5_g_f4_bin16  bk5_g_f5_bin16  bk5_g_f6_bin16  bk5_g_f7_bin16 
+       bk5_g_f0_bin16  bk5_g_f1_bin16  bk5_g_f2_bin16  bk5_g_f3_bin16  bk5_g_f4_bin16  bk5_g_f5_bin16  bk5_g_f6_bin16  bk5_g_f7_bin16
        bk5_h_f0_bin16  bk5_h_f1_bin16  bk5_h_f2_bin16  bk5_h_f3_bin16  bk5_h_f4_bin16  bk5_h_f5_bin16  bk5_h_f6_bin16  bk5_h_f7_bin16
-       bk6_g_f0_bin16  bk6_g_f1_bin16  bk6_g_f2_bin16  bk6_g_f3_bin16  bk6_g_f4_bin16  bk6_g_f5_bin16  bk6_g_f6_bin16  bk6_g_f7_bin16 
+       bk6_g_f0_bin16  bk6_g_f1_bin16  bk6_g_f2_bin16  bk6_g_f3_bin16  bk6_g_f4_bin16  bk6_g_f5_bin16  bk6_g_f6_bin16  bk6_g_f7_bin16
        bk6_h_f0_bin16  bk6_h_f1_bin16  bk6_h_f2_bin16  bk6_h_f3_bin16  bk6_h_f4_bin16  bk6_h_f5_bin16  bk6_h_f6_bin16  bk6_h_f7_bin16
-       bk7_g_f0_bin16  bk7_g_f1_bin16  bk7_g_f2_bin16  bk7_g_f3_bin16  bk7_g_f4_bin16  bk7_g_f5_bin16  bk7_g_f6_bin16  bk7_g_f7_bin16 
+       bk7_g_f0_bin16  bk7_g_f1_bin16  bk7_g_f2_bin16  bk7_g_f3_bin16  bk7_g_f4_bin16  bk7_g_f5_bin16  bk7_g_f6_bin16  bk7_g_f7_bin16
        bk7_h_f0_bin16  bk7_h_f1_bin16  bk7_h_f2_bin16  bk7_h_f3_bin16  bk7_h_f4_bin16  bk7_h_f5_bin16  bk7_h_f6_bin16  bk7_h_f7_bin16
        -----------------------------------------------------------------------------------------------
     */
@@ -328,23 +328,23 @@ __kernel void histogram16(__global const uchar4* feature_data_base,
     #endif
 
     // thread 0, 1, 2, 3, 4, 5, 6, 7 compute histograms for gradients first
-    // thread 8, 9, 10, 11, 12, 13, 14, 15 compute histograms for hessians first
+    // thread 8, 9, 10, 11, 12, 13, 14, 15 compute histograms for Hessians first
     // etc.
     uchar is_hessian_first = (ltid >> LOG2_DWORD_FEATURES) & 1;
     // thread 0-15 write result to bank0, 16-31 to bank1, 32-47 to bank2, 48-63 to bank3, etc
     ushort bank = (ltid >> (LOG2_DWORD_FEATURES + 1)) & BANK_MASK;
-    
+
     ushort group_feature = group_id >> POWER_FEATURE_WORKGROUPS;
     // each 2^POWER_FEATURE_WORKGROUPS workgroups process on one feature (compile-time constant)
     // feature_size is the number of examples per feature
     __global const uchar4* feature_data = feature_data_base + group_feature * feature_size;
     // size of threads that process this feature4
     const uint subglobal_size = lsize * (1 << POWER_FEATURE_WORKGROUPS);
-    // equavalent thread ID in this subgroup for this feature4
+    // equivalent thread ID in this subgroup for this feature4
     const uint subglobal_tid  = gtid - group_feature * subglobal_size;
     // extract feature mask, when a byte is set to 0, that feature is disabled
     #if ENABLE_ALL_FEATURES == 1
-    // hopefully the compiler will propogate the constants and eliminate all branches
+    // hopefully the compiler will propagate the constants and eliminate all branches
     uchar8 feature_mask = (uchar8)(0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
     #else
     uchar8 feature_mask = feature_masks[group_feature];
@@ -390,7 +390,7 @@ R""()
     // there are 2^POWER_FEATURE_WORKGROUPS workgroups processing each feature4
     for (uint i = subglobal_tid; i < num_data; i += subglobal_size) {
         // prefetch the next iteration variables
-        // we don't need bondary check because we have made the buffer larger
+        // we don't need boundary check because we have made the buffer larger
         stat1_next = ordered_gradients[i + subglobal_size];
         #if CONST_HESSIAN == 0
         stat2_next = ordered_hessians[i + subglobal_size];
@@ -421,9 +421,9 @@ R""()
             addr = bin * HG_BIN_MULT + bank * 2 * DWORD_FEATURES + is_hessian_first * DWORD_FEATURES + offset;
             addr2 = addr + DWORD_FEATURES - 2 * DWORD_FEATURES * is_hessian_first;
             // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 0, 1, 2, 3, 4, 5, 6 ,7's gradients for example 0, 1, 2, 3, 4, 5, 6, 7
-            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 0, 1, 2, 3, 4, 5, 6, 7's hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
+            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 0, 1, 2, 3, 4, 5, 6, 7's Hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
             atomic_local_add_f(gh_hist + addr, stat1);
-            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 0, 1, 2, 3, 4, 5, 6, 7's hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
+            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 0, 1, 2, 3, 4, 5, 6, 7's Hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
             // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 0, 1, 2, 3, 4, 5, 6, 7's gradients for example 8, 9, 10, 11, 12, 13, 14, 15
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, stat2);
@@ -435,9 +435,9 @@ R""()
             addr = bin * HG_BIN_MULT + bank * 2 * DWORD_FEATURES + is_hessian_first * DWORD_FEATURES + offset;
             addr2 = addr + DWORD_FEATURES - 2 * DWORD_FEATURES * is_hessian_first;
             // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 1, 2, 3, 4, 5, 6 ,7, 0's gradients for example 0, 1, 2, 3, 4, 5, 6, 7
-            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 1, 2, 3, 4, 5, 6, 7, 0's hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
+            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 1, 2, 3, 4, 5, 6, 7, 0's Hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
             atomic_local_add_f(gh_hist + addr, stat1);
-            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 1, 2, 3, 4, 5, 6, 7, 0's hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
+            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 1, 2, 3, 4, 5, 6, 7, 0's Hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
             // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 1, 2, 3, 4, 5, 6, 7, 0's gradients for example 8, 9, 10, 11, 12, 13, 14, 15
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, stat2);
@@ -450,9 +450,9 @@ R""()
             addr = bin * HG_BIN_MULT + bank * 2 * DWORD_FEATURES + is_hessian_first * DWORD_FEATURES + offset;
             addr2 = addr + DWORD_FEATURES - 2 * DWORD_FEATURES * is_hessian_first;
             // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 2, 3, 4, 5, 6, 7, 0, 1's gradients for example 0, 1, 2, 3, 4, 5, 6, 7
-            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 2, 3, 4, 5, 6, 7, 0, 1's hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
+            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 2, 3, 4, 5, 6, 7, 0, 1's Hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
             atomic_local_add_f(gh_hist + addr, stat1);
-            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 2, 3, 4, 5, 6, 7, 0, 1's hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
+            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 2, 3, 4, 5, 6, 7, 0, 1's Hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
             // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 2, 3, 4, 5, 6, 7, 0, 1's gradients for example 8, 9, 10, 11, 12, 13, 14, 15
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, stat2);
@@ -464,9 +464,9 @@ R""()
             addr = bin * HG_BIN_MULT + bank * 2 * DWORD_FEATURES + is_hessian_first * DWORD_FEATURES + offset;
             addr2 = addr + DWORD_FEATURES - 2 * DWORD_FEATURES * is_hessian_first;
             // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 3, 4, 5, 6, 7, 0, 1, 2's gradients for example 0, 1, 2, 3, 4, 5, 6, 7
-            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 3, 4, 5, 6, 7, 0, 1, 2's hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
+            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 3, 4, 5, 6, 7, 0, 1, 2's Hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
             atomic_local_add_f(gh_hist + addr, stat1);
-            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 3, 4, 5, 6, 7, 0, 1, 2's hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
+            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 3, 4, 5, 6, 7, 0, 1, 2's Hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
             // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 3, 4, 5, 6, 7, 0, 1, 2's gradients for example 8, 9, 10, 11, 12, 13, 14, 15
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, stat2);
@@ -475,7 +475,7 @@ R""()
 
 
         // prefetch the next iteration variables
-        // we don't need bondary check because if it is out of boundary, ind_next = 0
+        // we don't need boundary check because if it is out of boundary, ind_next = 0
         #ifndef IGNORE_INDICES
         feature4_next = feature_data[ind_next];
         #endif
@@ -500,9 +500,9 @@ R""()
             addr = bin * HG_BIN_MULT + bank * 2 * DWORD_FEATURES + is_hessian_first * DWORD_FEATURES + offset;
             addr2 = addr + DWORD_FEATURES - 2 * DWORD_FEATURES * is_hessian_first;
             // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 5, 6, 7, 0, 1, 2, 3, 4's gradients for example 0, 1, 2, 3, 4, 5, 6, 7
-            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 5, 6, 7, 0, 1, 2, 3, 4's hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
+            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 5, 6, 7, 0, 1, 2, 3, 4's Hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
             atomic_local_add_f(gh_hist + addr, stat1);
-            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 5, 6, 7, 0, 1, 2, 3, 4's hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
+            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 5, 6, 7, 0, 1, 2, 3, 4's Hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
             // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 5, 6, 7, 0, 1, 2, 3, 4's gradients for example 8, 9, 10, 11, 12, 13, 14, 15
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, stat2);
@@ -515,9 +515,9 @@ R""()
             addr = bin * HG_BIN_MULT + bank * 2 * DWORD_FEATURES + is_hessian_first * DWORD_FEATURES + offset;
             addr2 = addr + DWORD_FEATURES - 2 * DWORD_FEATURES * is_hessian_first;
             // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 6, 7, 0, 1, 2, 3, 4, 5's gradients for example 0, 1, 2, 3, 4, 5, 6, 7
-            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 6, 7, 0, 1, 2, 3, 4, 5's hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
+            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 6, 7, 0, 1, 2, 3, 4, 5's Hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
             atomic_local_add_f(gh_hist + addr, stat1);
-            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 6, 7, 0, 1, 2, 3, 4, 5's hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
+            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 6, 7, 0, 1, 2, 3, 4, 5's Hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
             // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 6, 7, 0, 1, 2, 3, 4, 5's gradients for example 8, 9, 10, 11, 12, 13, 14, 15
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, stat2);
@@ -529,9 +529,9 @@ R""()
             addr = bin * HG_BIN_MULT + bank * 2 * DWORD_FEATURES + is_hessian_first * DWORD_FEATURES + offset;
             addr2 = addr + DWORD_FEATURES - 2 * DWORD_FEATURES * is_hessian_first;
             // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 7, 0, 1, 2, 3, 4, 5, 6's gradients for example 0, 1, 2, 3, 4, 5, 6, 7
-            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 7, 0, 1, 2, 3, 4, 5, 6's hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
+            // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 7, 0, 1, 2, 3, 4, 5, 6's Hessians  for example 8, 9, 10, 11, 12, 13, 14, 15
             atomic_local_add_f(gh_hist + addr, stat1);
-            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 7, 0, 1, 2, 3, 4, 5, 6's hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
+            // thread 0, 1, 2, 3, 4, 5, 6, 7 now process feature 7, 0, 1, 2, 3, 4, 5, 6's Hessians  for example 0, 1, 2, 3, 4, 5, 6, 7
             // thread 8, 9, 10, 11, 12, 13, 14, 15 now process feature 7, 0, 1, 2, 3, 4, 5, 6's gradients for example 8, 9, 10, 11, 12, 13, 14, 15
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, stat2);
@@ -615,12 +615,12 @@ R""()
 )""
 R""()
 */
-    
+
     #if ENABLE_ALL_FEATURES == 0
     // restore feature_mask
     feature_mask = feature_masks[group_feature];
     #endif
-    
+
     // now reduce the 4 banks of subhistograms into 1
     acc_type stat_val = 0.0f;
     uint cnt_val = 0;
@@ -644,7 +644,7 @@ R""()
         }
     }
     #endif
-    
+
     // now thread 0 - 7  holds feature 0 - 7's gradient for bin 0 and counter bin 0
     // now thread 8 - 15 holds feature 0 - 7's hessian  for bin 0 and counter bin 1
     // now thread 16- 23 holds feature 0 - 7's gradient for bin 1 and counter bin 2
@@ -652,7 +652,7 @@ R""()
     // etc,
 
 #if CONST_HESSIAN == 1
-    // Combine the two banks into one, and fill the hessians with counter value * hessian constant
+    // Combine the two banks into one, and fill the Hessians with counter value * hessian constant
     barrier(CLK_LOCAL_MEM_FENCE);
     gh_hist[ltid] = stat_val;
     if (ltid < LOCAL_SIZE_0 / 2) {
@@ -660,15 +660,15 @@ R""()
     }
     barrier(CLK_LOCAL_MEM_FENCE);
     if (is_hessian_first) {
-        // this is the hessians
+        // these are the Hessians
         // thread 8 - 15 read counters stored by thread 0 - 7
         // thread 24- 31 read counters stored by thread 8 - 15
         // thread 40- 47 read counters stored by thread 16- 23, etc
-        stat_val = const_hessian * 
+        stat_val = const_hessian *
                    cnt_hist[((ltid - DWORD_FEATURES) >> (LOG2_DWORD_FEATURES + 1)) * DWORD_FEATURES + (ltid & DWORD_FEATURES_MASK)];
     }
     else {
-        // this is the gradients
+        // these are the gradients
         // thread 0 - 7  read gradients stored by thread 8 - 15
         // thread 16- 23 read gradients stored by thread 24- 31
         // thread 32- 39 read gradients stored by thread 40- 47, etc
@@ -678,7 +678,7 @@ R""()
 #endif
 
     // write to output
-    // write gradients and hessians histogram for all 4 features
+    // write gradients and Hessians histogram for all 4 features
     // output data in linear order for further reduction
     // output size = 4 (features) * 2 (counters) * 64 (bins) * sizeof(float)
     /* memory layout of output:
@@ -688,29 +688,29 @@ R""()
        h_f0_bin1   h_f1_bin1   h_f2_bin1   h_f3_bin1   h_f4_bin1   h_f5_bin1   h_f6_bin1   h_f7_bin1
        ...
        ...
-       g_f0_bin16  g_f1_bin16  g_f2_bin16  g_f3_bin16  g_f4_bin16  g_f5_bin16  g_f6_bin16  g_f7_bin16       
-       h_f0_bin16  h_f1_bin16  h_f2_bin16  h_f3_bin16  h_f4_bin16  h_f5_bin16  h_f6_bin16  h_f7_bin16       
+       g_f0_bin16  g_f1_bin16  g_f2_bin16  g_f3_bin16  g_f4_bin16  g_f5_bin16  g_f6_bin16  g_f7_bin16
+       h_f0_bin16  h_f1_bin16  h_f2_bin16  h_f3_bin16  h_f4_bin16  h_f5_bin16  h_f6_bin16  h_f7_bin16
        c_f0_bin0   c_f1_bin0   c_f2_bin0   c_f3_bin0   c_f4_bin0   c_f5_bin0   c_f6_bin0   c_f7_bin0
        c_f0_bin1   c_f1_bin1   c_f2_bin1   c_f3_bin1   c_f4_bin1   c_f5_bin1   c_f6_bin1   c_f7_bin1
        ...
-       c_f0_bin16  c_f1_bin16  c_f2_bin16  c_f3_bin16  c_f4_bin16  c_f5_bin16  c_f6_bin16  c_f7_bin16    
+       c_f0_bin16  c_f1_bin16  c_f2_bin16  c_f3_bin16  c_f4_bin16  c_f5_bin16  c_f6_bin16  c_f7_bin16
     */
     // if there is only one workgroup processing this feature4, don't even need to write
     uint feature4_id = (group_id >> POWER_FEATURE_WORKGROUPS);
     #if POWER_FEATURE_WORKGROUPS != 0
     __global acc_type * restrict output = (__global acc_type * restrict)output_buf + group_id * DWORD_FEATURES * 2 * NUM_BINS;
     // if g_val and h_val are double, they are converted to float here
-    // write gradients and hessians for 8 features
+    // write gradients and Hessians for 8 features
     output[0 * DWORD_FEATURES * NUM_BINS + ltid] = stat_val;
     barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
     mem_fence(CLK_GLOBAL_MEM_FENCE);
-    // To avoid the cost of an extra reducting kernel, we have to deal with some 
+    // To avoid the cost of an extra reducing kernel, we have to deal with some
     // gray area in OpenCL. We want the last work group that process this feature to
     // make the final reduction, and other threads will just quit.
     // This requires that the results written by other workgroups available to the
     // last workgroup (memory consistency)
     #if NVIDIA == 1
-    // this is equavalent to CUDA __threadfence();
+    // this is equivalent to CUDA __threadfence();
     // ensure the writes above goes to main memory and other workgroups can see it
     asm volatile("{\n\tmembar.gl;\n\t}\n\t" :::"memory");
     #else
@@ -734,7 +734,7 @@ R""()
     }
     // make sure everyone in this workgroup is here
     barrier(CLK_LOCAL_MEM_FENCE);
-    // everyone in this wrokgroup: if we are the last workgroup, then do reduction!
+    // everyone in this workgroup: if we are the last workgroup, then do reduction!
     if (*counter_val == (1 << POWER_FEATURE_WORKGROUPS) - 1) {
         if (ltid == 0) {
             // printf("workgroup %d start reduction!\n", group_id);
@@ -750,13 +750,13 @@ R""()
     #endif
         // locate our feature4's block in output memory
         uint output_offset = (feature4_id << POWER_FEATURE_WORKGROUPS);
-        __global acc_type const * restrict feature4_subhists = 
+        __global acc_type const * restrict feature4_subhists =
                  (__global acc_type *)output_buf + output_offset * DWORD_FEATURES * 2 * NUM_BINS;
         // skip reading the data already in local memory
         uint skip_id = group_id ^ output_offset;
         // locate output histogram location for this feature4
         __global acc_type* restrict hist_buf = hist_buf_base + feature4_id * DWORD_FEATURES * 2 * NUM_BINS;
-        within_kernel_reduction16x8(feature_mask, feature4_subhists, skip_id, stat_val, 
+        within_kernel_reduction16x8(feature_mask, feature4_subhists, skip_id, stat_val,
                                     1 << POWER_FEATURE_WORKGROUPS, hist_buf, (__local acc_type *)shared_array);
     }
 }

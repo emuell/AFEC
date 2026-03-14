@@ -54,66 +54,6 @@ struct nested<TensorImagePatchOp<Rows, Cols, XprType>, 1, typename eval<TensorIm
   typedef TensorImagePatchOp<Rows, Cols, XprType> type;
 };
 
-template <typename Self, bool Vectorizable>
-struct ImagePatchCopyOp {
-  typedef typename Self::Index Index;
-  typedef typename Self::Scalar Scalar;
-  typedef typename Self::Impl Impl;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
-      const Self& self, const Index num_coeff_to_copy, const Index dst_index,
-      Scalar* dst_data, const Index src_index) {
-    const Impl& impl = self.impl();
-    for (Index i = 0; i < num_coeff_to_copy; ++i) {
-      dst_data[dst_index + i] = impl.coeff(src_index + i);
-    }
-  }
-};
-
-template <typename Self>
-struct ImagePatchCopyOp<Self, true> {
-  typedef typename Self::Index Index;
-  typedef typename Self::Scalar Scalar;
-  typedef typename Self::Impl Impl;
-  typedef typename packet_traits<Scalar>::type Packet;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
-      const Self& self, const Index num_coeff_to_copy, const Index dst_index,
-      Scalar* dst_data, const Index src_index) {
-    const Impl& impl = self.impl();
-    const Index packet_size = internal::unpacket_traits<Packet>::size;
-    const Index vectorized_size =
-        (num_coeff_to_copy / packet_size) * packet_size;
-    for (Index i = 0; i < vectorized_size; i += packet_size) {
-      Packet p = impl.template packet<Unaligned>(src_index + i);
-      internal::pstoret<Scalar, Packet, Unaligned>(dst_data + dst_index + i, p);
-    }
-    for (Index i = vectorized_size; i < num_coeff_to_copy; ++i) {
-      dst_data[dst_index + i] = impl.coeff(src_index + i);
-    }
-  }
-};
-
-template <typename Self>
-struct ImagePatchPaddingOp {
-  typedef typename Self::Index Index;
-  typedef typename Self::Scalar Scalar;
-  typedef typename packet_traits<Scalar>::type Packet;
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void Run(
-      const Index num_coeff_to_pad, const Scalar padding_value,
-      const Index dst_index, Scalar* dst_data) {
-    const Index packet_size = internal::unpacket_traits<Packet>::size;
-    const Packet padded_packet = internal::pset1<Packet>(padding_value);
-    const Index vectorized_size =
-        (num_coeff_to_pad / packet_size) * packet_size;
-    for (Index i = 0; i < vectorized_size; i += packet_size) {
-      internal::pstoret<Scalar, Packet, Unaligned>(dst_data + dst_index + i,
-                                                   padded_packet);
-    }
-    for (Index i = vectorized_size; i < num_coeff_to_pad; ++i) {
-      dst_data[dst_index + i] = padding_value;
-    }
-  }
-};
-
 }  // end namespace internal
 
 template<DenseIndex Rows, DenseIndex Cols, typename XprType>
@@ -154,6 +94,23 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
                                                            m_padding_left(padding_left), m_padding_right(padding_right),
                                                            m_padding_type(PADDING_VALID), m_padding_value(padding_value) {}
 
+#ifdef EIGEN_USE_SYCL // this is work around for sycl as Eigen could not use c++11 deligate constructor feature
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorImagePatchOp(const XprType& expr, DenseIndex patch_rows, DenseIndex patch_cols,
+                                                         DenseIndex row_strides, DenseIndex col_strides,
+                                                         DenseIndex in_row_strides, DenseIndex in_col_strides,
+                                                         DenseIndex row_inflate_strides, DenseIndex col_inflate_strides,
+                                                         bool padding_explicit, DenseIndex padding_top, DenseIndex padding_bottom,
+                                                         DenseIndex padding_left, DenseIndex padding_right, PaddingType padding_type,
+                                                         Scalar padding_value)
+                                                         : m_xpr(expr), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
+                                                         m_row_strides(row_strides), m_col_strides(col_strides),
+                                                         m_in_row_strides(in_row_strides), m_in_col_strides(in_col_strides),
+                                                         m_row_inflate_strides(row_inflate_strides), m_col_inflate_strides(col_inflate_strides),
+                                                         m_padding_explicit(padding_explicit), m_padding_top(padding_top), m_padding_bottom(padding_bottom),
+                                                         m_padding_left(padding_left), m_padding_right(padding_right),
+                                                         m_padding_type(padding_type), m_padding_value(padding_value) {}
+
+#endif
 
     EIGEN_DEVICE_FUNC
     DenseIndex patch_rows() const { return m_patch_rows; }
@@ -224,26 +181,25 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   typedef TensorEvaluator<ArgType, Device> Impl;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  static const int PacketSize = PacketType<CoeffReturnType, Device>::size;
-  typedef StorageMemory<CoeffReturnType, Device> Storage;
-  typedef typename Storage::Type EvaluatorPointerType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
-    IsAligned         = false,
-    PacketAccess      = TensorEvaluator<ArgType, Device>::PacketAccess,
-    BlockAccess       = false,
-    PreferBlockAccess = true,
-    Layout            = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess       = false,
-    RawAccess         = false
+    IsAligned = false,
+    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    Layout = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess = false,
+    RawAccess = false
   };
 
-  //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
-  typedef internal::TensorBlockNotImplemented TensorBlock;
-  //===--------------------------------------------------------------------===//
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator( const XprType& op, const Device& device)
-      : m_device(device), m_impl(op.expression(), device)
+  #ifdef __SYCL_DEVICE_ONLY__
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator( const XprType op, const Device& device)
+  #else
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator( const XprType& op, const Device& device)
+  #endif
+      : m_impl(op.expression(), device)
+#ifdef EIGEN_USE_SYCL
+      , m_op(op)
+#endif
   {
     EIGEN_STATIC_ASSERT((NumDims >= 4), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
@@ -316,8 +272,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
           break;
         default:
           eigen_assert(false && "unexpected padding");
-          m_outputCols=0; // silence the uninitialised warning;
-          m_outputRows=0; //// silence the uninitialised warning;
+          m_outputCols=0; // silence the uninitialised warnig;
+          m_outputRows=0; //// silence the uninitialised warnig;
       }
     }
     eigen_assert(m_outputRows > 0);
@@ -389,18 +345,10 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType /*data*/) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
-
-#ifdef EIGEN_USE_THREADS
-  template <typename EvalSubExprsCallback>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeededAsync(
-      EvaluatorPointerType, EvalSubExprsCallback done) {
-    m_impl.evalSubExprsIfNeededAsync(nullptr, [done](bool) { done(true); });
-  }
-#endif  // EIGEN_USE_THREADS
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_impl.cleanup();
@@ -503,15 +451,13 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
     return packetWithPossibleZero(index);
   }
 
-  EIGEN_DEVICE_FUNC EvaluatorPointerType data() const { return NULL; }
+  EIGEN_DEVICE_FUNC typename Eigen::internal::traits<XprType>::PointerType data() const { return NULL; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
 
 #ifdef EIGEN_USE_SYCL
-  // binding placeholder accessors to a command group handler for SYCL
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void bind(cl::sycl::handler &cgh) const {
-    m_impl.bind(cgh);
-  }
+  // Required by SYCL in order to construct the expression tree on the device
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const XprType& xpr() const { return m_op; }
 #endif
 
   Index rowPaddingTop() const { return m_rowPaddingTop; }
@@ -541,7 +487,6 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetWithPossibleZero(Index index) const
   {
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
-    EIGEN_UNROLL_LOOP
     for (int i = 0; i < PacketSize; ++i) {
       values[i] = coeff(index+i);
     }
@@ -593,8 +538,11 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
   Scalar m_paddingValue;
 
-  const Device EIGEN_DEVICE_REF m_device;
   TensorEvaluator<ArgType, Device> m_impl;
+  #ifdef EIGEN_USE_SYCL
+  // Required for SYCL in order to construct the expression tree on the device
+   XprType m_op;
+   #endif
 };
 
 

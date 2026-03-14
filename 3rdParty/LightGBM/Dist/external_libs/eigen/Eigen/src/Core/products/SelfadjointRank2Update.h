@@ -24,8 +24,7 @@ struct selfadjoint_rank2_update_selector;
 template<typename Scalar, typename Index, typename UType, typename VType>
 struct selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Lower>
 {
-  static EIGEN_DEVICE_FUNC
-  void run(Scalar* mat, Index stride, const UType& u, const VType& v, const Scalar& alpha)
+  static void run(Scalar* mat, Index stride, const UType& u, const VType& v, const Scalar& alpha)
   {
     const Index size = u.size();
     for (Index i=0; i<size; ++i)

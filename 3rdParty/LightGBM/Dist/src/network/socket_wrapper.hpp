@@ -35,12 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// ifaddrs.h is not available on Solaris 10
-#if (defined(sun) || defined(__sun)) && (defined(__SVR4) || defined(__svr4__))
-  #include "ifaddrs_patch.h"
-#else
-  #include <ifaddrs.h>
-#endif
+#include <ifaddrs.h>
 
 #endif  // defined(_WIN32)
 
@@ -60,8 +55,8 @@ const int INVALID_SOCKET = -1;
 #endif
 
 #ifdef _WIN32
-#ifndef _MSC_VER
-// not using visual studio in windows
+// existence of inet_pton is checked in CMakeLists.txt and configure.win, then stored in WIN_HAS_INET_PTON
+#ifndef WIN_HAS_INET_PTON
 inline int inet_pton(int af, const char *src, void *dst) {
   struct sockaddr_storage ss;
   int size = sizeof(ss);
@@ -253,7 +248,7 @@ class TcpSocket {
   }
 
   inline bool Connect(const char *url, int port) {
-    sockaddr_in  server_addr = GetAddress(url, port);
+    sockaddr_in server_addr = GetAddress(url, port);
     if (connect(sockfd_, reinterpret_cast<const sockaddr*>(&server_addr), sizeof(sockaddr_in)) == 0) {
       return true;
     }
@@ -267,7 +262,12 @@ class TcpSocket {
   inline TcpSocket Accept() {
     SOCKET newfd = accept(sockfd_, NULL, NULL);
     if (newfd == INVALID_SOCKET) {
-      Log::Fatal("Socket accept error, code: %d", GetLastError());
+      int err_code = GetLastError();
+#if defined(_WIN32)
+      Log::Fatal("Socket accept error (code: %d)", err_code);
+#else
+      Log::Fatal("Socket accept error, %s (code: %d)", std::strerror(err_code), err_code);
+#endif
     }
     return TcpSocket(newfd);
   }
@@ -275,7 +275,12 @@ class TcpSocket {
   inline int Send(const char *buf_, int len, int flag = 0) {
     int cur_cnt = send(sockfd_, buf_, len, flag);
     if (cur_cnt == SOCKET_ERROR) {
-      Log::Fatal("Socket send error, code: %d", GetLastError());
+      int err_code = GetLastError();
+#if defined(_WIN32)
+      Log::Fatal("Socket send error (code: %d)", err_code);
+#else
+      Log::Fatal("Socket send error, %s (code: %d)", std::strerror(err_code), err_code);
+#endif
     }
     return cur_cnt;
   }
@@ -283,7 +288,12 @@ class TcpSocket {
   inline int Recv(char *buf_, int len, int flags = 0) {
     int cur_cnt = recv(sockfd_, buf_ , len , flags);
     if (cur_cnt == SOCKET_ERROR) {
-      Log::Fatal("Socket recv error, code: %d", GetLastError());
+      int err_code = GetLastError();
+#if defined(_WIN32)
+      Log::Fatal("Socket recv error (code: %d)", err_code);
+#else
+      Log::Fatal("Socket recv error, %s (code: %d)", std::strerror(err_code), err_code);
+#endif
     }
     return cur_cnt;
   }

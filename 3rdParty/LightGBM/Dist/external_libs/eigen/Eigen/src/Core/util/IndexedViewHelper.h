@@ -13,6 +13,13 @@
 
 namespace Eigen {
 
+/** \namespace Eigen::placeholders
+  * \ingroup Core_Module
+  *
+  * Namespace containing symbolic placeholder and identifiers
+  */
+namespace placeholders {
+
 namespace internal {
 struct symbolic_last_tag {};
 }
@@ -23,39 +30,40 @@ struct symbolic_last_tag {};
   * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically reference the last element/row/columns
   * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
   *
-  * This symbolic placeholder supports standard arithmetic operations.
+  * This symbolic placeholder support standard arithmetic operation.
   *
   * A typical usage example would be:
   * \code
   * using namespace Eigen;
-  * using Eigen::last;
+  * using Eigen::placeholders::last;
   * VectorXd v(n);
   * v(seq(2,last-2)).setOnes();
   * \endcode
   *
   * \sa end
   */
-static const symbolic::SymbolExpr<internal::symbolic_last_tag> last; // PLEASE use Eigen::last   instead of Eigen::placeholders::last
+static const Symbolic::SymbolExpr<internal::symbolic_last_tag> last;
 
-/** \var lastp1
+/** \var end
   * \ingroup Core_Module
   *
-  * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically
-  * reference the last+1 element/row/columns of the underlying vector or matrix once
-  * passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
+  * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically reference the last+1 element/row/columns
+  * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
   *
-  * This symbolic placeholder supports standard arithmetic operations.
-  * It is essentially an alias to last+fix<1>.
+  * This symbolic placeholder support standard arithmetic operation.
+  * It is essentially an alias to last+1
   *
   * \sa last
   */
 #ifdef EIGEN_PARSED_BY_DOXYGEN
-static const auto lastp1 = last+fix<1>;
+static const auto end = last+1;
 #else
 // Using a FixedExpr<1> expression is important here to make sure the compiler
 // can fully optimize the computation starting indices with zero overhead.
-static const symbolic::AddExpr<symbolic::SymbolExpr<internal::symbolic_last_tag>,symbolic::ValueExpr<Eigen::internal::FixedInt<1> > > lastp1(last+fix<1>());
+static const Symbolic::AddExpr<Symbolic::SymbolExpr<internal::symbolic_last_tag>,Symbolic::ValueExpr<Eigen::internal::FixedInt<1> > > end(last+fix<1>());
 #endif
+
+} // end namespace placeholders
 
 namespace internal {
 
@@ -66,9 +74,9 @@ template<int N>
 FixedInt<N> eval_expr_given_size(FixedInt<N> x, Index /*size*/)   { return x; }
 
 template<typename Derived>
-Index eval_expr_given_size(const symbolic::BaseExpr<Derived> &x, Index size)
+Index eval_expr_given_size(const Symbolic::BaseExpr<Derived> &x, Index size)
 {
-  return x.derived().eval(last=size-1);
+  return x.derived().eval(placeholders::last=size-1);
 }
 
 // Extract increment/step at compile time
@@ -109,7 +117,7 @@ template<> struct get_compile_time_incr<SingleRange> {
   enum { value = 1 }; // 1 or 0 ??
 };
 
-// Turn a single index into something that looks like an array (i.e., that exposes a .size(), and operator[](int) methods)
+// Turn a single index into something that looks like an array (i.e., that exposes a .size(), and operatro[](int) methods)
 template<typename T, int XprSize>
 struct IndexedViewCompatibleType<T,XprSize,typename internal::enable_if<internal::is_integral<T>::value>::type> {
   // Here we could simply use Array, but maybe it's less work for the compiler to use
@@ -119,13 +127,13 @@ struct IndexedViewCompatibleType<T,XprSize,typename internal::enable_if<internal
 };
 
 template<typename T, int XprSize>
-struct IndexedViewCompatibleType<T, XprSize, typename enable_if<symbolic::is_symbolic<T>::value>::type> {
+struct IndexedViewCompatibleType<T, XprSize, typename enable_if<Symbolic::is_symbolic<T>::value>::type> {
   typedef SingleRange type;
 };
 
 
 template<typename T>
-typename enable_if<symbolic::is_symbolic<T>::value,SingleRange>::type
+typename enable_if<Symbolic::is_symbolic<T>::value,SingleRange>::type
 makeIndexedViewCompatible(const T& id, Index size, SpecializedType) {
   return eval_expr_given_size(id,size);
 }
@@ -164,21 +172,14 @@ template<int Size> struct get_compile_time_incr<AllRange<Size> > {
 } // end namespace internal
 
 
+namespace placeholders {
+
 /** \var all
   * \ingroup Core_Module
   * Can be used as a parameter to DenseBase::operator()(const RowIndices&, const ColIndices&) to index all rows or columns
   */
-static const Eigen::internal::all_t all; // PLEASE use Eigen::all instead of Eigen::placeholders::all
+static const Eigen::internal::all_t all;
 
-
-namespace placeholders {
-  typedef symbolic::SymbolExpr<internal::symbolic_last_tag> last_t;
-  typedef symbolic::AddExpr<symbolic::SymbolExpr<internal::symbolic_last_tag>,symbolic::ValueExpr<Eigen::internal::FixedInt<1> > > end_t;
-  typedef Eigen::internal::all_t all_t;
-
-  EIGEN_DEPRECATED static const all_t  all  = Eigen::all;    // PLEASE use Eigen::all    instead of Eigen::placeholders::all
-  EIGEN_DEPRECATED static const last_t last = Eigen::last;   // PLEASE use Eigen::last   instead of Eigen::placeholders::last
-  EIGEN_DEPRECATED static const end_t  end  = Eigen::lastp1; // PLEASE use Eigen::lastp1 instead of Eigen::placeholders::end
 }
 
 } // end namespace Eigen

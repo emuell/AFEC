@@ -22,9 +22,9 @@ class Random {
   */
   Random() {
     std::random_device rd;
-    auto genrator = std::mt19937(rd());
+    auto generator = std::mt19937(rd());
     std::uniform_int_distribution<int> distribution(0, x);
-    x = distribution(genrator);
+    x = distribution(generator);
   }
   /*!
   * \brief Constructor, with specific seed
@@ -85,7 +85,7 @@ class Random {
     } else {
       std::set<int> sample_set;
       for (int r = N - K; r < N; ++r) {
-        int v = NextInt(0, r);
+        int v = NextInt(0, r + 1);
         if (!sample_set.insert(v).second) {
           sample_set.insert(r);
         }

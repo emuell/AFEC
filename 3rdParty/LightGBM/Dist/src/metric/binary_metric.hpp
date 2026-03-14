@@ -61,13 +61,13 @@ class BinaryMetric: public Metric {
     double sum_loss = 0.0f;
     if (objective == nullptr) {
       if (weights_ == nullptr) {
-        #pragma omp parallel for schedule(static) reduction(+:sum_loss)
+        #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           // add loss
           sum_loss += PointWiseLossCalculator::LossOnPoint(label_[i], score[i]);
         }
       } else {
-        #pragma omp parallel for schedule(static) reduction(+:sum_loss)
+        #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           // add loss
           sum_loss += PointWiseLossCalculator::LossOnPoint(label_[i], score[i]) * weights_[i];
@@ -75,7 +75,7 @@ class BinaryMetric: public Metric {
       }
     } else {
       if (weights_ == nullptr) {
-        #pragma omp parallel for schedule(static) reduction(+:sum_loss)
+        #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           double prob = 0;
           objective->ConvertOutput(&score[i], &prob);
@@ -83,7 +83,7 @@ class BinaryMetric: public Metric {
           sum_loss += PointWiseLossCalculator::LossOnPoint(label_[i], prob);
         }
       } else {
-        #pragma omp parallel for schedule(static) reduction(+:sum_loss)
+        #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static) reduction(+:sum_loss)
         for (data_size_t i = 0; i < num_data_; ++i) {
           double prob = 0;
           objective->ConvertOutput(&score[i], &prob);
@@ -96,7 +96,7 @@ class BinaryMetric: public Metric {
     return std::vector<double>(1, loss);
   }
 
- private:
+ protected:
   /*! \brief Number of data */
   data_size_t num_data_;
   /*! \brief Pointer of label */
@@ -198,11 +198,11 @@ class AUCMetric: public Metric {
       sorted_idx.emplace_back(i);
     }
     Common::ParallelSort(sorted_idx.begin(), sorted_idx.end(), [score](data_size_t a, data_size_t b) {return score[a] > score[b]; });
-    // temp sum of postive label
+    // temp sum of positive label
     double cur_pos = 0.0f;
-    // total sum of postive label
+    // total sum of positive label
     double sum_pos = 0.0f;
-    // accumlate of auc
+    // accumulate of AUC
     double accum = 0.0f;
     // temp sum of negative label
     double cur_neg = 0.0f;
@@ -214,7 +214,7 @@ class AUCMetric: public Metric {
         // new threshold
         if (cur_score != threshold) {
           threshold = cur_score;
-          // accmulate
+          // accumulate
           accum += cur_neg*(cur_pos * 0.5f + sum_pos);
           sum_pos += cur_pos;
           // reset
@@ -231,7 +231,7 @@ class AUCMetric: public Metric {
         // new threshold
         if (cur_score != threshold) {
           threshold = cur_score;
-          // accmulate
+          // accumulate
           accum += cur_neg*(cur_pos * 0.5f + sum_pos);
           sum_pos += cur_pos;
           // reset
@@ -309,15 +309,15 @@ class AveragePrecisionMetric: public Metric {
       sorted_idx.emplace_back(i);
     }
     Common::ParallelSort(sorted_idx.begin(), sorted_idx.end(), [score](data_size_t a, data_size_t b) {return score[a] > score[b]; });
-    // temp sum of postive label
+    // temp sum of positive label
     double cur_actual_pos = 0.0f;
-    // total sum of postive label
+    // total sum of positive label
     double sum_actual_pos = 0.0f;
     // total sum of predicted positive
     double sum_pred_pos = 0.0f;
     // accumulated precision
     double accum_prec = 1.0f;
-    // accumlated pr-auc
+    // accumulated pr-auc
     double accum = 0.0f;
     // temp sum of negative label
     double cur_neg = 0.0f;
@@ -348,7 +348,7 @@ class AveragePrecisionMetric: public Metric {
         // new threshold
         if (cur_score != threshold) {
           threshold = cur_score;
-          // accmulate
+          // accumulate
           sum_actual_pos += cur_actual_pos;
           sum_pred_pos += cur_actual_pos + cur_neg;
           accum_prec = sum_actual_pos / sum_pred_pos;

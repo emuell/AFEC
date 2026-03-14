@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2020 IBM Corporation. All rights reserved.
+ * Copyright (c) 2020 IBM Corporation, Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See LICENSE file in the project root for license information.
  */
 #ifndef LIGHTGBM_CUDA_VECTOR_CUDAHOST_H_
@@ -42,7 +42,7 @@ struct CHAllocator {
   T* allocate(std::size_t n) {
     T* ptr;
     if (n == 0) return NULL;
-    n = (n + kAlignedSize - 1) & -kAlignedSize;
+    n = SIZE_ALIGNED(n);
     #ifdef USE_CUDA
       if (LGBM_config_::current_device == lgbm_device_cuda) {
         cudaError_t ret = cudaHostAlloc(&ptr, n*sizeof(T), cudaHostAllocPortable);

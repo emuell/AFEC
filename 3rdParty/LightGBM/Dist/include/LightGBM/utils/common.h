@@ -5,9 +5,7 @@
 #ifndef LIGHTGBM_UTILS_COMMON_H_
 #define LIGHTGBM_UTILS_COMMON_H_
 
-#if ((defined(sun) || defined(__sun)) && (defined(__SVR4) || defined(__svr4__)))
-#include <LightGBM/utils/common_legacy_solaris.h>
-#endif
+#include <LightGBM/utils/json11.h>
 #include <LightGBM/utils/log.h>
 #include <LightGBM/utils/openmp_wrapper.h>
 
@@ -18,6 +16,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <functional>
 #include <iomanip>
@@ -30,11 +29,9 @@
 #include <utility>
 #include <vector>
 
-#if (!((defined(sun) || defined(__sun)) && (defined(__SVR4) || defined(__svr4__))))
 #define FMT_HEADER_ONLY
-#include "../../../external_libs/fmt/include/fmt/format.h"
-#endif
-#include "../../../external_libs/fast_double_parser/include/fast_double_parser.h"
+#include "fast_double_parser.h"
+#include "fmt/format.h"
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -60,6 +57,8 @@
 namespace LightGBM {
 
 namespace Common {
+
+using json11_internal_lightgbm::Json;
 
 /*!
 * Imbues the stream with the C locale.
@@ -199,6 +198,28 @@ inline static std::vector<std::string> Split(const char* c_str, const char* deli
   return ret;
 }
 
+inline static std::string GetFromParserConfig(std::string config_str, std::string key) {
+  // parser config should follow json format.
+  std::string err;
+  Json config_json = Json::parse(config_str, &err);
+  if (!err.empty()) {
+    Log::Fatal("Invalid parser config: %s. Please check if follow json format.", err.c_str());
+  }
+  return config_json[key].string_value();
+}
+
+inline static std::string SaveToParserConfig(std::string config_str, std::string key, std::string value) {
+  std::string err;
+  Json config_json = Json::parse(config_str, &err);
+  if (!err.empty()) {
+    Log::Fatal("Invalid parser config: %s. Please check if follow json format.", err.c_str());
+  }
+  CHECK(config_json.is_object());
+  std::map<std::string, Json> config_map = config_json.object_items();
+  config_map.insert(std::pair<std::string, Json>(key, Json(value)));
+  return Json(config_map).dump();
+}
+
 template<typename T>
 inline static const char* Atoi(const char* p, T* out) {
   int sign;
@@ -328,6 +349,27 @@ inline static const char* Atof(const char* p, double* out) {
   }
 
   return p;
+}
+
+// Use fast_double_parse and strtod (if parse failed) to parse double.
+inline static const char* AtofPrecise(const char* p, double* out) {
+  const char* end = fast_double_parser::parse_number(p, out);
+
+  if (end != nullptr) {
+    return end;
+  }
+
+  // Rare path: Not in RFC 7159 format. Possible "inf", "nan", etc. Fallback to standard library:
+  char* end2;
+  errno = 0;  // This is Required before calling strtod.
+  *out = std::strtod(p, &end2);  // strtod is locale aware.
+  if (end2 == p) {
+    Log::Fatal("no conversion to double for: %s", p);
+  }
+  if (errno == ERANGE) {
+    Log::Warning("convert to double got underflow or overflow: %s", p);
+  }
+  return end2;
 }
 
 inline static bool AtoiAndCheck(const char* p, int* out) {
@@ -649,7 +691,7 @@ static void ParallelSort(_RanIt _First, _RanIt _Last, _Pr _Pred, _VTRanIt*) {
   size_t inner_size = (len + num_threads - 1) / num_threads;
   inner_size = std::max(inner_size, kMinInnerLen);
   num_threads = static_cast<int>((len + inner_size - 1) / inner_size);
-#pragma omp parallel for schedule(static, 1)
+#pragma omp parallel for num_threads(num_threads) schedule(static, 1)
   for (int i = 0; i < num_threads; ++i) {
     size_t left = inner_size*i;
     size_t right = left + inner_size;
@@ -665,7 +707,7 @@ static void ParallelSort(_RanIt _First, _RanIt _Last, _Pr _Pred, _VTRanIt*) {
   // Recursive merge
   while (s < len) {
     int loop_size = static_cast<int>((len + s * 2 - 1) / (s * 2));
-    #pragma omp parallel for schedule(static, 1)
+    #pragma omp parallel for num_threads(num_threads) schedule(static, 1)
     for (int i = 0; i < loop_size; ++i) {
       size_t left = i * 2 * s;
       size_t mid = left + s;
@@ -883,11 +925,11 @@ class AlignmentAllocator {
 
   inline ~AlignmentAllocator() throw() {}
 
-  inline pointer adress(reference r) {
+  inline pointer address(reference r) {
     return &r;
   }
 
-  inline const_pointer adress(const_reference r) const {
+  inline const_pointer address(const_reference r) const {
     return &r;
   }
 
@@ -1079,22 +1121,8 @@ struct __StringToTHelper<T, true> {
   T operator()(const std::string& str) const {
     double tmp;
 
-    // Fast (common) path: For numeric inputs in RFC 7159 format:
-    const bool fast_parse_succeeded = fast_double_parser::parse_number(str.c_str(), &tmp);
-
-    // Rare path: Not in RFC 7159 format. Possible "inf", "nan", etc.
-    if (!fast_parse_succeeded) {
-      std::string strlower(str);
-      std::transform(strlower.begin(), strlower.end(), strlower.begin(), [](int c) -> char { return static_cast<char>(::tolower(c)); });
-      if (strlower == std::string("inf"))
-        tmp = std::numeric_limits<double>::infinity();
-      else if (strlower == std::string("-inf"))
-        tmp = -std::numeric_limits<double>::infinity();
-      else if (strlower == std::string("nan"))
-        tmp = std::numeric_limits<double>::quiet_NaN();
-      else if (strlower == std::string("-nan"))
-        tmp = -std::numeric_limits<double>::quiet_NaN();
-      else
+    const char* end = Common::AtofPrecise(str.c_str(), &tmp);
+    if (end == str.c_str()) {
         Log::Fatal("Failed to parse double: %s", str.c_str());
     }
 
@@ -1162,7 +1190,6 @@ inline static std::vector<T> StringToArray(const std::string& str, char delimite
   return ret;
 }
 
-#if (!((defined(sun) || defined(__sun)) && (defined(__SVR4) || defined(__svr4__))))
 /*!
 * Safely formats a value onto a buffer according to a format string and null-terminates it.
 *
@@ -1205,7 +1232,7 @@ struct __TToStringHelper<T, true, true> {
 * Converts an array to a string with with values separated by the space character.
 * This method replaces Common's ``ArrayToString`` and ``ArrayToStringFast`` functionality
 * and is locale-independent.
-* 
+*
 * \note If ``high_precision_output`` is set to true,
 *       floating point values are output with more digits of precision.
 */
@@ -1227,7 +1254,6 @@ inline static std::string ArrayToString(const std::vector<T>& arr, size_t n) {
   }
   return str_buf.str();
 }
-#endif  // (!((defined(sun) || defined(__sun)) && (defined(__SVR4) || defined(__svr4__))))
 
 
 }  // namespace CommonC

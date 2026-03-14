@@ -6,6 +6,8 @@
 #ifndef LIGHTGBM_TREELEARNER_MONOTONE_CONSTRAINTS_HPP_
 #define LIGHTGBM_TREELEARNER_MONOTONE_CONSTRAINTS_HPP_
 
+#include <LightGBM/tree.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <limits>
@@ -875,7 +877,7 @@ class AdvancedLeafConstraints : public IntermediateLeafConstraints {
     // for example when adding a constraints cstr2 on thresholds [1:2),
     // on an existing constraints cstr1 on thresholds [0, +inf),
     // the thresholds and constraints must become
-    // [0, 1, 2] and  [cstr1, cstr2, cstr1]
+    // [0, 1, 2] and [cstr1, cstr2, cstr1]
     // so since we loop through thresholds only once,
     // the previous constraint that still applies needs to be recorded
     double previous_constraint = use_max_operator
@@ -1097,7 +1099,7 @@ class AdvancedLeafConstraints : public IntermediateLeafConstraints {
       uint32_t threshold = tree_->threshold_in_bin(parent_idx);
 
       // by going up, more information about the position of the
-      // original leaf  are gathered so the starting and ending
+      // original leaf are gathered so the starting and ending
       // thresholds can be updated, which will save some time later
       if ((feature_for_constraint == inner_feature) && is_split_numerical) {
         if (is_in_right_child) {

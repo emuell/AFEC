@@ -1,6 +1,7 @@
+cmake_minimum_required(VERSION 3.11)
 cmake_policy(SET CMP0048 NEW)
+
 project(fast_double_parser LANGUAGES CXX VERSION 0.0.0.0)
-cmake_minimum_required(VERSION 3.9)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (NOT CMAKE_BUILD_TYPE)
@@ -19,53 +20,82 @@ set(benchmark_src benchmarks/benchmark.cpp)
 
 
 add_library(fast_double_parser INTERFACE)
-target_include_directories(fast_double_parser INTERFACE include/)
+target_include_directories(fast_double_parser
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
 
+include(GNUInstallDirs)
+install(FILES ${headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(TARGETS fast_double_parser EXPORT fast_double_parser-targets)
+install(
+    EXPORT fast_double_parser-targets
+    DESTINATION "share/fast_double_parser"
+    NAMESPACE fast_double_parser::
+)
 
-add_executable(unit ${unit_src} ${bogus_src} ${rebogus_src})
-if(FAST_DOUBLE_PARSER_SANITIZE)
-  target_compile_options(unit PUBLIC -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover=all)
-  target_link_options(unit PUBLIC -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover=all)
-  # Ubuntu bug for GCC 5.0+ (safe for all versions)
-  if (CMAKE_COMPILER_IS_GNUCC)
-    target_link_libraries(unit PUBLIC -fuse-ld=gold)
-  endif()
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/fast_double_parser-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/fast_double_parser-config.cmake"
+  INSTALL_DESTINATION "share/fast_double_parser"
+)
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/fast_double_parser-config.cmake"
+  DESTINATION "share/fast_double_parser"
+)
+
+option(BUILD_TESTING "Build unit tests" ON)
+if(BUILD_TESTING)
+    add_executable(unit ${unit_src} ${bogus_src} ${rebogus_src})
+
+    if(FAST_DOUBLE_PARSER_SANITIZE)
+      target_compile_options(unit PUBLIC -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover=all)
+      target_link_options(unit PUBLIC -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined -fno-sanitize-recover=all)
+      # Ubuntu bug for GCC 5.0+ (safe for all versions)
+      if (CMAKE_COMPILER_IS_GNUCC AND NOT APPLE)
+        target_link_libraries(unit PUBLIC -fuse-ld=gold)
+      endif()
+    endif()
+    target_link_libraries(unit PRIVATE fast_double_parser)
+
+    enable_testing()
+    add_test(unit unit)
 endif()
 
-target_link_libraries(unit  PUBLIC fast_double_parser)
+option(FAST_DOUBLE_BENCHMARKS "include benchmarks" OFF)
 
 
-
-enable_testing()
-add_test(unit unit)
-
-option(FAST_DOUBLE_BENCHMARKS "Sanitize addresses" OFF)
-
-
-
-function(initialize_submodule DIRECTORY)
-  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${DIRECTORY}/.git)
-    find_package(Git QUIET REQUIRED)
-    message(STATUS "${CMAKE_CURRENT_SOURCE_DIR}/${DIRECTORY}/.git does not exist. Initializing ${DIRECTORY} submodule ...")
-    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init ${CMAKE_CURRENT_SOURCE_DIR}/${DIRECTORY}
-                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                    RESULT_VARIABLE GIT_EXIT_CODE)
-    if(NOT GIT_EXIT_CODE EQUAL "0")
-      message(FATAL_ERROR "${GIT_EXECUTABLE} submodule update --init dependencies/${DIRECTORY} failed with exit code ${GIT_EXIT_CODE}, please checkout submodules")
-    endif()
-  endif()
-endfunction(initialize_submodule)
 
 if(FAST_DOUBLE_BENCHMARKS)
-  initialize_submodule(benchmarks/dependencies/abseil-cpp)
-  initialize_submodule(benchmarks/dependencies/double-conversion)
 
-  add_subdirectory(benchmarks/dependencies/abseil-cpp)
-  add_subdirectory(benchmarks/dependencies/double-conversion)
+    include(FetchContent)
+    include(ExternalProject)
 
+    set(ABSL_ENABLE_INSTALL ON)
+    set(ABSL_RUN_TEST OFF CACHE INTERNAL "")
+    set(ABSL_USE_GOOGLETEST_HEAD OFF CACHE INTERNAL "")
 
+    FetchContent_Declare(abseil 
+         GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git 
+         GIT_TAG "20210324.2")
+    FetchContent_GetProperties(abseil)
+    if(NOT abseil_POPULATED)
+        set(BUILD_TESTING OFF)
+        FetchContent_Populate(abseil)
+        add_subdirectory(${abseil_SOURCE_DIR} ${abseil_BINARY_DIR})
+        set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${abseil_SOURCE_DIR}/absl/copts)
+        include(${abseil_SOURCE_DIR}/absl/copts/AbseilConfigureCopts.cmake)
+    endif()
 
-  add_executable(benchmark ${benchmark_src})
-  target_link_libraries(benchmark PUBLIC double-conversion absl_strings)
-  target_include_directories(benchmark PUBLIC include)
+    FetchContent_Declare(doubleconversion 
+        GIT_REPOSITORY https://github.com/google/double-conversion.git 
+        GIT_TAG "v3.1.5")
+    FetchContent_GetProperties(doubleconversion)
+    FetchContent_MakeAvailable(doubleconversion)
+
+    add_executable(benchmark ${benchmark_src})
+    target_link_libraries(benchmark PUBLIC double-conversion absl::strings)
+    target_include_directories(benchmark PUBLIC include)
 endif(FAST_DOUBLE_BENCHMARKS)

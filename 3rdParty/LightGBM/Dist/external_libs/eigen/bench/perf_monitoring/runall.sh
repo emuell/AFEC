@@ -10,13 +10,6 @@
 # Options:
 #   -up : enforce the recomputation of existing data, and keep best results as a merging strategy
 #   -s  : recompute selected changesets only and keep bests
-#   -np : no plotting of results, just generate the data
-
-if [[ "$*" =~ '-np' ]]; then
-  do_plot=false
-else
-  do_plot=true
-fi
 
 ./run.sh gemm gemm_settings.txt $*
 ./run.sh lazy_gemm lazy_gemm_settings.txt $*
@@ -28,7 +21,6 @@ fi
 ./run.sh trmv_lot gemv_square_settings.txt $*
 ./run.sh llt gemm_square_settings.txt $*
 
-if $do_plot ; then
 
 # generate html file
 
@@ -68,5 +60,4 @@ print_tr trmv_lot   'L &middot; L<sup>T<sup> = A &nbsp;  (Cholesky,potrf)'
 
 cat resources/footer.html >> $htmlfile
 
-fi
 fi

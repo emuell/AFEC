@@ -1,49 +1,70 @@
-OPTION(USE_MPI "Enable MPI-based distributed learning" OFF)
-OPTION(USE_OPENMP "Enable OpenMP" ON)
-OPTION(USE_GPU "Enable GPU-accelerated training" OFF)
-OPTION(USE_SWIG "Enable SWIG to generate Java API" OFF)
-OPTION(USE_HDFS "Enable HDFS support (EXPERIMENTAL)" OFF)
-OPTION(USE_TIMETAG "Set to ON to output time costs" OFF)
-OPTION(USE_CUDA "Enable CUDA-accelerated training (EXPERIMENTAL)" OFF)
-OPTION(USE_DEBUG "Set to ON for Debug mode" OFF)
-OPTION(USE_SANITIZER "Use santizer flags" OFF)
-SET(SANITIZER_PATH "" CACHE STRING "Path to sanitizer libs")
-SET(ENABLED_SANITIZERS "address" "leak" "undefined" CACHE STRING
-  "Semicolon separated list of sanitizer names. E.g 'address;leak'. Supported sanitizers are
-address, leak, undefined and thread.")
-OPTION(BUILD_CPP_TEST "Build C++ tests with Google Test" OFF)
-OPTION(BUILD_STATIC_LIB "Build static library" OFF)
-OPTION(__BUILD_FOR_R "Set to ON if building lib_lightgbm for use with the R package" OFF)
-OPTION(__INTEGRATE_OPENCL "Set to ON if building LightGBM with the OpenCL ICD Loader and its dependencies included" OFF)
+option(USE_MPI "Enable MPI-based distributed learning" OFF)
+option(USE_OPENMP "Enable OpenMP" ON)
+option(USE_GPU "Enable GPU-accelerated training" OFF)
+option(USE_SWIG "Enable SWIG to generate Java API" OFF)
+option(USE_TIMETAG "Set to ON to output time costs" OFF)
+option(USE_CUDA "Enable CUDA-accelerated training " OFF)
+option(USE_DEBUG "Set to ON for Debug mode" OFF)
+option(USE_SANITIZER "Use sanitizer flags" OFF)
+set(
+  ENABLED_SANITIZERS
+  "address" "leak" "undefined"
+  CACHE
+  STRING
+  "Semicolon separated list of sanitizer names, e.g., 'address;leak'. \
+Supported sanitizers are address, leak, undefined and thread."
+)
+option(USE_HOMEBREW_FALLBACK "(macOS-only) also look in 'brew --prefix' for libraries (e.g. OpenMP)" ON)
+option(BUILD_CLI "Build the 'lightgbm' command-line interface in addition to lib_lightgbm" ON)
+option(BUILD_CPP_TEST "Build C++ tests with Google Test" OFF)
+option(BUILD_STATIC_LIB "Build static library" OFF)
+option(INSTALL_HEADERS "Install headers to CMAKE_INSTALL_PREFIX (e.g. '/usr/local/include')" ON)
+option(__BUILD_FOR_PYTHON "Set to ON if building lib_lightgbm for use with the Python-package" OFF)
+option(__BUILD_FOR_R "Set to ON if building lib_lightgbm for use with the R-package" OFF)
+option(__INTEGRATE_OPENCL "Set to ON if building LightGBM with the OpenCL ICD Loader and its dependencies included" OFF)
 
-if(APPLE)
-  OPTION(APPLE_OUTPUT_DYLIB "Output dylib shared library" OFF)
-endif(APPLE)
+cmake_minimum_required(VERSION 3.28)
 
-if(__INTEGRATE_OPENCL)
-  cmake_minimum_required(VERSION 3.11)
-elseif(USE_GPU OR APPLE)
-  cmake_minimum_required(VERSION 3.2)
-elseif(USE_CUDA)
-  cmake_minimum_required(VERSION 3.16)
-else()
-  cmake_minimum_required(VERSION 3.0)
+# If using Visual Studio generators, always target v10.x of the Windows SDK.
+# Doing this avoids lookups that could fall back to very old versions, e.g. by finding
+# outdated registry entries.
+# ref: https://cmake.org/cmake/help/latest/variable/CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION.html
+if(CMAKE_GENERATOR MATCHES "Visual Studio")
+    set(CMAKE_SYSTEM_VERSION 10.0 CACHE INTERNAL "target Windows SDK version" FORCE)
 endif()
 
-PROJECT(lightgbm LANGUAGES C CXX)
+project(lightgbm LANGUAGES C CXX)
+
+if(BUILD_CPP_TEST)
+  set(CMAKE_CXX_STANDARD 14)
+else()
+  set(CMAKE_CXX_STANDARD 11)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 #-- Sanitizer
-if (USE_SANITIZER)
+if(USE_SANITIZER)
+  if(MSVC)
+    message(FATAL_ERROR "Sanitizers are not supported with MSVC.")
+  endif()
   include(cmake/Sanitizer.cmake)
   enable_sanitizers("${ENABLED_SANITIZERS}")
-endif (USE_SANITIZER)
+endif()
 
 if(__INTEGRATE_OPENCL)
   set(__INTEGRATE_OPENCL ON CACHE BOOL "" FORCE)
   set(USE_GPU OFF CACHE BOOL "" FORCE)
   message(STATUS "Building library with integrated OpenCL components")
+endif()
+
+if(__BUILD_FOR_PYTHON OR __BUILD_FOR_R OR USE_SWIG)
+    # the SWIG wrapper, the Python and R packages don't require the CLI
+    set(BUILD_CLI OFF)
+    # installing the SWIG wrapper, the R and Python packages shouldn't place LightGBM's headers
+    # outside of where the package is installed
+    set(INSTALL_HEADERS OFF)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -58,12 +79,13 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.1.0")
     message(FATAL_ERROR "Insufficient AppleClang version")
   endif()
-  cmake_minimum_required(VERSION 3.16)
 elseif(MSVC)
   if(MSVC_VERSION LESS 1900)
-    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} doesn't support required C++11 features. Please use a newer MSVC.")
+    message(
+      FATAL_ERROR
+      "The compiler ${CMAKE_CXX_COMPILER} doesn't support required C++11 features. Please use a newer MSVC."
+    )
   endif()
-  cmake_minimum_required(VERSION 3.8)
 endif()
 
 if(USE_SWIG)
@@ -82,163 +104,162 @@ if(USE_SWIG)
   include_directories(JNI_INCLUDE_DIRS)
   include_directories($ENV{JAVA_HOME}/include)
   if(WIN32)
-      FILE(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/com/microsoft/ml/lightgbm/windows/x86_64")
+      set(LGBM_SWIG_DESTINATION_DIR "${CMAKE_CURRENT_BINARY_DIR}/com/microsoft/ml/lightgbm/windows/x86_64")
       include_directories($ENV{JAVA_HOME}/include/win32)
   elseif(APPLE)
-      FILE(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/com/microsoft/ml/lightgbm/osx/x86_64")
+      set(LGBM_SWIG_DESTINATION_DIR "${CMAKE_CURRENT_BINARY_DIR}/com/microsoft/ml/lightgbm/osx/x86_64")
       include_directories($ENV{JAVA_HOME}/include/darwin)
   else()
-      FILE(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/com/microsoft/ml/lightgbm/linux/x86_64")
+      set(LGBM_SWIG_DESTINATION_DIR "${CMAKE_CURRENT_BINARY_DIR}/com/microsoft/ml/lightgbm/linux/x86_64")
       include_directories($ENV{JAVA_HOME}/include/linux)
   endif()
-endif(USE_SWIG)
+  file(MAKE_DIRECTORY "${LGBM_SWIG_DESTINATION_DIR}")
+endif()
 
-SET(EIGEN_DIR "${PROJECT_SOURCE_DIR}/external_libs/eigen")
+set(EIGEN_DIR "${PROJECT_SOURCE_DIR}/external_libs/eigen")
 include_directories(${EIGEN_DIR})
 
 # See https://gitlab.com/libeigen/eigen/-/blob/master/COPYING.README
-ADD_DEFINITIONS(-DEIGEN_MPL2_ONLY)
+add_definitions(-DEIGEN_MPL2_ONLY)
+add_definitions(-DEIGEN_DONT_PARALLELIZE)
+
+set(FAST_DOUBLE_PARSER_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/external_libs/fast_double_parser/include")
+include_directories(${FAST_DOUBLE_PARSER_INCLUDE_DIR})
+
+set(FMT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/external_libs/fmt/include")
+include_directories(${FMT_INCLUDE_DIR})
 
 if(__BUILD_FOR_R)
     find_package(LibR REQUIRED)
     message(STATUS "LIBR_EXECUTABLE: ${LIBR_EXECUTABLE}")
     message(STATUS "LIBR_INCLUDE_DIRS: ${LIBR_INCLUDE_DIRS}")
+    message(STATUS "LIBR_LIBS_DIR: ${LIBR_LIBS_DIR}")
     message(STATUS "LIBR_CORE_LIBRARY: ${LIBR_CORE_LIBRARY}")
     include_directories(${LIBR_INCLUDE_DIRS})
-    ADD_DEFINITIONS(-DLGB_R_BUILD)
-endif(__BUILD_FOR_R)
+    add_definitions(-DLGB_R_BUILD)
+endif()
 
 if(USE_TIMETAG)
-    ADD_DEFINITIONS(-DTIMETAG)
-endif(USE_TIMETAG)
+    add_definitions(-DTIMETAG)
+endif()
 
 if(USE_DEBUG)
-    ADD_DEFINITIONS(-DDEBUG)
-endif(USE_DEBUG)
+    add_definitions(-DDEBUG)
+endif()
 
 if(USE_MPI)
     find_package(MPI REQUIRED)
-    ADD_DEFINITIONS(-DUSE_MPI)
-    MESSAGE(STATUS "MPI libraries: " ${MPI_LIBRARIES})
-    MESSAGE(STATUS "MPI C++ libraries: " ${MPI_CXX_LIBRARIES})
+    add_definitions(-DUSE_MPI)
 else()
-    ADD_DEFINITIONS(-DUSE_SOCKET)
-endif(USE_MPI)
+    add_definitions(-DUSE_SOCKET)
+endif()
 
 if(USE_CUDA)
-    SET(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
+    set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}")
     enable_language(CUDA)
-    SET(USE_OPENMP ON CACHE BOOL "CUDA requires OpenMP" FORCE)
-endif(USE_CUDA)
+    set(USE_OPENMP ON CACHE BOOL "CUDA requires OpenMP" FORCE)
+endif()
 
 if(USE_OPENMP)
-    find_package(OpenMP REQUIRED)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif(USE_OPENMP)
+    if(APPLE)
+        find_package(OpenMP)
+        if(NOT OpenMP_FOUND)
+            if(USE_HOMEBREW_FALLBACK)
+                # libomp 15.0+ from brew is keg-only, so have to search in other locations.
+                # See https://github.com/Homebrew/homebrew-core/issues/112107#issuecomment-1278042927.
+                execute_process(COMMAND brew --prefix libomp
+                            OUTPUT_VARIABLE HOMEBREW_LIBOMP_PREFIX
+                            OUTPUT_STRIP_TRAILING_WHITESPACE)
+                set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I${HOMEBREW_LIBOMP_PREFIX}/include")
+                set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I${HOMEBREW_LIBOMP_PREFIX}/include")
+                set(OpenMP_C_LIB_NAMES omp)
+                set(OpenMP_CXX_LIB_NAMES omp)
+                set(OpenMP_omp_LIBRARY ${HOMEBREW_LIBOMP_PREFIX}/lib/libomp.dylib)
+            endif()
+            find_package(OpenMP REQUIRED)
+        endif()
+    else()
+        find_package(OpenMP REQUIRED)
+    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 if(USE_GPU)
-    SET(BOOST_COMPUTE_HEADER_DIR ${PROJECT_SOURCE_DIR}/external_libs/compute/include)
+    set(BOOST_COMPUTE_HEADER_DIR ${PROJECT_SOURCE_DIR}/external_libs/compute/include)
     include_directories(${BOOST_COMPUTE_HEADER_DIR})
     find_package(OpenCL REQUIRED)
     include_directories(${OpenCL_INCLUDE_DIRS})
-    MESSAGE(STATUS "OpenCL include directory: " ${OpenCL_INCLUDE_DIRS})
-    if (WIN32)
+    message(STATUS "OpenCL include directory: " ${OpenCL_INCLUDE_DIRS})
+    if(WIN32)
         set(Boost_USE_STATIC_LIBS ON)
     endif()
     find_package(Boost 1.56.0 COMPONENTS filesystem system REQUIRED)
-    if (WIN32)
+    if(WIN32)
         # disable autolinking in boost
         add_definitions(-DBOOST_ALL_NO_LIB)
     endif()
     include_directories(${Boost_INCLUDE_DIRS})
-    ADD_DEFINITIONS(-DUSE_GPU)
-endif(USE_GPU)
+    add_definitions(-DUSE_GPU)
+endif()
 
 if(__INTEGRATE_OPENCL)
-    if(WIN32)
-        include(cmake/IntegratedOpenCL.cmake)
-        ADD_DEFINITIONS(-DUSE_GPU)
+    if(APPLE)
+        message(FATAL_ERROR "Integrated OpenCL build is not available on macOS")
     else()
-        message(FATAL_ERROR "Integrated OpenCL build is available only for Windows")
-    endif(WIN32)
-endif(__INTEGRATE_OPENCL)
+        include(cmake/IntegratedOpenCL.cmake)
+        add_definitions(-DUSE_GPU)
+    endif()
+endif()
+
+if(BUILD_CPP_TEST AND MSVC)
+  # Use /MT flag to statically link the C runtime
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 if(USE_CUDA)
-    find_package(CUDA 9.0 REQUIRED)
-    include_directories(${CUDA_INCLUDE_DIRS})
-    LIST(APPEND CMAKE_CUDA_FLAGS -Xcompiler=${OpenMP_CXX_FLAGS} -Xcompiler=-fPIC -Xcompiler=-Wall)
+    find_package(CUDAToolkit 11.0 REQUIRED)
+    include_directories(${CUDAToolkit_INCLUDE_DIRS})
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler=${OpenMP_CXX_FLAGS} -Xcompiler=-fPIC -Xcompiler=-Wall")
 
-    set(CUDA_ARCHS "6.0" "6.1" "6.2" "7.0")
-    if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
-        list(APPEND CUDA_ARCHS "7.5")
+    # reference for mapping of CUDA toolkit component versions to supported architectures ("compute capabilities"):
+    # https://en.wikipedia.org/wiki/CUDA#GPUs_supported
+    set(CUDA_ARCHS "60" "61" "62" "70" "75")
+    if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "11.0")
+        list(APPEND CUDA_ARCHS "80")
     endif()
+    if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "11.1")
+        list(APPEND CUDA_ARCHS "86")
+    endif()
+    if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "11.5")
+        list(APPEND CUDA_ARCHS "87")
+    endif()
+    if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "11.8")
+        list(APPEND CUDA_ARCHS "89")
+        list(APPEND CUDA_ARCHS "90")
+    endif()
+    if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "12.8")
+        list(APPEND CUDA_ARCHS "100")
+        list(APPEND CUDA_ARCHS "120")
+    endif()
+    # Generate PTX for the most recent architecture for forwards compatibility
     list(POP_BACK CUDA_ARCHS CUDA_LAST_SUPPORTED_ARCH)
-    list(APPEND CUDA_ARCHS "${CUDA_LAST_SUPPORTED_ARCH}+PTX")
-    CUDA_SELECT_NVCC_ARCH_FLAGS(CUDA_ARCH_FLAGS ${CUDA_ARCHS})
-
-    LIST(APPEND CMAKE_CUDA_FLAGS ${CUDA_ARCH_FLAGS})
+    list(TRANSFORM CUDA_ARCHS APPEND "-real")
+    list(APPEND CUDA_ARCHS "${CUDA_LAST_SUPPORTED_ARCH}-real" "${CUDA_LAST_SUPPORTED_ARCH}-virtual")
+    message(STATUS "CUDA_ARCHITECTURES: ${CUDA_ARCHS}")
     if(USE_DEBUG)
-      SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g")
+      set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -g")
     else()
-      SET(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 -lineinfo")
+      set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 -lineinfo")
     endif()
-    string(REPLACE ";" " " CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS}")
     message(STATUS "CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}")
 
-    ADD_DEFINITIONS(-DUSE_CUDA)
-    if (NOT DEFINED CMAKE_CUDA_STANDARD)
+    add_definitions(-DUSE_CUDA)
+
+    if(NOT DEFINED CMAKE_CUDA_STANDARD)
       set(CMAKE_CUDA_STANDARD 11)
       set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     endif()
-
-    set(BASE_DEFINES
-     -DPOWER_FEATURE_WORKGROUPS=12
-     -DUSE_CONSTANT_BUF=0
-    )
-    set(ALLFEATS_DEFINES
-     ${BASE_DEFINES}
-     -DENABLE_ALL_FEATURES
-    )
-    set(FULLDATA_DEFINES
-     ${ALLFEATS_DEFINES}
-     -DIGNORE_INDICES
-    )
-
-    message(STATUS "ALLFEATS_DEFINES: ${ALLFEATS_DEFINES}")
-    message(STATUS "FULLDATA_DEFINES: ${FULLDATA_DEFINES}")
-
-    function(add_histogram hsize hname hadd hconst hdir)
-      add_library(histo${hsize}${hname} OBJECT src/treelearner/kernels/histogram${hsize}.cu)
-      set_target_properties(histo${hsize}${hname} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-      if(hadd)
-        list(APPEND histograms histo${hsize}${hname})
-        set(histograms ${histograms} PARENT_SCOPE)
-      endif()
-      target_compile_definitions(
-        histo${hsize}${hname} PRIVATE
-        -DCONST_HESSIAN=${hconst}
-        ${hdir}
-      )
-    endfunction()
-
-    foreach (hsize _16_64_256)
-      add_histogram("${hsize}" "_sp_const" "True" "1" "${BASE_DEFINES}")
-      add_histogram("${hsize}" "_sp" "True" "0" "${BASE_DEFINES}")
-      add_histogram("${hsize}" "-allfeats_sp_const" "False" "1" "${ALLFEATS_DEFINES}")
-      add_histogram("${hsize}" "-allfeats_sp" "False" "0" "${ALLFEATS_DEFINES}")
-      add_histogram("${hsize}" "-fulldata_sp_const" "True" "1" "${FULLDATA_DEFINES}")
-      add_histogram("${hsize}" "-fulldata_sp" "True" "0" "${FULLDATA_DEFINES}")
-    endforeach()
-endif(USE_CUDA)
-
-if(USE_HDFS)
-    find_package(JNI REQUIRED)
-    find_path(HDFS_INCLUDE_DIR hdfs.h REQUIRED)
-    find_library(HDFS_LIB NAMES hdfs REQUIRED)
-    include_directories(${HDFS_INCLUDE_DIR})
-    ADD_DEFINITIONS(-DUSE_HDFS)
-    SET(HDFS_CXX_LIBRARIES ${HDFS_LIB} ${JAVA_JVM_LIBRARY})
-endif(USE_HDFS)
+endif()
 
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("
@@ -252,7 +273,7 @@ int main() {
 
 if(${MM_PREFETCH})
   message(STATUS "Using _mm_prefetch")
-  ADD_DEFINITIONS(-DMM_PREFETCH)
+  add_definitions(-DMM_PREFETCH)
 endif()
 
 include(CheckCXXSourceCompiles)
@@ -267,202 +288,331 @@ int main() {
 
 if(${MM_MALLOC})
   message(STATUS "Using _mm_malloc")
-  ADD_DEFINITIONS(-DMM_MALLOC)
+  add_definitions(-DMM_MALLOC)
 endif()
 
 if(UNIX OR MINGW OR CYGWIN)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -Wextra -Wall -Wno-ignored-attributes -Wno-unknown-pragmas -Wno-return-type")
-    if(USE_DEBUG)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
-    else()
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-    endif()
-    if(USE_SWIG)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
-    endif()
-    if(NOT USE_OPENMP)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas -Wno-unused-private-field")
-    endif()
+  set(
+    CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -pthread -Wextra -Wall -Wno-ignored-attributes -Wno-unknown-pragmas -Wno-return-type"
+  )
+  if(MINGW)
+    # ignore this warning: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95353
+    set(
+      CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -Wno-stringop-overflow"
+    )
+  endif()
+  if(USE_DEBUG)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
+  else()
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+  endif()
+  if(USE_SWIG)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
+  endif()
+  if(NOT USE_OPENMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas -Wno-unused-private-field")
+  endif()
+  if(__BUILD_FOR_R AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-cast-function-type")
+  endif()
 endif()
 
 if(WIN32 AND MINGW)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
+endif()
+
+# Check if inet_pton is already available, to avoid conflicts with the implementation in LightGBM.
+# As of 2022, MinGW started including a definition of inet_pton.
+if(WIN32)
+  include(CheckSymbolExists)
+  list(APPEND CMAKE_REQUIRED_LIBRARIES "ws2_32")
+  check_symbol_exists(inet_pton "ws2tcpip.h" WIN_INET_PTON_FOUND)
+  if(WIN_INET_PTON_FOUND)
+    add_definitions(-DWIN_HAS_INET_PTON)
+  endif()
+  list(REMOVE_ITEM CMAKE_REQUIRED_LIBRARIES "ws2_32")
 endif()
 
 if(MSVC)
-    SET(variables
-        CMAKE_C_FLAGS_DEBUG
-        CMAKE_C_FLAGS_MINSIZEREL
-        CMAKE_C_FLAGS_RELEASE
-        CMAKE_C_FLAGS_RELWITHDEBINFO
-        CMAKE_CXX_FLAGS_DEBUG
-        CMAKE_CXX_FLAGS_MINSIZEREL
-        CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS_RELWITHDEBINFO
-    )
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /MP")
+    # compiling 'fmt' on MSVC: "Unicode support requires compiling with /utf-8"
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /MP /utf-8")
+    if(__BUILD_FOR_R)
+        # MSVC does not like this commit:
+        # https://github.com/wch/r-source/commit/fb52ac1a610571fcb8ac92d886b9fefcffaa7d48
+        #
+        # and raises "error C3646: 'private_data_c': unknown override specifier"
+        add_definitions(-DR_LEGACY_RCOMPLEX)
+    endif()
     if(USE_DEBUG)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Od")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Od")
     else()
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /Ob2 /Oi /Ot /Oy")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /Ob2 /Oi /Ot /Oy")
     endif()
 else()
-    if(NOT USE_DEBUG)
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops")
+    if(NOT BUILD_STATIC_LIB)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
     endif()
-endif(MSVC)
+    if(NOT USE_DEBUG)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops")
+    endif()
+endif()
 
-SET(LightGBM_HEADER_DIR ${PROJECT_SOURCE_DIR}/include)
+set(LightGBM_HEADER_DIR ${PROJECT_SOURCE_DIR}/include)
 
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
-SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 
 include_directories(${LightGBM_HEADER_DIR})
 
-if(APPLE)
-  if(APPLE_OUTPUT_DYLIB)
-    SET(CMAKE_SHARED_LIBRARY_SUFFIX ".dylib")
-  else()
-    SET(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
-  endif()
-endif(APPLE)
-
 if(USE_MPI)
   include_directories(${MPI_CXX_INCLUDE_PATH})
-endif(USE_MPI)
+endif()
 
-file(GLOB SOURCES
-    src/boosting/*.cpp
-    src/io/*.cpp
-    src/metric/*.cpp
-    src/objective/*.cpp
-    src/network/*.cpp
-    src/treelearner/*.cpp
-if(USE_CUDA)
-    src/treelearner/*.cu
-endif(USE_CUDA)
+set(
+    LGBM_SOURCES
+      src/boosting/boosting.cpp
+      src/boosting/gbdt_model_text.cpp
+      src/boosting/gbdt_prediction.cpp
+      src/boosting/gbdt.cpp
+      src/boosting/prediction_early_stop.cpp
+      src/boosting/sample_strategy.cpp
+      src/io/bin.cpp
+      src/io/config_auto.cpp
+      src/io/config.cpp
+      src/io/dataset_loader.cpp
+      src/io/dataset.cpp
+      src/io/file_io.cpp
+      src/io/json11.cpp
+      src/io/metadata.cpp
+      src/io/parser.cpp
+      src/io/train_share_states.cpp
+      src/io/tree.cpp
+      src/metric/dcg_calculator.cpp
+      src/metric/metric.cpp
+      src/network/linker_topo.cpp
+      src/network/linkers_mpi.cpp
+      src/network/linkers_socket.cpp
+      src/network/network.cpp
+      src/objective/objective_function.cpp
+      src/treelearner/data_parallel_tree_learner.cpp
+      src/treelearner/feature_histogram.cpp
+      src/treelearner/feature_parallel_tree_learner.cpp
+      src/treelearner/gpu_tree_learner.cpp
+      src/treelearner/gradient_discretizer.cpp
+      src/treelearner/linear_tree_learner.cpp
+      src/treelearner/serial_tree_learner.cpp
+      src/treelearner/tree_learner.cpp
+      src/treelearner/voting_parallel_tree_learner.cpp
+      src/utils/openmp_wrapper.cpp
+)
+set(
+    LGBM_CUDA_SOURCES
+      src/boosting/cuda/cuda_score_updater.cpp
+      src/boosting/cuda/cuda_score_updater.cu
+      src/metric/cuda/cuda_binary_metric.cpp
+      src/metric/cuda/cuda_pointwise_metric.cpp
+      src/metric/cuda/cuda_regression_metric.cpp
+      src/metric/cuda/cuda_pointwise_metric.cu
+      src/objective/cuda/cuda_binary_objective.cpp
+      src/objective/cuda/cuda_multiclass_objective.cpp
+      src/objective/cuda/cuda_rank_objective.cpp
+      src/objective/cuda/cuda_regression_objective.cpp
+      src/objective/cuda/cuda_binary_objective.cu
+      src/objective/cuda/cuda_multiclass_objective.cu
+      src/objective/cuda/cuda_rank_objective.cu
+      src/objective/cuda/cuda_regression_objective.cu
+      src/treelearner/cuda/cuda_best_split_finder.cpp
+      src/treelearner/cuda/cuda_data_partition.cpp
+      src/treelearner/cuda/cuda_histogram_constructor.cpp
+      src/treelearner/cuda/cuda_leaf_splits.cpp
+      src/treelearner/cuda/cuda_single_gpu_tree_learner.cpp
+      src/treelearner/cuda/cuda_best_split_finder.cu
+      src/treelearner/cuda/cuda_data_partition.cu
+      src/treelearner/cuda/cuda_gradient_discretizer.cu
+      src/treelearner/cuda/cuda_histogram_constructor.cu
+      src/treelearner/cuda/cuda_leaf_splits.cu
+      src/treelearner/cuda/cuda_single_gpu_tree_learner.cu
+      src/io/cuda/cuda_column_data.cu
+      src/io/cuda/cuda_tree.cu
+      src/io/cuda/cuda_column_data.cpp
+      src/io/cuda/cuda_metadata.cpp
+      src/io/cuda/cuda_row_data.cpp
+      src/io/cuda/cuda_tree.cpp
+      src/cuda/cuda_utils.cpp
+      src/cuda/cuda_algorithms.cu
 )
 
-add_executable(lightgbm src/main.cpp src/application/application.cpp ${SOURCES})
-list(APPEND SOURCES "src/c_api.cpp")
+if(USE_CUDA)
+  list(APPEND LGBM_SOURCES ${LGBM_CUDA_SOURCES})
+endif()
 
+add_library(lightgbm_objs OBJECT ${LGBM_SOURCES})
+
+if(BUILD_CLI)
+    add_executable(lightgbm src/main.cpp src/application/application.cpp)
+    target_link_libraries(lightgbm PRIVATE lightgbm_objs)
+endif()
+
+set(API_SOURCES "src/c_api.cpp")
 # Only build the R part of the library if building for
-# use with the R package
+# use with the R-package
 if(__BUILD_FOR_R)
-  list(APPEND SOURCES "src/lightgbm_R.cpp")
-endif(__BUILD_FOR_R)
+  list(APPEND API_SOURCES "src/lightgbm_R.cpp")
+endif()
 
-if (BUILD_STATIC_LIB)
-  add_library(_lightgbm STATIC ${SOURCES})
+add_library(lightgbm_capi_objs OBJECT ${API_SOURCES})
+
+if(BUILD_STATIC_LIB)
+  add_library(_lightgbm STATIC)
 else()
-  add_library(_lightgbm SHARED ${SOURCES})
-endif(BUILD_STATIC_LIB)
+  add_library(_lightgbm SHARED)
+endif()
 
-if(MSVC)
+# R expects libraries of the form <project>.{dll,dylib,so}, not lib_<project>.{dll,dylib,so}
+if(__BUILD_FOR_R)
+  set_target_properties(
+    _lightgbm
+    PROPERTIES
+      PREFIX ""
+      OUTPUT_NAME "lightgbm"
+  )
+endif()
+
+# LightGBM headers include openmp, cuda, R etc. headers,
+# thus PUBLIC is required for building _lightgbm_swig target.
+target_link_libraries(_lightgbm PUBLIC lightgbm_capi_objs lightgbm_objs)
+
+if(MSVC AND NOT __BUILD_FOR_R)
   set_target_properties(_lightgbm PROPERTIES OUTPUT_NAME "lib_lightgbm")
-endif(MSVC)
+endif()
 
 if(USE_SWIG)
   set_property(SOURCE swig/lightgbmlib.i PROPERTY CPLUSPLUS ON)
-  LIST(APPEND swig_options -package com.microsoft.ml.lightgbm)
+  list(APPEND swig_options -package com.microsoft.ml.lightgbm)
   set_property(SOURCE swig/lightgbmlib.i PROPERTY SWIG_FLAGS "${swig_options}")
-  swig_add_module(_lightgbm_swig java swig/lightgbmlib.i)
+  swig_add_library(_lightgbm_swig LANGUAGE java SOURCES swig/lightgbmlib.i)
   swig_link_libraries(_lightgbm_swig _lightgbm)
-  # needed to ensure Linux build does not have lib prefix specified twice, e.g. liblib_lightgbm_swig
-  set_target_properties(_lightgbm_swig PROPERTIES PREFIX "")
-  # needed in some versions of CMake for VS and MinGW builds to ensure output dll has lib prefix
-  set_target_properties(_lightgbm_swig PROPERTIES OUTPUT_NAME "lib_lightgbm_swig")
+  set_target_properties(
+    _lightgbm_swig
+    PROPERTIES
+      # needed to ensure Linux build does not have lib prefix specified twice, e.g. liblib_lightgbm_swig
+      PREFIX ""
+      # needed in some versions of CMake for VS and MinGW builds to ensure output dll has lib prefix
+      OUTPUT_NAME "lib_lightgbm_swig"
+  )
   if(WIN32)
+    set(LGBM_SWIG_LIB_DESTINATION_PATH "${LGBM_SWIG_DESTINATION_DIR}/lib_lightgbm_swig.dll")
     if(MINGW OR CYGWIN)
-        add_custom_command(TARGET _lightgbm_swig POST_BUILD
-            COMMAND "${Java_JAVAC_EXECUTABLE}" -d . java/*.java
-            COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${PROJECT_SOURCE_DIR}/lib_lightgbm.dll" com/microsoft/ml/lightgbm/windows/x86_64
-            COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${PROJECT_SOURCE_DIR}/lib_lightgbm_swig.dll" com/microsoft/ml/lightgbm/windows/x86_64
-            COMMAND "${Java_JAR_EXECUTABLE}" -cf lightgbmlib.jar com)
+        set(LGBM_LIB_SOURCE_PATH "${PROJECT_SOURCE_DIR}/lib_lightgbm.dll")
+        set(LGBM_SWIG_LIB_SOURCE_PATH "${PROJECT_SOURCE_DIR}/lib_lightgbm_swig.dll")
     else()
-        add_custom_command(TARGET _lightgbm_swig POST_BUILD
-            COMMAND "${Java_JAVAC_EXECUTABLE}" -d . java/*.java
-            COMMAND cp "${PROJECT_SOURCE_DIR}/Release/*.dll" com/microsoft/ml/lightgbm/windows/x86_64
-            COMMAND "${Java_JAR_EXECUTABLE}" -cf lightgbmlib.jar com)
+        set(LGBM_LIB_SOURCE_PATH "${PROJECT_SOURCE_DIR}/Release/lib_lightgbm.dll")
+        set(LGBM_SWIG_LIB_SOURCE_PATH "${PROJECT_SOURCE_DIR}/Release/lib_lightgbm_swig.dll")
     endif()
   elseif(APPLE)
-    add_custom_command(TARGET _lightgbm_swig POST_BUILD
-            COMMAND "${Java_JAVAC_EXECUTABLE}" -d . java/*.java
-            COMMAND cp "${PROJECT_SOURCE_DIR}/*.dylib" com/microsoft/ml/lightgbm/osx/x86_64
-            COMMAND cp "${PROJECT_SOURCE_DIR}/lib_lightgbm_swig.jnilib" com/microsoft/ml/lightgbm/osx/x86_64/lib_lightgbm_swig.dylib
-            COMMAND "${Java_JAR_EXECUTABLE}" -cf lightgbmlib.jar com)
+    set(LGBM_LIB_SOURCE_PATH "${PROJECT_SOURCE_DIR}/lib_lightgbm.dylib")
+    set(LGBM_SWIG_LIB_SOURCE_PATH "${PROJECT_SOURCE_DIR}/lib_lightgbm_swig.jnilib")
+    set(LGBM_SWIG_LIB_DESTINATION_PATH "${LGBM_SWIG_DESTINATION_DIR}/lib_lightgbm_swig.dylib")
   else()
-    add_custom_command(TARGET _lightgbm_swig POST_BUILD
-	    COMMAND "${Java_JAVAC_EXECUTABLE}" -d . java/*.java
-	    COMMAND cp "${PROJECT_SOURCE_DIR}/*.so" com/microsoft/ml/lightgbm/linux/x86_64
-	    COMMAND "${Java_JAR_EXECUTABLE}" -cf lightgbmlib.jar com)
+    set(LGBM_LIB_SOURCE_PATH "${PROJECT_SOURCE_DIR}/lib_lightgbm.so")
+    set(LGBM_SWIG_LIB_SOURCE_PATH "${PROJECT_SOURCE_DIR}/lib_lightgbm_swig.so")
+    set(LGBM_SWIG_LIB_DESTINATION_PATH "${LGBM_SWIG_DESTINATION_DIR}/lib_lightgbm_swig.so")
   endif()
-endif(USE_SWIG)
+  add_custom_command(
+      TARGET _lightgbm_swig
+      POST_BUILD
+      COMMAND "${Java_JAVAC_EXECUTABLE}" -d . java/*.java
+      COMMAND
+        "${CMAKE_COMMAND}"
+        -E
+        copy_if_different
+        "${LGBM_LIB_SOURCE_PATH}"
+        "${LGBM_SWIG_DESTINATION_DIR}"
+      COMMAND
+        "${CMAKE_COMMAND}"
+        -E
+        copy_if_different
+        "${LGBM_SWIG_LIB_SOURCE_PATH}"
+        "${LGBM_SWIG_LIB_DESTINATION_PATH}"
+      COMMAND "${Java_JAR_EXECUTABLE}" -cf lightgbmlib.jar com
+    )
+endif()
 
 if(USE_MPI)
-  TARGET_LINK_LIBRARIES(lightgbm ${MPI_CXX_LIBRARIES})
-  TARGET_LINK_LIBRARIES(_lightgbm ${MPI_CXX_LIBRARIES})
-endif(USE_MPI)
+  target_link_libraries(lightgbm_objs PUBLIC ${MPI_CXX_LIBRARIES})
+endif()
 
 if(USE_OPENMP)
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-        TARGET_LINK_LIBRARIES(lightgbm OpenMP::OpenMP_CXX)
-        TARGET_LINK_LIBRARIES(_lightgbm OpenMP::OpenMP_CXX)
-    endif()
-endif(USE_OPENMP)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_link_libraries(lightgbm_objs PUBLIC OpenMP::OpenMP_CXX)
+    # c_api headers also includes OpenMP headers, thus compiling
+    # lightgbm_capi_objs needs include directory for OpenMP.
+    # Specifying OpenMP in target_link_libraries will get include directory
+    # requirements for compilation.
+    # This uses CMake's Transitive Usage Requirements. Refer to CMake doc:
+    # https://cmake.org/cmake/help/v3.16/manual/cmake-buildsystem.7.html#transitive-usage-requirements
+    target_link_libraries(lightgbm_capi_objs PUBLIC OpenMP::OpenMP_CXX)
+  endif()
+endif()
 
 if(USE_GPU)
-  TARGET_LINK_LIBRARIES(lightgbm ${OpenCL_LIBRARY} ${Boost_LIBRARIES})
-  TARGET_LINK_LIBRARIES(_lightgbm ${OpenCL_LIBRARY} ${Boost_LIBRARIES})
-endif(USE_GPU)
+  target_link_libraries(lightgbm_objs PUBLIC ${OpenCL_LIBRARY} ${Boost_LIBRARIES})
+endif()
 
 if(__INTEGRATE_OPENCL)
   # targets OpenCL and Boost are added in IntegratedOpenCL.cmake
-  add_dependencies(lightgbm OpenCL Boost)
-  add_dependencies(_lightgbm OpenCL Boost)
+  add_dependencies(lightgbm_objs OpenCL Boost)
   # variables INTEGRATED_OPENCL_* are set in IntegratedOpenCL.cmake
-  target_include_directories(lightgbm PRIVATE ${INTEGRATED_OPENCL_INCLUDES})
-  target_include_directories(_lightgbm PRIVATE ${INTEGRATED_OPENCL_INCLUDES})
-  target_compile_definitions(lightgbm PRIVATE ${INTEGRATED_OPENCL_DEFINITIONS})
-  target_compile_definitions(_lightgbm PRIVATE ${INTEGRATED_OPENCL_DEFINITIONS})
-  target_link_libraries(lightgbm PRIVATE ${INTEGRATED_OPENCL_LIBRARIES})
-  target_link_libraries(_lightgbm PRIVATE ${INTEGRATED_OPENCL_LIBRARIES})
+  target_include_directories(lightgbm_objs PRIVATE ${INTEGRATED_OPENCL_INCLUDES})
+  target_compile_definitions(lightgbm_objs PRIVATE ${INTEGRATED_OPENCL_DEFINITIONS})
+  target_link_libraries(lightgbm_objs PUBLIC ${INTEGRATED_OPENCL_LIBRARIES} ${CMAKE_DL_LIBS})
 endif()
 
 if(USE_CUDA)
-  set_target_properties(lightgbm PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-  TARGET_LINK_LIBRARIES(
-    lightgbm
-    ${histograms}
-  )
-  set_target_properties(_lightgbm PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-  TARGET_LINK_LIBRARIES(
-    _lightgbm
-    ${histograms}
-  )
-endif(USE_CUDA)
 
-if(USE_HDFS)
-  TARGET_LINK_LIBRARIES(lightgbm ${HDFS_CXX_LIBRARIES})
-  TARGET_LINK_LIBRARIES(_lightgbm ${HDFS_CXX_LIBRARIES})
-endif(USE_HDFS)
+  set_target_properties(
+    lightgbm_objs
+    PROPERTIES
+      CUDA_ARCHITECTURES "${CUDA_ARCHS}"
+      CUDA_SEPARABLE_COMPILATION ON
+  )
+
+  set_target_properties(
+    _lightgbm
+    PROPERTIES
+      CUDA_ARCHITECTURES "${CUDA_ARCHS}"
+      CUDA_RESOLVE_DEVICE_SYMBOLS ON
+  )
+
+  if(BUILD_CLI)
+    set_target_properties(
+      lightgbm
+      PROPERTIES
+        CUDA_ARCHITECTURES "${CUDA_ARCHS}"
+        CUDA_RESOLVE_DEVICE_SYMBOLS ON
+    )
+  endif()
+endif()
 
 if(WIN32)
     if(MINGW OR CYGWIN)
-      TARGET_LINK_LIBRARIES(lightgbm Ws2_32)
-      TARGET_LINK_LIBRARIES(_lightgbm Ws2_32)
-      TARGET_LINK_LIBRARIES(lightgbm IPHLPAPI)
-      TARGET_LINK_LIBRARIES(_lightgbm IPHLPAPI)
-    endif(MINGW OR CYGWIN)
-endif(WIN32)
+      target_link_libraries(lightgbm_objs PUBLIC ws2_32 iphlpapi)
+    endif()
+endif()
 
 if(__BUILD_FOR_R)
+  # utils/log.h and capi uses R headers, thus both object libraries need to link
+  # with R lib.
   if(MSVC)
-    TARGET_LINK_LIBRARIES(_lightgbm ${LIBR_MSVC_CORE_LIBRARY})
+    set(R_LIB ${LIBR_MSVC_CORE_LIBRARY})
   else()
-    TARGET_LINK_LIBRARIES(_lightgbm ${LIBR_CORE_LIBRARY})
-  endif(MSVC)
-endif(__BUILD_FOR_R)
+    set(R_LIB ${LIBR_CORE_LIBRARY})
+  endif()
+  target_link_libraries(lightgbm_objs PUBLIC ${R_LIB})
+  target_link_libraries(lightgbm_capi_objs PUBLIC ${R_LIB})
+endif()
 
 #-- Google C++ tests
 if(BUILD_CPP_TEST)
@@ -473,19 +623,183 @@ if(BUILD_CPP_TEST)
     FetchContent_Declare(
       googletest
       GIT_REPOSITORY https://github.com/google/googletest.git
-      GIT_TAG        release-1.10.0
+      GIT_TAG        v1.14.0
     )
     FetchContent_MakeAvailable(googletest)
     add_library(GTest::GTest ALIAS gtest)
   endif()
-  file(GLOB CPP_TEST_SOURCES tests/cpp_test/*.cpp)
-  add_executable(testlightgbm ${CPP_TEST_SOURCES} ${SOURCES})
-  target_link_libraries(testlightgbm PRIVATE GTest::GTest)
+
+  set(LightGBM_TEST_HEADER_DIR ${PROJECT_SOURCE_DIR}/tests/cpp_tests)
+  include_directories(${LightGBM_TEST_HEADER_DIR})
+
+  set(
+    CPP_TEST_SOURCES
+      tests/cpp_tests/test_array_args.cpp
+      tests/cpp_tests/test_arrow.cpp
+      tests/cpp_tests/test_byte_buffer.cpp
+      tests/cpp_tests/test_chunked_array.cpp
+      tests/cpp_tests/test_common.cpp
+      tests/cpp_tests/test_main.cpp
+      tests/cpp_tests/test_serialize.cpp
+      tests/cpp_tests/test_single_row.cpp
+      tests/cpp_tests/test_stream.cpp
+      tests/cpp_tests/testutils.cpp
+    )
+  if(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
+  endif()
+  add_executable(testlightgbm ${CPP_TEST_SOURCES})
+  target_link_libraries(testlightgbm PRIVATE lightgbm_objs lightgbm_capi_objs GTest::GTest)
 endif()
 
-install(TARGETS lightgbm _lightgbm
-        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+if(BUILD_CLI)
+    install(
+      TARGETS lightgbm
+      RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    )
+endif()
 
-install(DIRECTORY ${LightGBM_HEADER_DIR}/LightGBM DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+if(__BUILD_FOR_PYTHON)
+    set(CMAKE_INSTALL_PREFIX "lightgbm")
+endif()
+
+# The macOS linker puts an absolute path to linked libraries in lib_lightgbm.dylib.
+# This block overrides that information for LightGBM's OpenMP dependency, to allow
+# finding that library in more places.
+#
+# This reduces the risk of runtime issues resulting from multiple {libgomp,libiomp,libomp}.dylib being loaded.
+#
+if(APPLE AND USE_OPENMP AND NOT BUILD_STATIC_LIB)
+  # store path to {libgomp,libiomp,libomp}.dylib found at build time in a variable
+  get_target_property(
+    OpenMP_LIBRARY_LOCATION
+    OpenMP::OpenMP_CXX
+    INTERFACE_LINK_LIBRARIES
+  )
+  # get just the filename of that path
+  # (to deal with the possibility that it might be 'libomp.dylib' or 'libgomp.dylib' or 'libiomp.dylib')
+  get_filename_component(
+    OpenMP_LIBRARY_NAME
+    ${OpenMP_LIBRARY_LOCATION}
+    NAME
+  )
+  # get directory of that path
+  get_filename_component(
+    OpenMP_LIBRARY_DIR
+    ${OpenMP_LIBRARY_LOCATION}
+    DIRECTORY
+  )
+  # get exact name of the library in a variable
+  get_target_property(
+    __LIB_LIGHTGBM_OUTPUT_NAME
+    _lightgbm
+    OUTPUT_NAME
+  )
+  if(NOT __LIB_LIGHTGBM_OUTPUT_NAME)
+    set(__LIB_LIGHTGBM_OUTPUT_NAME "lib_lightgbm")
+  endif()
+
+  if(CMAKE_SHARED_LIBRARY_SUFFIX_CXX)
+    set(
+      __LIB_LIGHTGBM_FILENAME "${__LIB_LIGHTGBM_OUTPUT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX_CXX}"
+      CACHE INTERNAL "lightgbm shared library filename"
+    )
+  else()
+    set(
+      __LIB_LIGHTGBM_FILENAME "${__LIB_LIGHTGBM_OUTPUT_NAME}.dylib"
+      CACHE INTERNAL "lightgbm shared library filename"
+    )
+  endif()
+
+  # Override the absolute path to OpenMP with a relative one using @rpath.
+  #
+  # This also ensures that if a {libgomp,libiomp,libomp}.dylib has already been loaded, it'll just use that.
+  add_custom_command(
+    TARGET _lightgbm
+    POST_BUILD
+      COMMAND
+        install_name_tool
+        -change
+        ${OpenMP_LIBRARY_LOCATION}
+        "@rpath/${OpenMP_LIBRARY_NAME}"
+        "${__LIB_LIGHTGBM_FILENAME}"
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Replacing hard-coded OpenMP install_name with '@rpath/${OpenMP_LIBRARY_NAME}'..."
+  )
+  # add RPATH entries to ensure the loader looks in the following, in the following order:
+  #
+  #   - (R-only) ${LIBR_LIBS_DIR}    (wherever R for macOS stores vendored third-party libraries)
+  #   - ${OpenMP_LIBRARY_DIR}        (wherever find_package(OpenMP) found OpenMP at build time)
+  #   - /opt/homebrew/opt/libomp/lib (where 'brew install' / 'brew link' puts libomp.dylib)
+  #   - /opt/local/lib/libomp        (where 'port install' puts libomp.dylib)
+  #
+
+  # with some compilers, OpenMP ships with the compiler (e.g. libgomp with gcc)
+  list(APPEND __omp_install_rpaths "${OpenMP_LIBRARY_DIR}")
+
+  # with clang, libomp doesn't ship with the compiler and might be supplied separately
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      list(
+        APPEND __omp_install_rpaths
+          "/opt/homebrew/opt/libomp/lib"
+          "/opt/local/lib/libomp"
+      )
+      # It appears that CRAN's macOS binaries compiled with -fopenmp have install names
+      # of the form:
+      #
+      #   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libomp.dylib
+      #
+      # That corresponds to the libomp.dylib that ships with the R framework for macOS, available
+      # from https://cran.r-project.org/bin/macosx/.
+      #
+      # That absolute-path install name leads to that library being loaded unconditionally.
+      #
+      # That can result in e.g. 'library(data.table)' loading R's libomp.dylib and 'library(lightgbm)' loading
+      # Homebrew's. Having 2 loaded in the same process can lead to segfaults and unpredictable behavior.
+      #
+      # This can't be easily avoided by forcing R-package builds in LightGBM to use R's libomp.dylib
+      # at build time... LightGBM's CMake uses find_package(OpenMP), and R for macOS only provides the
+      # library, not CMake config files for it.
+      #
+      # Best we can do, to allow CMake-based builds of the R-package here to continue to work
+      # alongside CRAN-prepared binaries of other packages with OpenMP dependencies, is to
+      # ensure that R's library directory is the first place the loader searches for
+      # libomp.dylib when clang is used.
+      #
+      # ref: https://github.com/microsoft/LightGBM/issues/6628
+      #
+      if(__BUILD_FOR_R)
+        list(PREPEND __omp_install_rpaths "${LIBR_LIBS_DIR}")
+      endif()
+  endif()
+  set_target_properties(
+    _lightgbm
+    PROPERTIES
+      BUILD_WITH_INSTALL_RPATH TRUE
+      INSTALL_RPATH "${__omp_install_rpaths}"
+      INSTALL_RPATH_USE_LINK_PATH FALSE
+  )
+endif()
+
+install(
+  TARGETS _lightgbm
+  RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+  LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+)
+
+if(INSTALL_HEADERS)
+    install(
+      DIRECTORY ${LightGBM_HEADER_DIR}/LightGBM
+      DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+    )
+    install(
+      FILES ${FAST_DOUBLE_PARSER_INCLUDE_DIR}/fast_double_parser.h
+      DESTINATION ${CMAKE_INSTALL_PREFIX}/include/LightGBM/utils
+    )
+    install(
+      DIRECTORY ${FMT_INCLUDE_DIR}/
+      DESTINATION ${CMAKE_INSTALL_PREFIX}/include/LightGBM/utils
+      FILES_MATCHING PATTERN "*.h"
+    )
+endif()

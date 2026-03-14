@@ -93,7 +93,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_SOCKET;_ITERATOR_DEBUG_LEVEL=0;_SECURE_SCL=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_SOCKET;WIN_HAS_INET_PTON;_ITERATOR_DEBUG_LEVEL=0;_SECURE_SCL=0</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <OpenMPSupport>true</OpenMPSupport>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -103,10 +103,11 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen;..\Dist\external_libs\fmt\include;..\Dist\external_libs\fast_double_parser\include;</AdditionalIncludeDirectories>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>
@@ -115,7 +116,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>USE_SOCKET;_ITERATOR_DEBUG_LEVEL=0;_SECURE_SCL=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_SOCKET;WIN_HAS_INET_PTON;_ITERATOR_DEBUG_LEVEL=0;_SECURE_SCL=0</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <OpenMPSupport>true</OpenMPSupport>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
@@ -125,10 +126,11 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen;..\Dist\external_libs\fmt\include;..\Dist\external_libs\fast_double_parser\include;</AdditionalIncludeDirectories>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <BrowseInformation>true</BrowseInformation>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>
@@ -137,7 +139,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;_LIB;USE_SOCKET;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_SOCKET;WIN_HAS_INET_PTON;NDEBUG;WIN32;_WINDOWS;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <OpenMPSupport>true</OpenMPSupport>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -148,7 +150,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <OmitFramePointers>false</OmitFramePointers>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen;..\Dist\external_libs\fmt\include;..\Dist\external_libs\fast_double_parser\include;</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -158,6 +160,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies />
@@ -166,7 +169,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;_LIB;USE_SOCKET;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_SOCKET;WIN_HAS_INET_PTON;NDEBUG;WIN32;_WINDOWS;_SECURE_SCL=0;_ITERATOR_DEBUG_LEVEL=0;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <OpenMPSupport>true</OpenMPSupport>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
@@ -177,7 +180,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <OmitFramePointers>false</OmitFramePointers>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Dist\include;..\Dist\external_libs\eigen;..\Dist\external_libs\fmt\include;..\Dist\external_libs\fast_double_parser\include;</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Precise</FloatingPointModel>
@@ -188,6 +191,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>
@@ -224,39 +228,36 @@
     <ClInclude Include="..\Dist\include\LightGBM\utils\text_reader.h" />
     <ClInclude Include="..\Dist\include\LightGBM\utils\threading.h" />
     <ClInclude Include="..\Dist\src\application\predictor.hpp" />
-    <ClInclude Include="..\Dist\src\boosting\gbdt.h" />
+    <ClInclude Include="..\Dist\src\boosting\bagging.hpp" />
     <ClInclude Include="..\Dist\src\boosting\dart.hpp" />
+    <ClInclude Include="..\Dist\src\boosting\gbdt.h" />
     <ClInclude Include="..\Dist\src\boosting\goss.hpp" />
     <ClInclude Include="..\Dist\src\boosting\rf.hpp" />
     <ClInclude Include="..\Dist\src\boosting\score_updater.hpp" />
     <ClInclude Include="..\Dist\src\io\dense_bin.hpp" />
-    <ClInclude Include="..\Dist\src\io\dense_nbits_bin.hpp" />
     <ClInclude Include="..\Dist\src\io\multi_val_dense_bin.hpp" />
     <ClInclude Include="..\Dist\src\io\multi_val_sparse_bin.hpp" />
-    <ClInclude Include="..\Dist\src\io\ordered_sparse_bin.hpp" />
     <ClInclude Include="..\Dist\src\io\parser.hpp" />
     <ClInclude Include="..\Dist\src\io\sparse_bin.hpp" />
     <ClInclude Include="..\Dist\src\metric\binary_metric.hpp" />
     <ClInclude Include="..\Dist\src\metric\map_metric.hpp" />
+    <ClInclude Include="..\Dist\src\metric\multiclass_metric.hpp" />
     <ClInclude Include="..\Dist\src\metric\rank_metric.hpp" />
     <ClInclude Include="..\Dist\src\metric\regression_metric.hpp" />
-    <ClInclude Include="..\Dist\src\metric\multiclass_metric.hpp" />
     <ClInclude Include="..\Dist\src\metric\xentropy_metric.hpp" />
-    <ClInclude Include="..\Dist\src\network\ifaddrs_patch.h" />
     <ClInclude Include="..\Dist\src\network\linkers.h" />
     <ClInclude Include="..\Dist\src\network\socket_wrapper.hpp" />
     <ClInclude Include="..\Dist\src\objective\binary_objective.hpp" />
+    <ClInclude Include="..\Dist\src\objective\multiclass_objective.hpp" />
     <ClInclude Include="..\Dist\src\objective\rank_objective.hpp" />
     <ClInclude Include="..\Dist\src\objective\regression_objective.hpp" />
-    <ClInclude Include="..\Dist\src\objective\multiclass_objective.hpp" />
     <ClInclude Include="..\Dist\src\objective\xentropy_objective.hpp" />
     <ClInclude Include="..\Dist\src\treelearner\col_sampler.hpp" />
     <ClInclude Include="..\Dist\src\treelearner\cost_effective_gradient_boosting.hpp" />
-    <ClInclude Include="..\Dist\src\treelearner\cuda_kernel_launcher.h" />
-    <ClInclude Include="..\Dist\src\treelearner\cuda_tree_learner.h" />
     <ClInclude Include="..\Dist\src\treelearner\data_partition.hpp" />
     <ClInclude Include="..\Dist\src\treelearner\feature_histogram.hpp" />
     <ClInclude Include="..\Dist\src\treelearner\gpu_tree_learner.h" />
+    <ClInclude Include="..\Dist\src\treelearner\gradient_discretizer.hpp" />
     <ClInclude Include="..\Dist\src\treelearner\leaf_splits.hpp" />
     <ClInclude Include="..\Dist\src\treelearner\linear_tree_learner.h" />
     <ClInclude Include="..\Dist\src\treelearner\monotone_constraints.hpp" />
@@ -271,6 +272,7 @@
     <ClCompile Include="..\Dist\src\boosting\gbdt_model_text.cpp" />
     <ClCompile Include="..\Dist\src\boosting\gbdt_prediction.cpp" />
     <ClCompile Include="..\Dist\src\boosting\prediction_early_stop.cpp" />
+    <ClCompile Include="..\Dist\src\boosting\sample_strategy.cpp" />
     <ClCompile Include="..\Dist\src\c_api.cpp" />
     <ClCompile Include="..\Dist\src\io\bin.cpp" />
     <ClCompile Include="..\Dist\src\io\config.cpp" />
@@ -285,23 +287,21 @@
     <ClCompile Include="..\Dist\src\io\tree.cpp" />
     <ClCompile Include="..\Dist\src\metric\dcg_calculator.cpp" />
     <ClCompile Include="..\Dist\src\metric\metric.cpp" />
-    <ClCompile Include="..\Dist\src\network\ifaddrs_patch.cpp" />
-    <ClCompile Include="..\Dist\src\network\network.cpp" />
     <ClCompile Include="..\Dist\src\network\linkers_mpi.cpp" />
     <ClCompile Include="..\Dist\src\network\linkers_socket.cpp" />
     <ClCompile Include="..\Dist\src\network\linker_topo.cpp" />
+    <ClCompile Include="..\Dist\src\network\network.cpp" />
     <ClCompile Include="..\Dist\src\objective\objective_function.cpp" />
-    <ClCompile Include="..\Dist\src\treelearner\cuda_tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\data_parallel_tree_learner.cpp" />
+    <ClCompile Include="..\Dist\src\treelearner\feature_histogram.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\feature_parallel_tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\gpu_tree_learner.cpp" />
+    <ClCompile Include="..\Dist\src\treelearner\gradient_discretizer.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\linear_tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\serial_tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\tree_learner.cpp" />
     <ClCompile Include="..\Dist\src\treelearner\voting_parallel_tree_learner.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Dist\src\treelearner\cuda_kernel_launcher.cu" />
+    <ClCompile Include="..\Dist\src\utils\openmp_wrapper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

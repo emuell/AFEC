@@ -1,0 +1,19 @@
+name: Ubuntu 22.04
+
+on: [push, pull_request]
+
+jobs:
+  ubuntu-build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        cxx: [g++-12, clang++-14]
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: Use cmake
+        run: |
+          mkdir build &&
+          cd build &&
+          cmake  -DFAST_DOUBLE_BENCHMARKS=ON  .. &&
+          cmake  --build .   &&
+          ctest -j --output-on-failure

@@ -31,9 +31,7 @@ namespace LightGBM {
 Application::Application(int argc, char** argv) {
   LoadParameters(argc, argv);
   // set number of threads for openmp
-  if (config_.num_threads > 0) {
-    omp_set_num_threads(config_.num_threads);
-  }
+  OMP_SET_NUM_THREADS(config_.num_threads);
   if (config_.data.size() == 0 && config_.task != TaskType::kConvertModel) {
     Log::Fatal("No training/prediction data, application quit");
   }
@@ -50,15 +48,15 @@ Application::~Application() {
 }
 
 void Application::LoadParameters(int argc, char** argv) {
+  std::unordered_map<std::string, std::vector<std::string>> all_params;
   std::unordered_map<std::string, std::string> params;
   for (int i = 1; i < argc; ++i) {
-    Config::KV2Map(&params, argv[i]);
+    Config::KV2Map(&all_params, argv[i]);
   }
-  // check for alias
-  ParameterAlias::KeyAliasTransform(&params);
   // read parameters from config file
-  if (params.count("config") > 0) {
-    TextReader<size_t> config_reader(params["config"].c_str(), false);
+  bool config_file_ok = true;
+  if (all_params.count("config") > 0) {
+    TextReader<size_t> config_reader(all_params["config"][0].c_str(), false);
     config_reader.ReadAllLines();
     if (!config_reader.Lines().empty()) {
       for (auto& line : config_reader.Lines()) {
@@ -70,16 +68,19 @@ void Application::LoadParameters(int argc, char** argv) {
         if (line.size() == 0) {
           continue;
         }
-        Config::KV2Map(&params, line.c_str());
+        Config::KV2Map(&all_params, line.c_str());
       }
     } else {
-      Log::Warning("Config file %s doesn't exist, will ignore",
-                   params["config"].c_str());
+      config_file_ok = false;
     }
   }
-  // check for alias again
+  Config::SetVerbosity(all_params);
+  // de-duplicate params
+  Config::KeepFirstValues(all_params, &params);
+  if (!config_file_ok) {
+    Log::Warning("Config file %s doesn't exist, will ignore", params["config"].c_str());
+  }
   ParameterAlias::KeyAliasTransform(&params);
-  // load configs
   config_.Set(params);
   Log::Info("Finished loading parameters");
 }
@@ -200,7 +201,7 @@ void Application::InitTrain() {
   for (size_t i = 0; i < valid_datas_.size(); ++i) {
     boosting_->AddValidDataset(valid_datas_[i].get(),
                                Common::ConstPtrInVectorWrapper<Metric>(valid_metrics_[i]));
-    Log::Debug("Number of data points in validation set #%zu: %zu", i + 1, valid_datas_[i]->num_data());
+    Log::Debug("Number of data points in validation set #%zu: %d", i + 1, valid_datas_[i]->num_data());
   }
   Log::Info("Finished initializing training");
 }
@@ -221,15 +222,28 @@ void Application::Predict() {
   if (config_.task == TaskType::KRefitTree) {
     // create predictor
     Predictor predictor(boosting_.get(), 0, -1, false, true, false, false, 1, 1);
-    predictor.Predict(config_.data.c_str(), config_.output_result.c_str(), config_.header, config_.predict_disable_shape_check);
+    predictor.Predict(config_.data.c_str(), config_.output_result.c_str(), config_.header, config_.predict_disable_shape_check,
+                      config_.precise_float_parser);
     TextReader<int> result_reader(config_.output_result.c_str(), false);
     result_reader.ReadAllLines();
-    std::vector<std::vector<int>> pred_leaf(result_reader.Lines().size());
-    #pragma omp parallel for schedule(static)
-    for (int i = 0; i < static_cast<int>(result_reader.Lines().size()); ++i) {
-      pred_leaf[i] = Common::StringToArray<int>(result_reader.Lines()[i], '\t');
+
+    size_t nrow = result_reader.Lines().size();
+    size_t ncol = 0;
+    if (nrow > 0) {
+      ncol = Common::StringToArray<int>(result_reader.Lines()[0], '\t').size();
+    }
+    std::vector<int> pred_leaf;
+    pred_leaf.resize(nrow * ncol);
+
+    #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static)
+    for (int irow = 0; irow < static_cast<int>(nrow); ++irow) {
+      auto line_vec = Common::StringToArray<int>(result_reader.Lines()[irow], '\t');
+      CHECK_EQ(line_vec.size(), ncol);
+      for (int i_row_item = 0; i_row_item < static_cast<int>(ncol); ++i_row_item) {
+        pred_leaf[irow * ncol + i_row_item] = line_vec[i_row_item];
+      }
       // Free memory
-      result_reader.Lines()[i].clear();
+      result_reader.Lines()[irow].clear();
     }
     DatasetLoader dataset_loader(config_, nullptr,
                                  config_.num_class, config_.data.c_str());
@@ -240,7 +254,8 @@ void Application::Predict() {
     objective_fun_->Init(train_data_->metadata(), train_data_->num_data());
     boosting_->Init(&config_, train_data_.get(), objective_fun_.get(),
                     Common::ConstPtrInVectorWrapper<Metric>(train_metric_));
-    boosting_->RefitTree(pred_leaf);
+
+    boosting_->RefitTree(pred_leaf.data(), nrow, ncol);
     boosting_->SaveModelToFile(0, -1, config_.saved_feature_importance_type,
                                config_.output_model.c_str());
     Log::Info("Finished RefitTree");
@@ -251,7 +266,8 @@ void Application::Predict() {
                         config_.pred_early_stop, config_.pred_early_stop_freq,
                         config_.pred_early_stop_margin);
     predictor.Predict(config_.data.c_str(),
-                      config_.output_result.c_str(), config_.header, config_.predict_disable_shape_check);
+                      config_.output_result.c_str(), config_.header, config_.predict_disable_shape_check,
+                      config_.precise_float_parser);
     Log::Info("Finished prediction");
   }
 }

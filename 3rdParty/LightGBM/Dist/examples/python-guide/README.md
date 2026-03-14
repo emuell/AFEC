@@ -23,11 +23,11 @@ Examples include:
 - [simple_example.py](https://github.com/microsoft/LightGBM/blob/master/examples/python-guide/simple_example.py)
     - Construct Dataset
     - Basic train and predict
-    - Eval during training 
+    - Eval during training
     - Early stopping
     - Save model to file
 - [sklearn_example.py](https://github.com/microsoft/LightGBM/blob/master/examples/python-guide/sklearn_example.py)
-    - Create data for learning with sklearn interface 
+    - Create data for learning with sklearn interface
     - Basic train and predict with sklearn interface
     - Feature importances with sklearn interface
     - Self-defined eval metric with sklearn interface
@@ -61,3 +61,6 @@ Examples include:
     - Plot split value histogram
     - Plot one specified tree
     - Plot one specified tree with Graphviz
+- [dataset_from_multi_hdf5.py](https://github.com/microsoft/LightGBM/blob/master/examples/python-guide/dataset_from_multi_hdf5.py)
+  - Construct Dataset from multiple HDF5 files
+  - Avoid loading all data into memory

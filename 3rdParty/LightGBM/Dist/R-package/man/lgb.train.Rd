@@ -7,7 +7,7 @@
 lgb.train(
   params = list(),
   data,
-  nrounds = 10L,
+  nrounds = 100L,
   valids = list(),
   obj = NULL,
   eval = NULL,
@@ -15,16 +15,15 @@ lgb.train(
   record = TRUE,
   eval_freq = 1L,
   init_model = NULL,
-  colnames = NULL,
-  categorical_feature = NULL,
   early_stopping_rounds = NULL,
   callbacks = list(),
   reset_data = FALSE,
-  ...
+  serializable = TRUE
 )
 }
 \arguments{
-\item{params}{List of parameters}
+\item{params}{a list of parameters. See \href{https://lightgbm.readthedocs.io/en/latest/Parameters.html}{
+the "Parameters" section of the documentation} for a list of parameters and valid values.}
 
 \item{data}{a \code{lgb.Dataset} object, used for training. Some functions, such as \code{\link{lgb.cv}},
 may allow you to pass other types of data like \code{matrix} and then separately supply
@@ -72,24 +71,20 @@ may allow you to pass other types of data like \code{matrix} and then separately
                 }
             }}
 
-\item{verbose}{verbosity for output, if <= 0, also will disable the print of evaluation during training}
+\item{verbose}{verbosity for output, if <= 0 and \code{valids} has been provided, also will disable the
+printing of evaluation during training}
 
 \item{record}{Boolean, TRUE will record iteration message to \code{booster$record_evals}}
 
-\item{eval_freq}{evaluation output frequency, only effect when verbose > 0}
+\item{eval_freq}{evaluation output frequency, only effective when verbose > 0 and \code{valids} has been provided}
 
-\item{init_model}{path of model file of \code{lgb.Booster} object, will continue training from this model}
+\item{init_model}{path of model file or \code{lgb.Booster} object, will continue training from this model}
 
-\item{colnames}{feature names, if not null, will use this to overwrite the names in dataset}
-
-\item{categorical_feature}{list of str or int
-type int represents index,
-type str represents feature names}
-
-\item{early_stopping_rounds}{int. Activates early stopping. Requires at least one validation data
-and one metric. If there's more than one, will check all of them
-except the training data. Returns the model with (best_iter + early_stopping_rounds).
-If early stopping occurs, the model will have 'best_iter' field.}
+\item{early_stopping_rounds}{int. Activates early stopping. When this parameter is non-null,
+training will stop if the evaluation of any metric on any validation set
+fails to improve for \code{early_stopping_rounds} consecutive boosting rounds.
+If training stops early, the returned model will have attribute \code{best_iter}
+set to the iteration number of the best iteration.}
 
 \item{callbacks}{List of callback functions that are applied at each iteration.}
 
@@ -97,22 +92,16 @@ If early stopping occurs, the model will have 'best_iter' field.}
 booster model into a predictor model which frees up memory and the
 original datasets}
 
-\item{...}{other parameters, see Parameters.rst for more information. A few key parameters:
-\itemize{
-    \item{\code{boosting}: Boosting type. \code{"gbdt"}, \code{"rf"}, \code{"dart"} or \code{"goss"}.}
-    \item{\code{num_leaves}: Maximum number of leaves in one tree.}
-    \item{\code{max_depth}: Limit the max depth for tree model. This is used to deal with
-                     overfit when #data is small. Tree still grow by leaf-wise.}
-    \item{\code{num_threads}: Number of threads for LightGBM. For the best speed, set this to
-                       the number of real CPU cores, not the number of threads (most
-                       CPU using hyper-threading to generate 2 threads per CPU core).}
-}}
+\item{serializable}{whether to make the resulting objects serializable through functions such as
+\code{save} or \code{saveRDS} (see section "Model serialization").}
 }
 \value{
 a trained booster model \code{lgb.Booster}.
 }
 \description{
-Logic to train with LightGBM
+Low-level R interface to train a LightGBM model. Unlike \code{\link{lightgbm}},
+             this function is focused on performance (e.g. speed, memory efficiency). It is also
+             less likely to have breaking API changes in new releases than \code{\link{lightgbm}}.
 }
 \section{Early Stopping}{
 
@@ -133,22 +122,29 @@ Logic to train with LightGBM
 
 \examples{
 \donttest{
+\dontshow{setLGBMthreads(2L)}
+\dontshow{data.table::setDTthreads(1L)}
 data(agaricus.train, package = "lightgbm")
 train <- agaricus.train
 dtrain <- lgb.Dataset(train$data, label = train$label)
 data(agaricus.test, package = "lightgbm")
 test <- agaricus.test
 dtest <- lgb.Dataset.create.valid(dtrain, test$data, label = test$label)
-params <- list(objective = "regression", metric = "l2")
+params <- list(
+  objective = "regression"
+  , metric = "l2"
+  , min_data = 1L
+  , learning_rate = 1.0
+  , num_threads = 2L
+)
 valids <- list(test = dtest)
 model <- lgb.train(
   params = params
   , data = dtrain
   , nrounds = 5L
   , valids = valids
-  , min_data = 1L
-  , learning_rate = 1.0
   , early_stopping_rounds = 3L
 )
 }
+
 }

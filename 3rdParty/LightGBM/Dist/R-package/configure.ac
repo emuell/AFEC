@@ -20,8 +20,13 @@ if test -z "${R_HOME}"; then
     echo "could not determine R_HOME"
     exit 1
 fi
-CC=`"${R_HOME}/bin/R" CMD config CC`
-CXX=`"${R_HOME}/bin/R" CMD config CXX11`
+CXX17=`"${R_HOME}/bin/R" CMD config CXX17`
+CXX17STD=`"${R_HOME}/bin/R" CMD config CXX17STD`
+CXX="${CXX17} ${CXX17STD}"
+CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
+CXXFLAGS=`"${R_HOME}/bin/R" CMD config CXX17FLAGS`
+LDFLAGS=`"${R_HOME}/bin/R" CMD config LDFLAGS`
+AC_LANG(C++)
 
 # LightGBM-specific flags
 LGB_CPPFLAGS=""
@@ -30,7 +35,7 @@ LGB_CPPFLAGS=""
 # Eigen #
 #########
 
-LGB_CPPFLAGS="${LGB_CPPFLAGS} -DEIGEN_MPL2_ONLY"
+LGB_CPPFLAGS="${LGB_CPPFLAGS} -DEIGEN_MPL2_ONLY -DEIGEN_DONT_PARALLELIZE"
 
 ###############
 # MM_PREFETCH #
@@ -38,7 +43,6 @@ LGB_CPPFLAGS="${LGB_CPPFLAGS} -DEIGEN_MPL2_ONLY"
 
 AC_MSG_CHECKING([whether MM_PREFETCH works])
 ac_mmprefetch=no
-AC_LANG(C++)
 AC_LANG_CONFTEST(
     [
         AC_LANG_PROGRAM(
@@ -53,10 +57,10 @@ AC_LANG_CONFTEST(
         )
     ]
 )
-${CXX} -o conftest conftest.cpp 2>/dev/null && ./conftest && ac_mmprefetch=yes
+${CXX} ${CPPFLAGS} ${CXXFLAGS} -o conftest conftest.cpp 2>/dev/null && ./conftest && ac_mmprefetch=yes
 AC_MSG_RESULT([${ac_mmprefetch}])
 if test "${ac_mmprefetch}" = yes; then
-    LGB_CPPFLAGS+=" -DMM_PREFETCH=1"
+    LGB_CPPFLAGS="${LGB_CPPFLAGS} -DMM_PREFETCH=1"
 fi
 
 ############
@@ -65,7 +69,6 @@ fi
 
 AC_MSG_CHECKING([whether MM_MALLOC works])
 ac_mm_malloc=no
-AC_LANG(C++)
 AC_LANG_CONFTEST(
     [
         AC_LANG_PROGRAM(
@@ -80,10 +83,10 @@ AC_LANG_CONFTEST(
         )
     ]
 )
-${CXX} -o conftest conftest.cpp 2>/dev/null && ./conftest && ac_mm_malloc=yes
+${CXX} ${CPPFLAGS} ${CXXFLAGS} -o conftest conftest.cpp 2>/dev/null && ./conftest && ac_mm_malloc=yes
 AC_MSG_RESULT([${ac_mm_malloc}])
 if test "${ac_mm_malloc}" = yes; then
-    LGB_CPPFLAGS+=" -DMM_MALLOC=1"
+    LGB_CPPFLAGS="${LGB_CPPFLAGS} -DMM_MALLOC=1"
 fi
 
 ##########
@@ -101,9 +104,27 @@ if test `uname -s` = "Darwin"
 then
     OPENMP_CXXFLAGS='-Xclang -fopenmp'
     OPENMP_LIB='-lomp'
+
+    # libomp 15.0+ from brew is keg-only (i.e. not symlinked into the standard paths search by the linker),
+    # so need to search in other locations.
+    # See https://github.com/Homebrew/homebrew-core/issues/112107#issuecomment-1278042927.
+    #
+    # If Homebrew is found and libomp was installed with it, this code adds the necessary
+    # flags for the compiler to find libomp headers and for the linker to find libomp.dylib.
+    HOMEBREW_LIBOMP_PREFIX=""
+    if command -v brew >/dev/null 2>&1; then
+        ac_brew_openmp=no
+        AC_MSG_CHECKING([whether OpenMP was installed via Homebrew])
+        brew --prefix libomp >/dev/null 2>&1 && ac_brew_openmp=yes
+        AC_MSG_RESULT([${ac_brew_openmp}])
+        if test "${ac_brew_openmp}" = yes; then
+            HOMEBREW_LIBOMP_PREFIX=`brew --prefix libomp`
+            OPENMP_CXXFLAGS="${OPENMP_CXXFLAGS} -I${HOMEBREW_LIBOMP_PREFIX}/include"
+            OPENMP_LIB="${OPENMP_LIB} -L${HOMEBREW_LIBOMP_PREFIX}/lib"
+        fi
+    fi
     ac_pkg_openmp=no
     AC_MSG_CHECKING([whether OpenMP will work in a package])
-    AC_LANG(C)
     AC_LANG_CONFTEST(
         [
             AC_LANG_PROGRAM(
@@ -116,7 +137,18 @@ then
             )
         ]
     )
-    ${CC} -o conftest conftest.c ${OPENMP_LIB} ${OPENMP_CXXFLAGS} 2>/dev/null && ./conftest && ac_pkg_openmp=yes
+    ${CXX} ${CPPFLAGS} ${CXXFLAGS} ${LDFLAGS} ${OPENMP_CXXFLAGS} ${OPENMP_LIB} -o conftest conftest.cpp 2>/dev/null && ./conftest && ac_pkg_openmp=yes
+
+    # -Xclang is not portable (it is clang-specific)
+    # if compilation above failed, try without that flag
+    if test "${ac_pkg_openmp}" = no; then
+        if test -f "./conftest"; then
+            rm ./conftest
+        fi
+        OPENMP_CXXFLAGS="-fopenmp"
+        ${CXX} ${CPPFLAGS} ${CXXFLAGS} ${LDFLAGS} ${OPENMP_CXXFLAGS} ${OPENMP_LIB} -o conftest conftest.cpp 2>/dev/null && ./conftest && ac_pkg_openmp=yes
+    fi
+
     AC_MSG_RESULT([${ac_pkg_openmp}])
     if test "${ac_pkg_openmp}" = no; then
         OPENMP_CXXFLAGS=''

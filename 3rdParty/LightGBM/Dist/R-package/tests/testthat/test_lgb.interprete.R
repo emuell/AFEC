@@ -1,5 +1,3 @@
-context("lgb.interpete")
-
 .sigmoid <- function(x) {
     1.0 / (1.0 + exp(-x))
 }
@@ -7,14 +5,14 @@ context("lgb.interpete")
     log(x / (1.0 - x))
 }
 
-test_that("lgb.intereprete works as expected for binary classification", {
+test_that("lgb.interprete works as expected for binary classification", {
     data(agaricus.train, package = "lightgbm")
     train <- agaricus.train
     dtrain <- lgb.Dataset(train$data, label = train$label)
-    setinfo(
+    set_field(
         dataset = dtrain
-        , "init_score"
-        , rep(
+        , field_name = "init_score"
+        , data = rep(
             .logit(mean(train$label))
             , length(train$label)
         )
@@ -28,6 +26,8 @@ test_that("lgb.intereprete works as expected for binary classification", {
         , max_depth = -1L
         , min_data_in_leaf = 1L
         , min_sum_hessian_in_leaf = 1.0
+        , verbose = .LGB_VERBOSITY
+        , num_threads = .LGB_MAX_THREADS
     )
     model <- lgb.train(
         params = params
@@ -78,12 +78,14 @@ test_that("lgb.intereprete works as expected for multiclass classification", {
         , metric = "multi_logloss"
         , num_class = 3L
         , learning_rate = 0.00001
+        , min_data = 1L
+        , verbose = .LGB_VERBOSITY
+        , num_threads = .LGB_MAX_THREADS
     )
     model <- lgb.train(
         params = params
         , data = dtrain
         , nrounds = 3L
-        , min_data = 1L
     )
     num_trees <- 5L
     tree_interpretation <- lgb.interprete(

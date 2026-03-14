@@ -47,20 +47,20 @@ This section describes how to run distributed LightGBM training in various progr
 Apache Spark
 ^^^^^^^^^^^^
 
-Apache Spark users can use `MMLSpark`_ for machine learning workflows with LightGBM. This project is not maintained by LightGBM's maintainers.
+Apache Spark users can use `SynapseML`_ for machine learning workflows with LightGBM. This project is not maintained by LightGBM's maintainers.
 
-See `this MMLSpark example`_ and `the MMLSpark documentation`_ for additional information on using LightGBM on Spark.
+See `this SynapseML example`_ for additional information on using LightGBM on Spark.
 
 .. note::
 
-  ``MMLSpark`` is not maintained by LightGBM's maintainers. Bug reports or feature requests should be directed to https://github.com/Azure/mmlspark/issues.
+  ``SynapseML`` is not maintained by LightGBM's maintainers. Bug reports or feature requests should be directed to https://github.com/microsoft/SynapseML/issues.
 
 Dask
 ^^^^
 
 .. versionadded:: 3.2.0
 
-LightGBM's Python package supports distributed learning via `Dask`_. This integration is maintained by LightGBM's maintainers.
+LightGBM's Python-package supports distributed learning via `Dask`_. This integration is maintained by LightGBM's maintainers.
 
 .. warning::
 
@@ -166,7 +166,7 @@ LightGBM supports a parameter ``machines``, a comma-delimited string where each 
 
 For example, consider the case where you are running one Dask worker process on each of the following IP addresses:
 
-::
+.. code:: text
 
   10.0.1.0
   10.0.2.0
@@ -209,7 +209,7 @@ If you are only running one Dask worker process on each host, and if you can rel
 
 For example, consider the case where you are running one Dask worker process on each of the following IP addresses:
 
-::
+.. code:: text
 
   10.0.1.0
   10.0.2.0
@@ -229,6 +229,43 @@ You could edit your firewall rules to allow communication between any of the wor
 
   * the port ``local_listen_port`` is not open on any of the worker hosts
   * any machine has multiple Dask worker processes running on it
+
+Using Custom Objective Functions with Dask
+******************************************
+
+.. versionadded:: 4.0.0
+
+It is possible to customize the boosting process by providing a custom objective function written in Python.
+See the Dask API's documentation for details on how to implement such functions.
+
+.. warning::
+
+  Custom objective functions used with ``lightgbm.dask`` will be called by each worker process on only that worker's local data.
+
+Follow the example below to use a custom implementation of the ``regression_l2`` objective.
+
+.. code:: python
+
+  import dask.array as da
+  import lightgbm as lgb
+  import numpy as np
+  from distributed import Client, LocalCluster
+
+  cluster = LocalCluster(n_workers=2)
+  client = Client(cluster)
+
+  X = da.random.random((1000, 10), (500, 10))
+  y = da.random.random((1000,), (500,))
+
+  def custom_l2_obj(y_true, y_pred):
+      grad = y_pred - y_true
+      hess = np.ones(len(y_true))
+      return grad, hess
+
+  dask_model = lgb.DaskLGBMRegressor(
+      objective=custom_l2_obj
+  )
+  dask_model.fit(X, y)
 
 Prediction with Dask
 ''''''''''''''''''''
@@ -347,8 +384,6 @@ From the point forward, you can use any of the following methods to save the Boo
 Kubeflow
 ^^^^^^^^
 
-`Kubeflow Fairing`_ supports LightGBM distributed training. `These examples`_ show how to get started with LightGBM and Kubeflow Fairing in a hybrid cloud environment.
-
 Kubeflow users can also use the `Kubeflow XGBoost Operator`_ for machine learning workflows with LightGBM. You can see `this example`_ for more details.
 
 Kubeflow integrations for LightGBM are not maintained by LightGBM's maintainers.
@@ -375,7 +410,7 @@ Socket Version
 It needs to collect IP of all machines that want to run distributed learning in and allocate one TCP port (assume 12345 here) for all machines,
 and change firewall rules to allow income of this port (12345). Then write these IP and ports in one file (assume ``mlist.txt``), like following:
 
-.. code::
+.. code:: text
 
     machine1_ip 12345
     machine2_ip 12345
@@ -386,7 +421,7 @@ MPI Version
 It needs to collect IP (or hostname) of all machines that want to run distributed learning in.
 Then write these IP in one file (assume ``mlist.txt``) like following:
 
-.. code::
+.. code:: text
 
     machine1_ip
     machine2_ip
@@ -435,14 +470,14 @@ MPI Version
 3. Run following command on one machine (not need to run on all machines), need to change ``your_config_file`` to real config file.
 
    For Windows:
-   
-   .. code::
+
+   .. code:: console
 
        mpiexec.exe /machinefile mlist.txt lightgbm.exe config=your_config_file
 
    For Linux:
 
-   .. code::
+   .. code:: console
 
        mpiexec --machinefile mlist.txt ./lightgbm config=your_config_file
 
@@ -451,29 +486,45 @@ Example
 
 -  `A simple distributed learning example`_
 
+Ray
+^^^
+
+`Ray`_ is a Python-based framework for distributed computing. The `lightgbm_ray`_ project, maintained within the official Ray GitHub organization, can be used to perform distributed LightGBM training using ``ray``.
+
+See `the lightgbm_ray documentation`_ for usage examples.
+
+.. note::
+
+  ``lightgbm_ray`` is not maintained by LightGBM's maintainers. Bug reports or feature requests should be directed to https://github.com/ray-project/lightgbm_ray/issues.
+
+Mars
+^^^^
+
+`Mars`_ is a tensor-based framework for large-scale data computation. LightGBM integration, maintained within the Mars GitHub repository, can be used to perform distributed LightGBM training using ``pymars``.
+
+See `the mars documentation`_ for usage examples.
+
+.. note::
+
+  ``Mars`` is not maintained by LightGBM's maintainers. Bug reports or feature requests should be directed to https://github.com/mars-project/mars/issues.
+
 .. _Dask: https://docs.dask.org/en/latest/
 
-.. _MMLSpark: https://aka.ms/spark
+.. _SynapseML: https://aka.ms/spark
 
-.. _this MMLSpark example: https://github.com/Azure/mmlspark/blob/master/notebooks/samples/LightGBM%20-%20Quantile%20Regression%20for%20Drug%20Discovery.ipynb
+.. _this SynapseML example: https://github.com/microsoft/SynapseML/tree/master/docs/Explore%20Algorithms/LightGBM
 
 .. _the Dask Array documentation: https://docs.dask.org/en/latest/array.html
 
 .. _the Dask DataFrame documentation: https://docs.dask.org/en/latest/dataframe.html
 
-.. _the Dask prediction example: https://github.com/microsoft/lightgbm/tree/master/examples/python-guide/dask/prediction.py
+.. _the Dask prediction example: https://github.com/microsoft/LightGBM/blob/master/examples/python-guide/dask/prediction.py
 
-.. _the Dask worker documentation: https://distributed.dask.org/en/latest/worker.html#memory-management
+.. _the Dask worker documentation: https://distributed.dask.org/en/stable/worker-memory.html
 
 .. _the metrics functions from dask-ml: https://ml.dask.org/modules/api.html#dask-ml-metrics-metrics
 
-.. _the MMLSpark Documentation: https://github.com/Azure/mmlspark/blob/master/docs/lightgbm.md
-
 .. _these Dask examples: https://github.com/microsoft/lightgbm/tree/master/examples/python-guide/dask
-
-.. _Kubeflow Fairing: https://www.kubeflow.org/docs/components/fairing/fairing-overview
-
-.. _These examples: https://github.com/kubeflow/fairing/tree/master/examples/lightgbm
 
 .. _Kubeflow XGBoost Operator: https://github.com/kubeflow/xgboost-operator
 
@@ -482,3 +533,13 @@ Example
 .. _here: https://www.youtube.com/watch?v=iqzXhp5TxUY
 
 .. _A simple distributed learning example: https://github.com/microsoft/lightgbm/tree/master/examples/parallel_learning
+
+.. _lightgbm_ray: https://github.com/ray-project/lightgbm_ray
+
+.. _Ray: https://www.ray.io/
+
+.. _the lightgbm_ray documentation: https://docs.ray.io/en/latest/tune/api_docs/integration.html#lightgbm-tune-integration-lightgbm
+
+.. _Mars: https://mars-project.readthedocs.io/en/latest/
+
+.. _the mars documentation: https://mars-project.readthedocs.io/en/latest/user_guide/learn/lightgbm.html

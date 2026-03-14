@@ -12,7 +12,6 @@
 template<typename T>
 void check_abs() {
   typedef typename NumTraits<T>::Real Real;
-  Real zero(0);
 
   if(NumTraits<T>::IsSigned)
     VERIFY_IS_EQUAL(numext::abs(-T(1)), T(1));
@@ -27,14 +26,14 @@ void check_abs() {
     if(NumTraits<T>::IsSigned)
     {
       VERIFY_IS_EQUAL(numext::abs(x), numext::abs(-x));
-      VERIFY( numext::abs(-x) >= zero );
+      VERIFY( numext::abs(-x) >= Real(0));
     }
-    VERIFY( numext::abs(x) >= zero );
+    VERIFY( numext::abs(x) >= Real(0));
     VERIFY_IS_APPROX( numext::abs2(x), numext::abs2(numext::abs(x)) );
   }
 }
 
-EIGEN_DECLARE_TEST(numext) {
+void test_numext() {
   CALL_SUBTEST( check_abs<bool>() );
   CALL_SUBTEST( check_abs<signed char>() );
   CALL_SUBTEST( check_abs<unsigned char>() );
@@ -45,7 +44,6 @@ EIGEN_DECLARE_TEST(numext) {
   CALL_SUBTEST( check_abs<long>() );
   CALL_SUBTEST( check_abs<unsigned long>() );
   CALL_SUBTEST( check_abs<half>() );
-  CALL_SUBTEST( check_abs<bfloat16>() );
   CALL_SUBTEST( check_abs<float>() );
   CALL_SUBTEST( check_abs<double>() );
   CALL_SUBTEST( check_abs<long double>() );

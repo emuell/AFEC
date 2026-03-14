@@ -16,6 +16,7 @@
 
 template<typename MatrixType> void matrixRedux(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
 
@@ -27,9 +28,6 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   // The entries of m1 are uniformly distributed in [0,1], so m1.prod() is very small. This may lead to test
   // failures if we underflow into denormals. Thus, we scale so that entries are close to 1.
   MatrixType m1_for_prod = MatrixType::Ones(rows, cols) + RealScalar(0.2) * m1;
-
-  Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> m2(rows,rows);
-  m2.setRandom();
 
   VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::Zero(rows, cols).sum(), Scalar(1));
   VERIFY_IS_APPROX(MatrixType::Ones(rows, cols).sum(), Scalar(float(rows*cols))); // the float() here to shut up excessive MSVC warning about int->complex conversion being lossy
@@ -49,10 +47,6 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   VERIFY_IS_APPROX(m1_for_prod.prod(), p);
   VERIFY_IS_APPROX(m1.real().minCoeff(), numext::real(minc));
   VERIFY_IS_APPROX(m1.real().maxCoeff(), numext::real(maxc));
-  
-  // test that partial reduction works if nested expressions is forced to evaluate early
-  VERIFY_IS_APPROX((m1.matrix() * m1.matrix().transpose())       .cwiseProduct(m2.matrix()).rowwise().sum().sum(), 
-                   (m1.matrix() * m1.matrix().transpose()).eval().cwiseProduct(m2.matrix()).rowwise().sum().sum());
 
   // test slice vectorization assuming assign is ok
   Index r0 = internal::random<Index>(0,rows-1);
@@ -79,12 +73,15 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
 
   // test nesting complex expression
   VERIFY_EVALUATION_COUNT( (m1.matrix()*m1.matrix().transpose()).sum(), (MatrixType::IsVectorAtCompileTime && MatrixType::SizeAtCompileTime!=1 ? 0 : 1) );
+  Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> m2(rows,rows);
+  m2.setRandom();
   VERIFY_EVALUATION_COUNT( ((m1.matrix()*m1.matrix().transpose())+m2).sum(),(MatrixType::IsVectorAtCompileTime && MatrixType::SizeAtCompileTime!=1 ? 0 : 1));
 }
 
 template<typename VectorType> void vectorRedux(const VectorType& w)
 {
   using std::abs;
+  typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   Index size = w.size();
@@ -151,7 +148,7 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
   VERIFY_RAISES_ASSERT(v.head(0).maxCoeff());
 }
 
-EIGEN_DECLARE_TEST(redux)
+void test_redux()
 {
   // the max size cannot be too large, otherwise reduxion operations obviously generate large errors.
   int maxsize = (std::min)(100,EIGEN_TEST_MAX_SIZE);

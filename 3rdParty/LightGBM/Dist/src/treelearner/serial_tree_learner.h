@@ -19,23 +19,25 @@
 #include <memory>
 #include <random>
 #include <vector>
+#include <set>
 
 #include "col_sampler.hpp"
 #include "data_partition.hpp"
 #include "feature_histogram.hpp"
+#include "gradient_discretizer.hpp"
 #include "leaf_splits.hpp"
 #include "monotone_constraints.hpp"
 #include "split_info.hpp"
 
 #ifdef USE_GPU
-// Use 4KBytes aligned allocator for ordered gradients and ordered hessians when GPU is enabled.
+// Use 4KBytes aligned allocator for ordered gradients and ordered Hessians when GPU is enabled.
 // This is necessary to pin the two arrays in memory and make transferring faster.
 #include <boost/align/aligned_allocator.hpp>
 #endif
 
 namespace LightGBM {
 
-using json11::Json;
+using json11_internal_lightgbm::Json;
 
 /*! \brief forward declaration */
 class CostEfficientGradientBoosting;
@@ -101,7 +103,7 @@ class SerialTreeLearner: public TreeLearner {
     if (tree->num_leaves() <= 1) {
       return;
     }
-#pragma omp parallel for schedule(static, 1)
+#pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static, 1)
     for (int i = 0; i < tree->num_leaves(); ++i) {
       double output = static_cast<double>(tree->LeafOutput(i));
       data_size_t cnt_leaf_data = 0;
@@ -113,7 +115,7 @@ class SerialTreeLearner: public TreeLearner {
   }
 
   void RenewTreeOutput(Tree* tree, const ObjectiveFunction* obj, std::function<double(const label_t*, int)> residual_getter,
-                       data_size_t total_num_data, const data_size_t* bag_indices, data_size_t bag_cnt) const override;
+                       data_size_t total_num_data, const data_size_t* bag_indices, data_size_t bag_cnt, const double* train_score) const override;
 
   /*! \brief Get output of parent node, used for path smoothing */
   double GetParentOutput(const Tree* tree, const LeafSplits* leaf_splits) const;
@@ -142,6 +144,8 @@ class SerialTreeLearner: public TreeLearner {
 
   virtual void FindBestSplits(const Tree* tree);
 
+  virtual void FindBestSplits(const Tree* tree, const std::set<int>* force_features);
+
   virtual void ConstructHistograms(const std::vector<int8_t>& is_feature_used, bool use_subtract);
 
   virtual void FindBestSplitsFromHistograms(const std::vector<int8_t>& is_feature_used, bool use_subtract, const Tree*);
@@ -164,6 +168,12 @@ class SerialTreeLearner: public TreeLearner {
   /* Force splits with forced_split_json dict and then return num splits forced.*/
   int32_t ForceSplits(Tree* tree, int* left_leaf, int* right_leaf,
                       int* cur_depth);
+
+  std::set<int> FindAllForceFeatures(Json force_split_leaf_setting);
+
+  #ifdef DEBUG
+  void CheckSplit(const SplitInfo& best_split_info, const int left_leaf_index, const int right_leaf_index);
+  #endif
 
   /*!
   * \brief Get the number of data in a leaf
@@ -201,12 +211,12 @@ class SerialTreeLearner: public TreeLearner {
   std::unique_ptr<LeafSplits> smaller_leaf_splits_;
   /*! \brief stores best thresholds for all feature for larger leaf */
   std::unique_ptr<LeafSplits> larger_leaf_splits_;
-#ifdef USE_GPU
+#if defined(USE_GPU)
   /*! \brief gradients of current iteration, ordered for cache optimized, aligned to 4K page */
   std::vector<score_t, boost::alignment::aligned_allocator<score_t, 4096>> ordered_gradients_;
   /*! \brief hessians of current iteration, ordered for cache optimized, aligned to 4K page */
   std::vector<score_t, boost::alignment::aligned_allocator<score_t, 4096>> ordered_hessians_;
-#elif USE_CUDA
+#elif defined(USE_CUDA)
   /*! \brief gradients of current iteration, ordered for cache optimized */
   std::vector<score_t, CHAllocator<score_t>> ordered_gradients_;
   /*! \brief hessians of current iteration, ordered for cache optimized */
@@ -225,6 +235,7 @@ class SerialTreeLearner: public TreeLearner {
   const Json* forced_split_json_;
   std::unique_ptr<TrainingShareStates> share_state_;
   std::unique_ptr<CostEfficientGradientBoosting> cegb_;
+  std::unique_ptr<GradientDiscretizer> gradient_discretizer_;
 };
 
 inline data_size_t SerialTreeLearner::GetGlobalDataCountInLeaf(int leaf_idx) const {

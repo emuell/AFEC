@@ -10,10 +10,11 @@
 may allow you to pass other types of data like \code{matrix} and then separately supply
 \code{label} as a keyword argument.}
 
-\item{early_stopping_rounds}{int. Activates early stopping. Requires at least one validation data
-and one metric. If there's more than one, will check all of them
-except the training data. Returns the model with (best_iter + early_stopping_rounds).
-If early stopping occurs, the model will have 'best_iter' field.}
+\item{early_stopping_rounds}{int. Activates early stopping. When this parameter is non-null,
+training will stop if the evaluation of any metric on any validation set
+fails to improve for \code{early_stopping_rounds} consecutive boosting rounds.
+If training stops early, the returned model will have attribute \code{best_iter}
+set to the iteration number of the best iteration.}
 
 \item{eval}{evaluation function(s). This can be a character vector, function, or list with a mixture of
             strings and functions.
@@ -49,9 +50,9 @@ If early stopping occurs, the model will have 'best_iter' field.}
                 }
             }}
 
-\item{eval_freq}{evaluation output frequency, only effect when verbose > 0}
+\item{eval_freq}{evaluation output frequency, only effective when verbose > 0 and \code{valids} has been provided}
 
-\item{init_model}{path of model file of \code{lgb.Booster} object, will continue training from this model}
+\item{init_model}{path of model file or \code{lgb.Booster} object, will continue training from this model}
 
 \item{nrounds}{number of training rounds}
 
@@ -59,9 +60,14 @@ If early stopping occurs, the model will have 'best_iter' field.}
 \code{regression}, \code{regression_l1}, \code{huber},
 \code{binary}, \code{lambdarank}, \code{multiclass}, \code{multiclass}}
 
-\item{params}{List of parameters}
+\item{params}{a list of parameters. See \href{https://lightgbm.readthedocs.io/en/latest/Parameters.html}{
+the "Parameters" section of the documentation} for a list of parameters and valid values.}
 
-\item{verbose}{verbosity for output, if <= 0, also will disable the print of evaluation during training}
+\item{verbose}{verbosity for output, if <= 0 and \code{valids} has been provided, also will disable the
+printing of evaluation during training}
+
+\item{serializable}{whether to make the resulting objects serializable through functions such as
+\code{save} or \code{saveRDS} (see section "Model serialization").}
 }
 \description{
 Parameter docs shared by \code{lgb.train}, \code{lgb.cv}, and \code{lightgbm}
@@ -81,6 +87,26 @@ Parameter docs shared by \code{lgb.train}, \code{lgb.cv}, and \code{lightgbm}
          in \code{params}, that metric will be considered the "first" one. If you omit \code{metric},
          a default metric will be used based on your choice for the parameter \code{obj} (keyword argument)
          or \code{objective} (passed into \code{params}).
+}
+
+\section{Model serialization}{
+
+
+         LightGBM model objects can be serialized and de-serialized through functions such as \code{save}
+         or \code{saveRDS}, but similarly to libraries such as 'xgboost', serialization works a bit differently
+         from typical R objects. In order to make models serializable in R, a copy of the underlying C++ object
+         as serialized raw bytes is produced and stored in the R model object, and when this R object is
+         de-serialized, the underlying C++ model object gets reconstructed from these raw bytes, but will only
+         do so once some function that uses it is called, such as \code{predict}. In order to forcibly
+         reconstruct the C++ object after deserialization (e.g. after calling \code{readRDS} or similar), one
+         can use the function \link{lgb.restore_handle} (for example, if one makes predictions in parallel or in
+         forked processes, it will be faster to restore the handle beforehand).
+
+         Producing and keeping these raw bytes however uses extra memory, and if they are not required,
+         it is possible to avoid producing them by passing `serializable=FALSE`. In such cases, these raw
+         bytes can be added to the model on demand through function \link{lgb.make_serializable}.
+
+         \emph{New in version 4.0.0}
 }
 
 \keyword{internal}

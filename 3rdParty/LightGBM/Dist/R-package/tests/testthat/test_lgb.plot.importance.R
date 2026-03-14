@@ -1,5 +1,3 @@
-context("lgb.plot.importance()")
-
 test_that("lgb.plot.importance() should run without error for well-formed inputs", {
     data(agaricus.train, package = "lightgbm")
     train <- agaricus.train
@@ -11,6 +9,8 @@ test_that("lgb.plot.importance() should run without error for well-formed inputs
         , max_depth = -1L
         , min_data_in_leaf = 1L
         , min_sum_hessian_in_leaf = 1.0
+        , verbosity = .LGB_VERBOSITY
+        , num_threads = .LGB_MAX_THREADS
     )
     model <- lgb.train(params, dtrain, 3L)
     tree_imp <- lgb.importance(model, percentage = TRUE)

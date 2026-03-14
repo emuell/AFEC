@@ -11,6 +11,7 @@
 
 template<typename MatrixType> void product_extra(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, 1, Dynamic> RowVectorType;
   typedef Matrix<Scalar, Dynamic, 1> ColVectorType;
@@ -352,7 +353,7 @@ void bug_1308()
   VERIFY_IS_APPROX(r44.noalias() += Vector4d::Ones() * m44.col(0).transpose(), ones44);
 }
 
-EIGEN_DECLARE_TEST(product_extra)
+void test_product_extra()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( product_extra(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );

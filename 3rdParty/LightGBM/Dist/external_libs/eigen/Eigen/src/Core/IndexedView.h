@@ -21,8 +21,8 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
   enum {
     RowsAtCompileTime = int(array_size<RowIndices>::value),
     ColsAtCompileTime = int(array_size<ColIndices>::value),
-    MaxRowsAtCompileTime = RowsAtCompileTime != Dynamic ? int(RowsAtCompileTime) : Dynamic,
-    MaxColsAtCompileTime = ColsAtCompileTime != Dynamic ? int(ColsAtCompileTime) : Dynamic,
+    MaxRowsAtCompileTime = RowsAtCompileTime != Dynamic ? int(RowsAtCompileTime) : int(traits<XprType>::MaxRowsAtCompileTime),
+    MaxColsAtCompileTime = ColsAtCompileTime != Dynamic ? int(ColsAtCompileTime) : int(traits<XprType>::MaxColsAtCompileTime),
 
     XprTypeIsRowMajor = (int(traits<XprType>::Flags)&RowMajorBit) != 0,
     IsRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
@@ -54,8 +54,7 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
     DirectAccessMask = (int(InnerIncr)!=UndefinedIncr && int(OuterIncr)!=UndefinedIncr && InnerIncr>=0 && OuterIncr>=0) ? DirectAccessBit : 0,
     FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
-    FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-    Flags = (traits<XprType>::Flags & (HereditaryBits | DirectAccessMask )) | FlagsLvalueBit | FlagsRowMajorBit | FlagsLinearAccessBit
+    Flags = (traits<XprType>::Flags & (HereditaryBits | DirectAccessMask)) | FlagsLvalueBit | FlagsRowMajorBit
   };
 
   typedef Block<XprType,RowsAtCompileTime,ColsAtCompileTime,IsInnerPannel> BlockType;
@@ -133,7 +132,7 @@ public:
 
   /** \returns the nested expression */
   typename internal::remove_reference<XprType>::type&
-  nestedExpression() { return m_xpr; }
+  nestedExpression() { return m_xpr.const_cast_derived(); }
 
   /** \returns a const reference to the object storing/generating the row indices */
   const RowIndices& rowIndices() const { return m_rowIndices; }
@@ -169,11 +168,7 @@ struct unary_evaluator<IndexedView<ArgType, RowIndices, ColIndices>, IndexBased>
   enum {
     CoeffReadCost = evaluator<ArgType>::CoeffReadCost /* TODO + cost of row/col index */,
 
-    FlagsLinearAccessBit = (traits<XprType>::RowsAtCompileTime == 1 || traits<XprType>::ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-
-    FlagsRowMajorBit = traits<XprType>::FlagsRowMajorBit, 
-
-    Flags = (evaluator<ArgType>::Flags & (HereditaryBits & ~RowMajorBit /*| LinearAccessBit | DirectAccessBit*/)) | FlagsLinearAccessBit | FlagsRowMajorBit,
+    Flags = (evaluator<ArgType>::Flags & (HereditaryBits /*| LinearAccessBit | DirectAccessBit*/)),
 
     Alignment = 0
   };
@@ -196,31 +191,6 @@ struct unary_evaluator<IndexedView<ArgType, RowIndices, ColIndices>, IndexBased>
   Scalar& coeffRef(Index row, Index col)
   {
     return m_argImpl.coeffRef(m_xpr.rowIndices()[row], m_xpr.colIndices()[col]);
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  Scalar& coeffRef(Index index)
-  {
-    EIGEN_STATIC_ASSERT_LVALUE(XprType)
-    Index row = XprType::RowsAtCompileTime == 1 ? 0 : index;
-    Index col = XprType::RowsAtCompileTime == 1 ? index : 0;
-    return m_argImpl.coeffRef( m_xpr.rowIndices()[row], m_xpr.colIndices()[col]);
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  const Scalar& coeffRef(Index index) const
-  {
-    Index row = XprType::RowsAtCompileTime == 1 ? 0 : index;
-    Index col = XprType::RowsAtCompileTime == 1 ? index : 0;
-    return m_argImpl.coeffRef( m_xpr.rowIndices()[row], m_xpr.colIndices()[col]);
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  const CoeffReturnType coeff(Index index) const
-  {
-    Index row = XprType::RowsAtCompileTime == 1 ? 0 : index;
-    Index col = XprType::RowsAtCompileTime == 1 ? index : 0;
-    return m_argImpl.coeff( m_xpr.rowIndices()[row], m_xpr.colIndices()[col]);
   }
 
 protected:

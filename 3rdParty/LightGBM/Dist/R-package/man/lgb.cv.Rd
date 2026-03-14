@@ -7,10 +7,8 @@
 lgb.cv(
   params = list(),
   data,
-  nrounds = 10L,
+  nrounds = 100L,
   nfold = 3L,
-  label = NULL,
-  weight = NULL,
   obj = NULL,
   eval = NULL,
   verbose = 1L,
@@ -20,16 +18,16 @@ lgb.cv(
   stratified = TRUE,
   folds = NULL,
   init_model = NULL,
-  colnames = NULL,
-  categorical_feature = NULL,
   early_stopping_rounds = NULL,
   callbacks = list(),
   reset_data = FALSE,
-  ...
+  serializable = TRUE,
+  eval_train_metric = FALSE
 )
 }
 \arguments{
-\item{params}{List of parameters}
+\item{params}{a list of parameters. See \href{https://lightgbm.readthedocs.io/en/latest/Parameters.html}{
+the "Parameters" section of the documentation} for a list of parameters and valid values.}
 
 \item{data}{a \code{lgb.Dataset} object, used for training. Some functions, such as \code{\link{lgb.cv}},
 may allow you to pass other types of data like \code{matrix} and then separately supply
@@ -38,10 +36,6 @@ may allow you to pass other types of data like \code{matrix} and then separately
 \item{nrounds}{number of training rounds}
 
 \item{nfold}{the original dataset is randomly partitioned into \code{nfold} equal size subsamples.}
-
-\item{label}{Vector of labels, used if \code{data} is not an \code{\link{lgb.Dataset}}}
-
-\item{weight}{vector of response values. If not NULL, will set to dataset}
 
 \item{obj}{objective function, can be character or custom objective function. Examples include
 \code{regression}, \code{regression_l1}, \code{huber},
@@ -81,13 +75,16 @@ may allow you to pass other types of data like \code{matrix} and then separately
                 }
             }}
 
-\item{verbose}{verbosity for output, if <= 0, also will disable the print of evaluation during training}
+\item{verbose}{verbosity for output, if <= 0 and \code{valids} has been provided, also will disable the
+printing of evaluation during training}
 
 \item{record}{Boolean, TRUE will record iteration message to \code{booster$record_evals}}
 
-\item{eval_freq}{evaluation output frequency, only effect when verbose > 0}
+\item{eval_freq}{evaluation output frequency, only effective when verbose > 0 and \code{valids} has been provided}
 
-\item{showsd}{\code{boolean}, whether to show standard deviation of cross validation}
+\item{showsd}{\code{boolean}, whether to show standard deviation of cross validation.
+This parameter defaults to \code{TRUE}. Setting it to \code{FALSE} can lead to a
+slight speedup by avoiding unnecessary computation.}
 
 \item{stratified}{a \code{boolean} indicating whether sampling of folds should be stratified
 by the values of outcome labels.}
@@ -96,34 +93,25 @@ by the values of outcome labels.}
 (each element must be a vector of test fold's indices). When folds are supplied,
 the \code{nfold} and \code{stratified} parameters are ignored.}
 
-\item{init_model}{path of model file of \code{lgb.Booster} object, will continue training from this model}
+\item{init_model}{path of model file or \code{lgb.Booster} object, will continue training from this model}
 
-\item{colnames}{feature names, if not null, will use this to overwrite the names in dataset}
-
-\item{categorical_feature}{categorical features. This can either be a character vector of feature
-names or an integer vector with the indices of the features (e.g.
-\code{c(1L, 10L)} to say "the first and tenth columns").}
-
-\item{early_stopping_rounds}{int. Activates early stopping. Requires at least one validation data
-and one metric. If there's more than one, will check all of them
-except the training data. Returns the model with (best_iter + early_stopping_rounds).
-If early stopping occurs, the model will have 'best_iter' field.}
+\item{early_stopping_rounds}{int. Activates early stopping. When this parameter is non-null,
+training will stop if the evaluation of any metric on any validation set
+fails to improve for \code{early_stopping_rounds} consecutive boosting rounds.
+If training stops early, the returned model will have attribute \code{best_iter}
+set to the iteration number of the best iteration.}
 
 \item{callbacks}{List of callback functions that are applied at each iteration.}
 
 \item{reset_data}{Boolean, setting it to TRUE (not the default value) will transform the booster model
 into a predictor model which frees up memory and the original datasets}
 
-\item{...}{other parameters, see Parameters.rst for more information. A few key parameters:
-\itemize{
-    \item{\code{boosting}: Boosting type. \code{"gbdt"}, \code{"rf"}, \code{"dart"} or \code{"goss"}.}
-    \item{\code{num_leaves}: Maximum number of leaves in one tree.}
-    \item{\code{max_depth}: Limit the max depth for tree model. This is used to deal with
-                     overfit when #data is small. Tree still grow by leaf-wise.}
-    \item{\code{num_threads}: Number of threads for LightGBM. For the best speed, set this to
-                       the number of real CPU cores, not the number of threads (most
-                       CPU using hyper-threading to generate 2 threads per CPU core).}
-}}
+\item{serializable}{whether to make the resulting objects serializable through functions such as
+\code{save} or \code{saveRDS} (see section "Model serialization").}
+
+\item{eval_train_metric}{\code{boolean}, whether to add the cross validation results on the
+training data. This parameter defaults to \code{FALSE}. Setting it to \code{TRUE}
+will increase run time.}
 }
 \value{
 a trained model \code{lgb.CVBooster}.
@@ -150,17 +138,24 @@ Cross validation logic used by LightGBM
 
 \examples{
 \donttest{
+\dontshow{setLGBMthreads(2L)}
+\dontshow{data.table::setDTthreads(1L)}
 data(agaricus.train, package = "lightgbm")
 train <- agaricus.train
 dtrain <- lgb.Dataset(train$data, label = train$label)
-params <- list(objective = "regression", metric = "l2")
+params <- list(
+  objective = "regression"
+  , metric = "l2"
+  , min_data = 1L
+  , learning_rate = 1.0
+  , num_threads = 2L
+)
 model <- lgb.cv(
   params = params
   , data = dtrain
   , nrounds = 5L
   , nfold = 3L
-  , min_data = 1L
-  , learning_rate = 1.0
 )
 }
+
 }

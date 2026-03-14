@@ -42,7 +42,7 @@ lgb.cv(
 print("Running cross validation, with cutomsized loss function")
 
 logregobj <- function(preds, dtrain) {
-  labels <- getinfo(dtrain, "label")
+  labels <- get_field(dtrain, "label")
   preds <- 1.0 / (1.0 + exp(-preds))
   grad <- preds - labels
   hess <- preds * (1.0 - preds)
@@ -51,11 +51,11 @@ logregobj <- function(preds, dtrain) {
 
 # User-defined evaluation function returns a pair (metric_name, result, higher_better)
 # NOTE: when you do customized loss function, the default prediction value is margin
-# This may make built-in evalution metric calculate wrong results
+# This may make built-in evaluation metric calculate wrong results
 # For example, we are doing logistic loss, the prediction is score before logistic transformation
 # Keep this in mind when you use the customization, and maybe you need write customized evaluation function
 evalerror <- function(preds, dtrain) {
-  labels <- getinfo(dtrain, "label")
+  labels <- get_field(dtrain, "label")
   preds <- 1.0 / (1.0 + exp(-preds))
   err <- as.numeric(sum(labels != (preds > 0.5))) / length(labels)
   return(list(name = "error", value = err, higher_better = FALSE))

@@ -7,6 +7,7 @@
 
 #include <LightGBM/dataset.h>
 
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -27,9 +28,15 @@ class DatasetLoader {
 
   LIGHTGBM_EXPORT Dataset* LoadFromFileAlignWithOtherDataset(const char* filename, const Dataset* train_data);
 
+  LIGHTGBM_EXPORT Dataset* LoadFromSerializedReference(const char* buffer, size_t buffer_size, data_size_t num_data, int32_t num_classes);
+
   LIGHTGBM_EXPORT Dataset* ConstructFromSampleData(double** sample_values,
-    int** sample_indices, int num_col, const int* num_per_col,
-    size_t total_sample_size, data_size_t num_data);
+                                                   int** sample_indices,
+                                                   int num_col,
+                                                   const int* num_per_col,
+                                                   size_t total_sample_size,
+                                                   data_size_t num_local_data,
+                                                   int64_t num_dist_data);
 
   /*! \brief Disable copy */
   DatasetLoader& operator=(const DatasetLoader&) = delete;
@@ -40,6 +47,8 @@ class DatasetLoader {
                                                         const std::unordered_set<int>& categorical_features);
 
  private:
+  void LoadHeaderFromMemory(Dataset* dataset, const char* buffer);
+
   Dataset* LoadFromBinFile(const char* data_filename, const char* bin_filename, int rank, int num_machines, int* num_global_data, std::vector<data_size_t>* used_data_indices);
 
   void SetHeader(const char* filename);
@@ -63,11 +72,21 @@ class DatasetLoader {
   /*! \brief Check can load from binary file */
   std::string CheckCanLoadFromBin(const char* filename);
 
+  /*! \brief Check the number of bins for categorical features.
+   * The number of bins for categorical features may exceed the configured maximum value.
+   * Log warnings when such cases happen.
+   *
+   * \param bin_mappers the bin_mappers of all features
+   * \param max_bin max_bin from Config
+   * \param max_bin_by_feature max_bin_by_feature from Config
+   */
+  void CheckCategoricalFeatureNumBin(const std::vector<std::unique_ptr<BinMapper>>& bin_mappers, const int max_bin, const std::vector<int>& max_bin_by_feature) const;
+
   const Config& config_;
   /*! \brief Random generator*/
   Random random_;
   /*! \brief prediction function for initial model */
-  const PredictFunction& predict_fun_;
+  const PredictFunction predict_fun_;
   /*! \brief number of classes */
   int num_class_;
   /*! \brief index of label column */

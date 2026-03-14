@@ -8,7 +8,7 @@
 #ifndef __OPENCL_VERSION__
 // If we are including this file in C++,
 // the entire source file following (except the last #endif) will become
-// a raw string literal. The extra ")" is just for mathcing parentheses
+// a raw string literal. The extra ")" is just for matching parentheses
 // to make the editor happy. The extra ")" and extra endif will be skipped.
 // DO NOT add anything between here and the next #ifdef, otherwise you need
 // to modify the skip count at the end of this file.
@@ -47,12 +47,12 @@ typedef uint acc_int_type;
 #endif
 #define LOCAL_MEM_SIZE (4 * (sizeof(uint) + 2 * sizeof(acc_type)) * NUM_BINS)
 
-// unroll the atomic operation for a few times. Takes more code space, 
+// unroll the atomic operation for a few times. Takes more code space,
 // but compiler can generate better code for faster atomics.
 #define UNROLL_ATOMIC 1
 
 // Options passed by compiler at run time:
-// IGNORE_INDICES will be set when the kernel does not 
+// IGNORE_INDICES will be set when the kernel does not
 // #define IGNORE_INDICES
 // #define POWER_FEATURE_WORKGROUPS 10
 
@@ -137,7 +137,7 @@ R""()
 // this function will be called by histogram256
 // we have one sub-histogram of one feature in local memory, and need to read others
 void within_kernel_reduction256x4(uchar4 feature_mask,
-                           __global const acc_type* restrict feature4_sub_hist, 
+                           __global const acc_type* restrict feature4_sub_hist,
                            const uint skip_id,
                            const uint old_val_f0_cont_bin0,
                            const ushort num_sub_hist,
@@ -314,12 +314,12 @@ R""()
 */
 __attribute__((reqd_work_group_size(LOCAL_SIZE_0, 1, 1)))
 #if USE_CONSTANT_BUF == 1
-__kernel void histogram256(__global const uchar4* restrict feature_data_base, 
+__kernel void histogram256(__global const uchar4* restrict feature_data_base,
                       __constant const uchar4* restrict feature_masks __attribute__((max_constant_size(65536))),
                       const data_size_t feature_size,
-                      __constant const data_size_t* restrict data_indices __attribute__((max_constant_size(65536))), 
-                      const data_size_t num_data, 
-                      __constant const score_t* restrict ordered_gradients __attribute__((max_constant_size(65536))), 
+                      __constant const data_size_t* restrict data_indices __attribute__((max_constant_size(65536))),
+                      const data_size_t num_data,
+                      __constant const score_t* restrict ordered_gradients __attribute__((max_constant_size(65536))),
 #if CONST_HESSIAN == 0
                       __constant const score_t* restrict ordered_hessians __attribute__((max_constant_size(65536))),
 #else
@@ -329,18 +329,18 @@ __kernel void histogram256(__global const uchar4* restrict feature_data_base,
                       __global volatile int * sync_counters,
                       __global acc_type* restrict hist_buf_base) {
 #else
-__kernel void histogram256(__global const uchar4* feature_data_base, 
+__kernel void histogram256(__global const uchar4* feature_data_base,
                       __constant const uchar4* restrict feature_masks __attribute__((max_constant_size(65536))),
                       const data_size_t feature_size,
-                      __global const data_size_t* data_indices, 
-                      const data_size_t num_data, 
-                      __global const score_t*  ordered_gradients, 
+                      __global const data_size_t* data_indices,
+                      const data_size_t num_data,
+                      __global const score_t*  ordered_gradients,
 #if CONST_HESSIAN == 0
                       __global const score_t*  ordered_hessians,
 #else
                       const score_t const_hessian,
 #endif
-                      __global char* restrict output_buf, 
+                      __global char* restrict output_buf,
                       __global volatile int * sync_counters,
                       __global acc_type* restrict hist_buf_base) {
 #endif
@@ -363,31 +363,31 @@ __kernel void histogram256(__global const uchar4* feature_data_base,
     // gradient/hessian histograms
     // assume this starts at 32 * 4 = 128-byte boundary
     // total size: 2 * 4 * 256 * size_of(float) = 8 KB
-    // organization: each feature/grad/hessian is at a different bank, 
-    //               as indepedent of the feature value as possible
+    // organization: each feature/grad/hessian is at a different bank,
+    //               as independent of the feature value as possible
     __local acc_type * gh_hist = (__local acc_type *)shared_array;
     // counter histogram
     // total size: 4 * 256 * size_of(uint) = 4 KB
     #if CONST_HESSIAN == 1
     __local uint * cnt_hist = (__local uint *)(gh_hist + 2 * 4 * NUM_BINS);
-    #endif 
+    #endif
 
     // thread 0, 1, 2, 3 compute histograms for gradients first
-    // thread 4, 5, 6, 7 compute histograms for hessians  first
+    // thread 4, 5, 6, 7 compute histograms for Hessians  first
     // etc.
     uchar is_hessian_first = (ltid >> 2) & 1;
-    
+
     ushort group_feature = group_id >> POWER_FEATURE_WORKGROUPS;
     // each 2^POWER_FEATURE_WORKGROUPS workgroups process on one feature (compile-time constant)
     // feature_size is the number of examples per feature
     __global const uchar4* feature_data = feature_data_base + group_feature * feature_size;
     // size of threads that process this feature4
     const uint subglobal_size = lsize * (1 << POWER_FEATURE_WORKGROUPS);
-    // equavalent thread ID in this subgroup for this feature4
+    // equivalent thread ID in this subgroup for this feature4
     const uint subglobal_tid  = gtid - group_feature * subglobal_size;
     // extract feature mask, when a byte is set to 0, that feature is disabled
     #if ENABLE_ALL_FEATURES == 1
-    // hopefully the compiler will propogate the constants and eliminate all branches
+    // hopefully the compiler will propagate the constants and eliminate all branches
     uchar4 feature_mask = (uchar4)(0xff, 0xff, 0xff, 0xff);
     #else
     uchar4 feature_mask = feature_masks[group_feature];
@@ -441,7 +441,7 @@ R""()
     // there are 2^POWER_FEATURE_WORKGROUPS workgroups processing each feature4
     for (uint i = subglobal_tid; i < num_data; i += subglobal_size) {
         // prefetch the next iteration variables
-        // we don't need bondary check because we have made the buffer larger
+        // we don't need boundary check because we have made the buffer larger
         stat1_next = ordered_gradients[i + subglobal_size];
         #if CONST_HESSIAN == 0
         stat2_next = ordered_hessians[i + subglobal_size];
@@ -475,11 +475,11 @@ R""()
             addr2 = addr + 4 - 8 * is_hessian_first;
             atomic_local_add_f(gh_hist + addr, s3_stat1);
             // thread 0, 1, 2, 3 now process feature 0, 1, 2, 3's gradients for example 0, 1, 2, 3
-            // thread 4, 5, 6, 7 now process feature 0, 1, 2, 3's hessians  for example 4, 5, 6, 7
+            // thread 4, 5, 6, 7 now process feature 0, 1, 2, 3's Hessians  for example 4, 5, 6, 7
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, s3_stat2);
             #endif
-            // thread 0, 1, 2, 3 now process feature 0, 1, 2, 3's hessians  for example 0, 1, 2, 3
+            // thread 0, 1, 2, 3 now process feature 0, 1, 2, 3's Hessians  for example 0, 1, 2, 3
             // thread 4, 5, 6, 7 now process feature 0, 1, 2, 3's gradients for example 4, 5, 6, 7
             s3_stat1 = stat1;
             s3_stat2 = stat2;
@@ -500,11 +500,11 @@ R""()
             addr2 = addr + 4 - 8 * is_hessian_first;
             atomic_local_add_f(gh_hist + addr, s2_stat1);
             // thread 0, 1, 2, 3 now process feature 1, 2, 3, 0's gradients for example 0, 1, 2, 3
-            // thread 4, 5, 6, 7 now process feature 1, 2, 3, 0's hessians  for example 4, 5, 6, 7
+            // thread 4, 5, 6, 7 now process feature 1, 2, 3, 0's Hessians  for example 4, 5, 6, 7
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, s2_stat2);
             #endif
-            // thread 0, 1, 2, 3 now process feature 1, 2, 3, 0's hessians  for example 0, 1, 2, 3
+            // thread 0, 1, 2, 3 now process feature 1, 2, 3, 0's Hessians  for example 0, 1, 2, 3
             // thread 4, 5, 6, 7 now process feature 1, 2, 3, 0's gradients for example 4, 5, 6, 7
             s2_stat1 = stat1;
             s2_stat2 = stat2;
@@ -517,7 +517,7 @@ R""()
 
 
         // prefetch the next iteration variables
-        // we don't need bondary check because if it is out of boundary, ind_next = 0
+        // we don't need boundary check because if it is out of boundary, ind_next = 0
         #ifndef IGNORE_INDICES
         feature4_next = feature_data[ind_next];
         #endif
@@ -532,11 +532,11 @@ R""()
             addr2 = addr + 4 - 8 * is_hessian_first;
             atomic_local_add_f(gh_hist + addr, s1_stat1);
             // thread 0, 1, 2, 3 now process feature 2, 3, 0, 1's gradients for example 0, 1, 2, 3
-            // thread 4, 5, 6, 7 now process feature 2, 3, 0, 1's hessians  for example 4, 5, 6, 7
+            // thread 4, 5, 6, 7 now process feature 2, 3, 0, 1's Hessians  for example 4, 5, 6, 7
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, s1_stat2);
             #endif
-            // thread 0, 1, 2, 3 now process feature 2, 3, 0, 1's hessians  for example 0, 1, 2, 3
+            // thread 0, 1, 2, 3 now process feature 2, 3, 0, 1's Hessians  for example 0, 1, 2, 3
             // thread 4, 5, 6, 7 now process feature 2, 3, 0, 1's gradients for example 4, 5, 6, 7
             s1_stat1 = stat1;
             s1_stat2 = stat2;
@@ -557,11 +557,11 @@ R""()
             addr2 = addr + 4 - 8 * is_hessian_first;
             atomic_local_add_f(gh_hist + addr, s0_stat1);
             // thread 0, 1, 2, 3 now process feature 3, 0, 1, 2's gradients for example 0, 1, 2, 3
-            // thread 4, 5, 6, 7 now process feature 3, 0, 1, 2's hessians  for example 4, 5, 6, 7
+            // thread 4, 5, 6, 7 now process feature 3, 0, 1, 2's Hessians  for example 4, 5, 6, 7
             #if CONST_HESSIAN == 0
             atomic_local_add_f(gh_hist + addr2, s0_stat2);
             #endif
-            // thread 0, 1, 2, 3 now process feature 3, 0, 1, 2's hessians  for example 0, 1, 2, 3
+            // thread 0, 1, 2, 3 now process feature 3, 0, 1, 2's Hessians  for example 0, 1, 2, 3
             // thread 4, 5, 6, 7 now process feature 3, 0, 1, 2's gradients for example 4, 5, 6, 7
             s0_stat1 = stat1;
             s0_stat2 = stat2;
@@ -725,13 +725,13 @@ R""()
     }
     barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
     mem_fence(CLK_GLOBAL_MEM_FENCE);
-    // To avoid the cost of an extra reducting kernel, we have to deal with some 
+    // To avoid the cost of an extra reducing kernel, we have to deal with some
     // gray area in OpenCL. We want the last work group that process this feature to
     // make the final reduction, and other threads will just quit.
     // This requires that the results written by other workgroups available to the
     // last workgroup (memory consistency)
     #if NVIDIA == 1
-    // this is equavalent to CUDA __threadfence();
+    // this is equivalent to CUDA __threadfence();
     // ensure the writes above goes to main memory and other workgroups can see it
     asm volatile("{\n\tmembar.gl;\n\t}\n\t" :::"memory");
     #else
@@ -757,7 +757,7 @@ R""()
     }
     // make sure everyone in this workgroup is here
     barrier(CLK_LOCAL_MEM_FENCE);
-    // everyone in this wrokgroup: if we are the last workgroup, then do reduction!
+    // everyone in this workgroup: if we are the last workgroup, then do reduction!
     if (*counter_val == (1 << POWER_FEATURE_WORKGROUPS) - 1) {
         if (ltid == 0) {
             // printf("workgroup %d: %g %g %g %g %g %g %g %g\n", group_id, gh_hist[0], gh_hist[1], gh_hist[2], gh_hist[3], gh_hist[4], gh_hist[5], gh_hist[6], gh_hist[7]);
@@ -773,15 +773,15 @@ R""()
     #endif
         // locate our feature4's block in output memory
         uint output_offset = (feature4_id << POWER_FEATURE_WORKGROUPS);
-        __global acc_type const * restrict feature4_subhists = 
+        __global acc_type const * restrict feature4_subhists =
                  (__global acc_type *)output_buf + output_offset * 4 * 2 * NUM_BINS;
         // skip reading the data already in local memory
         uint skip_id = group_id ^ output_offset;
         // locate output histogram location for this feature4
         __global acc_type* restrict hist_buf = hist_buf_base + feature4_id * 4 * 2 * NUM_BINS;
-        within_kernel_reduction256x4(feature_mask, feature4_subhists, skip_id, old_val, 1 << POWER_FEATURE_WORKGROUPS, 
+        within_kernel_reduction256x4(feature_mask, feature4_subhists, skip_id, old_val, 1 << POWER_FEATURE_WORKGROUPS,
                                      hist_buf, (__local acc_type *)shared_array);
-        // if (ltid == 0) 
+        // if (ltid == 0)
         //    printf("workgroup %d reduction done, %g %g %g %g %g %g %g %g\n", group_id, hist_buf[0], hist_buf[3*NUM_BINS], hist_buf[2*3*NUM_BINS], hist_buf[3*3*NUM_BINS], hist_buf[1], hist_buf[3*NUM_BINS+1], hist_buf[2*3*NUM_BINS+1], hist_buf[3*3*NUM_BINS+1]);
     }
 }

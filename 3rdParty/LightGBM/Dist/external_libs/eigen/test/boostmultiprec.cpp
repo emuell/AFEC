@@ -66,7 +66,6 @@
 #undef isnan
 #undef isinf
 #undef isfinite
-#undef I
 
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/number.hpp>
@@ -146,7 +145,7 @@ namespace Eigen {
 
 }
 
-EIGEN_DECLARE_TEST(boostmultiprec)
+void test_boostmultiprec()
 {
   typedef Matrix<Real,Dynamic,Dynamic> Mat;
   typedef Matrix<std::complex<Real>,Dynamic,Dynamic> MatC;
@@ -157,7 +156,7 @@ EIGEN_DECLARE_TEST(boostmultiprec)
   std::cout << "NumTraits<Real>::highest()         = " << NumTraits<Real>::highest() << std::endl;
   std::cout << "NumTraits<Real>::digits10()        = " << NumTraits<Real>::digits10() << std::endl;
 
-  // check stream output
+  // chekc stream output
   {
     Mat A(10,10);
     A.setRandom();

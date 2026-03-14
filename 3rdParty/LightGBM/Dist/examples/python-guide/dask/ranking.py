@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import dask.array as da
 import numpy as np
@@ -10,10 +10,9 @@ import lightgbm as lgb
 if __name__ == "__main__":
     print("loading data")
 
-    X, y = load_svmlight_file(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                           '../../lambdarank/rank.train'))
-    group = np.loadtxt(os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                    '../../lambdarank/rank.train.query'))
+    rank_example_dir = Path(__file__).absolute().parents[2] / "lambdarank"
+    X, y = load_svmlight_file(str(rank_example_dir / "rank.train"))
+    group = np.loadtxt(str(rank_example_dir / "rank.train.query"))
 
     print("initializing a Dask cluster")
 
@@ -31,27 +30,16 @@ if __name__ == "__main__":
 
     # make this array dense because we're splitting across
     # a sparse boundary to partition the data
-    X = X.todense()
+    X = X.toarray()
 
-    dX = da.from_array(
-        x=X,
-        chunks=[
-            (rows_in_part1, rows_in_part2),
-            (num_features,)
-        ]
-    )
+    dX = da.from_array(x=X, chunks=[(rows_in_part1, rows_in_part2), (num_features,)])
     dy = da.from_array(
         x=y,
         chunks=[
             (rows_in_part1, rows_in_part2),
-        ]
+        ],
     )
-    dg = da.from_array(
-        x=group,
-        chunks=[
-            (100, group.size - 100)
-        ]
-    )
+    dg = da.from_array(x=group, chunks=[(100, group.size - 100)])
 
     print("beginning training")
 

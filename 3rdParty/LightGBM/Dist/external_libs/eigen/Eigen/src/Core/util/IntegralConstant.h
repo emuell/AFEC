@@ -55,9 +55,7 @@ public:
   operator int() const { return value; }
   FixedInt() {}
   FixedInt( VariableAndFixedInt<N> other) {
-    #ifndef EIGEN_INTERNAL_DEBUGGING
-    EIGEN_UNUSED_VARIABLE(other);
-    #endif
+    EIGEN_ONLY_USED_FOR_DEBUG(other);
     eigen_internal_assert(int(other)==N);
   }
 
@@ -194,7 +192,7 @@ inline internal::FixedInt<N> fix() { return internal::FixedInt<N>(); }
 // The generic typename T is mandatory. Otherwise, a code like fix<N> could refer to either the function above or this next overload.
 // This way a code like fix<N> can only refer to the previous function.
 template<int N,typename T>
-inline internal::VariableAndFixedInt<N> fix(T val) { return internal::VariableAndFixedInt<N>(internal::convert_index<int>(val)); }
+inline internal::VariableAndFixedInt<N> fix(T val) { return internal::VariableAndFixedInt<N>(val); }
 #endif
 
 #else // EIGEN_PARSED_BY_DOXYGEN

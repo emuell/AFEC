@@ -14,29 +14,21 @@
 # Options:
 #   -up : enforce the recomputation of existing data, and keep best results as a merging strategy
 #   -s  : recompute selected changesets only and keep bests
-#   -np : no plotting of results, just generate the data
 
 bench=$1
 settings_file=$2
 
-if [[ "$*" =~ '-up' ]]; then
+if echo "$*" | grep '\-up' > /dev/null; then
   update=true
 else
   update=false
 fi
 
-if [[ "$*" =~ '-s' ]]; then
+if echo "$*" | grep '\-s' > /dev/null; then
   selected=true
 else
   selected=false
 fi
-
-if [[ "$*" =~ '-np' ]]; then
-  do_plot=false
-else
-  do_plot=true
-fi
-
 
 WORKING_DIR=${PREFIX:?"default"}
 
@@ -50,9 +42,9 @@ mkdir -p $WORKING_DIR
 
 global_args="$*"
 
-if $selected ; then
+if [ $selected == true ]; then
  echo "Recompute selected changesets only and keep bests"
-elif $update ; then
+elif [ $update == true ]; then
  echo "(Re-)Compute all changesets and keep bests"
 else
  echo "Skip previously computed changesets"
@@ -61,10 +53,10 @@ fi
 
 
 if [ ! -d "eigen_src" ]; then
-  git clone https://gitlab.com/libeigen/eigen.git eigen_src
+  hg clone https://bitbucket.org/eigen/eigen eigen_src
 else
   cd eigen_src
-  git pull
+  hg pull -u
   cd ..
 fi
 
@@ -107,7 +99,7 @@ function test_current
   
   prev=""
   if [ -e "$name.backup" ]; then
-    prev=`grep $rev "$name.backup" | cut -d ' ' -f 2-`
+    prev=`grep $rev "$name.backup" | cut -c 14-`
   fi
   res=$prev
   count_rev=`echo $prev |  wc -w`
@@ -119,7 +111,7 @@ function test_current
   fi
 #  echo $update et $selected et $rev_found because $rev et "$global_args"
 #  echo $count_rev et $count_ref
-  if $update || [ $count_rev != $count_ref ] || ( $selected &&  $rev_found ); then
+  if [ $update == true ] || [ $count_rev != $count_ref ] || ([ $selected == true ] &&  [ $rev_found == true ]); then
     echo "RUN: $CXX -O3 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src $bench.cpp -DSCALAR=$scalar -o $name"
     if $CXX -O3 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src $bench.cpp -DSCALAR=$scalar -o $name; then
       curr=`./$name $settings_file`
@@ -148,11 +140,10 @@ make_backup $WORKING_DIR_PREFIX"c"$bench
 cut -f1 -d"#" < changesets.txt | grep -E '[[:alnum:]]' | while read rev
 do
   if [ ! -z '$rev' ]; then
-    rev2=`echo $rev | cut -f 2 -d':'`
-    echo "Testing rev $rev, $rev2"
+    echo "Testing rev $rev"
     cd eigen_src
-    git checkout $rev2 > /dev/null
-    actual_rev=`git rev-parse --short HEAD`
+    hg up -C $rev > /dev/null
+    actual_rev=`hg identify | cut -f1 -d' '`
     cd ..
     
     test_current $actual_rev float                  $WORKING_DIR_PREFIX"s"$bench
@@ -174,10 +165,8 @@ echo "Complex:"
 cat $WORKING_DIR_PREFIX"c""$bench.out"
 echo ""
 
-if $do_plot ; then
-
 ./make_plot.sh $WORKING_DIR_PREFIX"s"$bench $bench $settings_file
 ./make_plot.sh $WORKING_DIR_PREFIX"d"$bench $bench $settings_file
 ./make_plot.sh $WORKING_DIR_PREFIX"c"$bench $bench $settings_file
 
-fi
+

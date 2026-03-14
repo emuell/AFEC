@@ -207,9 +207,9 @@ void VotingParallelTreeLearner<TREELEARNER_T>::CopyLocalHistogram(const std::vec
           smaller_buffer_read_start_pos_[inner_feature_index] = static_cast<int>(cur_size);
         }
         // copy
-        std::memcpy(input_buffer_.data() + reduce_scatter_size_, this->smaller_leaf_histogram_array_[inner_feature_index].RawData(), this->smaller_leaf_histogram_array_[inner_feature_index].SizeOfHistgram());
-        cur_size += this->smaller_leaf_histogram_array_[inner_feature_index].SizeOfHistgram();
-        reduce_scatter_size_ += this->smaller_leaf_histogram_array_[inner_feature_index].SizeOfHistgram();
+        std::memcpy(input_buffer_.data() + reduce_scatter_size_, this->smaller_leaf_histogram_array_[inner_feature_index].RawData(), this->smaller_leaf_histogram_array_[inner_feature_index].SizeOfHistogram());
+        cur_size += this->smaller_leaf_histogram_array_[inner_feature_index].SizeOfHistogram();
+        reduce_scatter_size_ += this->smaller_leaf_histogram_array_[inner_feature_index].SizeOfHistogram();
         ++smaller_idx;
       }
       if (cur_used_features >= cur_total_feature) {
@@ -225,9 +225,9 @@ void VotingParallelTreeLearner<TREELEARNER_T>::CopyLocalHistogram(const std::vec
           larger_buffer_read_start_pos_[inner_feature_index] = static_cast<int>(cur_size);
         }
         // copy
-        std::memcpy(input_buffer_.data() + reduce_scatter_size_, this->larger_leaf_histogram_array_[inner_feature_index].RawData(), this->larger_leaf_histogram_array_[inner_feature_index].SizeOfHistgram());
-        cur_size += this->larger_leaf_histogram_array_[inner_feature_index].SizeOfHistgram();
-        reduce_scatter_size_ += this->larger_leaf_histogram_array_[inner_feature_index].SizeOfHistgram();
+        std::memcpy(input_buffer_.data() + reduce_scatter_size_, this->larger_leaf_histogram_array_[inner_feature_index].RawData(), this->larger_leaf_histogram_array_[inner_feature_index].SizeOfHistogram());
+        cur_size += this->larger_leaf_histogram_array_[inner_feature_index].SizeOfHistogram();
+        reduce_scatter_size_ += this->larger_leaf_histogram_array_[inner_feature_index].SizeOfHistogram();
         ++larger_idx;
       }
     }
@@ -243,7 +243,7 @@ template <typename TREELEARNER_T>
 void VotingParallelTreeLearner<TREELEARNER_T>::FindBestSplits(const Tree* tree) {
   // use local data to find local best splits
   std::vector<int8_t> is_feature_used(this->num_features_, 0);
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static)
   for (int feature_index = 0; feature_index < this->num_features_; ++feature_index) {
     if (!this->col_sampler_.is_feature_used_bytree()[feature_index]) continue;
     if (this->parent_leaf_histogram_array_ != nullptr
@@ -259,13 +259,55 @@ void VotingParallelTreeLearner<TREELEARNER_T>::FindBestSplits(const Tree* tree) 
   }
   TREELEARNER_T::ConstructHistograms(is_feature_used, use_subtract);
 
+  const int smaller_leaf_index = this->smaller_leaf_splits_->leaf_index();
+  const data_size_t local_data_on_smaller_leaf = this->data_partition_->leaf_count(smaller_leaf_index);
+  if (local_data_on_smaller_leaf <= 0) {
+    // clear histogram buffer before synchronizing
+    // otherwise histogram contents from the previous iteration will be sent
+    OMP_INIT_EX();
+    #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static)
+    for (int feature_index = 0; feature_index < this->num_features_; ++feature_index) {
+      OMP_LOOP_EX_BEGIN();
+      if (!is_feature_used[feature_index]) { continue; }
+      const BinMapper* feature_bin_mapper = this->train_data_->FeatureBinMapper(feature_index);
+      const int num_bin = feature_bin_mapper->num_bin();
+      const int offset = static_cast<int>(feature_bin_mapper->GetMostFreqBin() == 0);
+      hist_t* hist_ptr = this->smaller_leaf_histogram_array_[feature_index].RawData();
+      std::memset(reinterpret_cast<void*>(hist_ptr), 0, (num_bin - offset) * kHistEntrySize);
+      OMP_LOOP_EX_END();
+    }
+    OMP_THROW_EX();
+  }
+
+  if (this->larger_leaf_splits_ != nullptr) {
+    const int larger_leaf_index = this->larger_leaf_splits_->leaf_index();
+    if (larger_leaf_index >= 0) {
+      const data_size_t local_data_on_larger_leaf = this->data_partition_->leaf_count(larger_leaf_index);
+      if (local_data_on_larger_leaf <= 0) {
+        OMP_INIT_EX();
+        #pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static)
+        for (int feature_index = 0; feature_index < this->num_features_; ++feature_index) {
+          OMP_LOOP_EX_BEGIN();
+          if (!is_feature_used[feature_index]) { continue; }
+          const BinMapper* feature_bin_mapper = this->train_data_->FeatureBinMapper(feature_index);
+          const int num_bin = feature_bin_mapper->num_bin();
+          const int offset = static_cast<int>(feature_bin_mapper->GetMostFreqBin() == 0);
+          hist_t* hist_ptr = this->larger_leaf_histogram_array_[feature_index].RawData();
+          std::memset(reinterpret_cast<void*>(hist_ptr), 0, (num_bin - offset) * kHistEntrySize);
+          OMP_LOOP_EX_END();
+        }
+        OMP_THROW_EX();
+      }
+    }
+  }
+
   std::vector<SplitInfo> smaller_bestsplit_per_features(this->num_features_);
   std::vector<SplitInfo> larger_bestsplit_per_features(this->num_features_);
   double smaller_leaf_parent_output = this->GetParentOutput(tree, this->smaller_leaf_splits_.get());
   double larger_leaf_parent_output = this->GetParentOutput(tree, this->larger_leaf_splits_.get());
   OMP_INIT_EX();
   // find splits
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for num_threads(OMP_NUM_THREADS()) schedule(static)
   for (int feature_index = 0; feature_index < this->num_features_; ++feature_index) {
     OMP_LOOP_EX_BEGIN();
     if (!is_feature_used[feature_index]) { continue; }
@@ -459,7 +501,6 @@ void VotingParallelTreeLearner<TREELEARNER_T>::Split(Tree* tree, int best_Leaf, 
 }
 
 // instantiate template classes, otherwise linker cannot find the code
-template class VotingParallelTreeLearner<CUDATreeLearner>;
 template class VotingParallelTreeLearner<GPUTreeLearner>;
 template class VotingParallelTreeLearner<SerialTreeLearner>;
 }  // namespace LightGBM

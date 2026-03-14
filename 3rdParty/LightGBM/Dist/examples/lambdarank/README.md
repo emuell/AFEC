@@ -1,7 +1,7 @@
 LambdaRank Example
 ==================
 
-Here is an example for LightGBM to run lambdarank task.
+Here is an example for LightGBM to run LambdaRank task.
 
 ***You must follow the [installation instructions](https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html)
 for the following commands to work. The `lightgbm` binary must be built and available at the root of this project.***
@@ -29,5 +29,5 @@ Run the following command in this folder:
 Data Format
 -----------
 
-To learn more about the query format used in this example, check out the 
+To learn more about the query format used in this example, check out the
 [query data format](https://lightgbm.readthedocs.io/en/latest/Parameters.html#query-data).

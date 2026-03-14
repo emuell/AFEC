@@ -35,10 +35,10 @@ BruckMap BruckMap::Construct(int rank, int num_machines) {
   }
   BruckMap bruckMap(k);
   for (int j = 0; j < k; ++j) {
-    // set incoming rank at k-th commuication
+    // set incoming rank at k-th communication
     const int in_rank = (rank + distance[j]) % num_machines;
     bruckMap.in_ranks[j] = in_rank;
-    // set outgoing rank at k-th commuication
+    // set outgoing rank at k-th communication
     const int out_rank = (rank - distance[j] + num_machines) % num_machines;
     bruckMap.out_ranks[j] = out_rank;
   }
@@ -55,7 +55,7 @@ RecursiveHalvingMap::RecursiveHalvingMap(int in_k, RecursiveHalvingNodeType _typ
   is_power_of_2 = _is_power_of_2;
   if (type != RecursiveHalvingNodeType::Other) {
     for (int i = 0; i < k; ++i) {
-      // defalut set as -1
+      // default set as -1
       ranks.push_back(-1);
       send_block_start.push_back(-1);
       send_block_len.push_back(-1);
@@ -153,18 +153,18 @@ RecursiveHalvingMap RecursiveHalvingMap::Construct(int rank, int num_machines) {
       const int dir = ((cur_group_idx / distance[i]) % 2 == 0) ? 1 : -1;
       const int next_node_idx = group_to_node[(cur_group_idx + dir * distance[i])];
       rec_map.ranks[i] = next_node_idx;
-      // get receive block informations
+      // get receive block information
       const int recv_block_start = cur_group_idx / distance[i];
-      rec_map.recv_block_start[i] = group_block_start[recv_block_start * distance[i]];
+      rec_map.recv_block_start[i] = group_block_start[static_cast<size_t>(recv_block_start) * distance[i]];
       int recv_block_len = 0;
       // accumulate block len
       for (int j = 0; j < distance[i]; ++j) {
         recv_block_len += group_block_len[recv_block_start * distance[i] + j];
       }
       rec_map.recv_block_len[i] = recv_block_len;
-      // get send block informations
+      // get send block information
       const int send_block_start = (cur_group_idx + dir * distance[i]) / distance[i];
-      rec_map.send_block_start[i] = group_block_start[send_block_start * distance[i]];
+      rec_map.send_block_start[i] = group_block_start[static_cast<size_t>(send_block_start) * distance[i]];
       int send_block_len = 0;
       // accumulate block len
       for (int j = 0; j < distance[i]; ++j) {

@@ -4,8 +4,9 @@ include_directories(../../../3rdParty/Boost/Dist)
 include_directories(../../../3rdParty/LibXtract/Dist/include)
 include_directories(../../../3rdParty/OpenBLAS/Dist)
 include_directories(../../../3rdParty/Shark/Dist/include)
-include_directories(../../../3rdParty/TinyDNN/Dist)
 include_directories(../../../3rdParty/LightGBM/Dist/include)
+include_directories(../../../3rdParty/LightGBM/Dist/external_libs/fast_double_parser/include)
+include_directories(../../../3rdParty/LightGBM/Dist/external_libs/fmt/include)
 
 include_directories(Source)
 
