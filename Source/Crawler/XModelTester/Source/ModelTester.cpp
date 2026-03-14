@@ -17,14 +17,7 @@
 #include "Classification/Export/ClassificationTestResults.h"
 #include "Classification/Export/DefaultClassificationModel.h"
 
-#include "Classification/Export/Models/ANN.h"
-#include "Classification/Export/Models/DNN.h"
 #include "Classification/Export/Models/GBDT.h"
-#include "Classification/Export/Models/RBM.h"
-#include "Classification/Export/Models/SVM.h"
-#include "Classification/Export/Models/NaiveBayes.h"
-#include "Classification/Export/Models/RandomForest.h"
-#include "Classification/Export/Models/KNN.h"
 #include "Classification/Export/Models/Bagging.h"
 
 #include "../../3rdParty/Boost/Export/BoostProgramOptions.h"
@@ -33,24 +26,60 @@
 
 // =================================================================================================
 
-namespace TProductDescription 
-{ 
-  TString ProductName() { return "AFEC ModelTester"; }
-  TString ProductVendorName() { return "AFEC"; }
-  TString ProductProjectsLocation() { return "Crawler/XModelTester"; }
+namespace TProductDescription
+{
+  TString ProductName()
+  {
+    return "AFEC ModelTester";
+  }
+  TString ProductVendorName()
+  {
+    return "AFEC";
+  }
+  TString ProductProjectsLocation()
+  {
+    return "Crawler/XModelTester";
+  }
 
-  int MajorVersion() { return 0; }
-  int MinorVersion() { return 1; }
-  int RevisionVersion() { return 0; }
-  
-  TString AlphaOrBetaVersionString() { return ""; }
-  TDate ExpirationDate() { return TDate(); }
-  
-  TString BugReportEMailAddress(){ return "<bug@nowhere.com>"; }
-  TString SupportEMailAddress(){ return "<support@nowhere.com>"; }
-  TString ProductHomeURL(){ return "http://www.nowhere.com"; }
-  
-  TString CopyrightString() { return ""; }
+  int MajorVersion()
+  {
+    return 0;
+  }
+  int MinorVersion()
+  {
+    return 1;
+  }
+  int RevisionVersion()
+  {
+    return 0;
+  }
+
+  TString AlphaOrBetaVersionString()
+  {
+    return "";
+  }
+  TDate ExpirationDate()
+  {
+    return TDate();
+  }
+
+  TString BugReportEMailAddress()
+  {
+    return "<bug@nowhere.com>";
+  }
+  TString SupportEMailAddress()
+  {
+    return "<support@nowhere.com>";
+  }
+  TString ProductHomeURL()
+  {
+    return "http://www.nowhere.com";
+  }
+
+  TString CopyrightString()
+  {
+    return "";
+  }
 }
 
 // =================================================================================================
@@ -70,9 +99,9 @@ namespace TClassificationTester
 
   // Dump prediction errors to "Results" folder
   void SDumpPredictionErrors(
-    const TDirectory&               ResultsDir,
-    const TList<TString>&           ClassNames,
-    const TList<TPredictionError>&  PredictionErrors);
+    const TDirectory& ResultsDir,
+    const TList<TString>& ClassNames,
+    const TList<TPredictionError>& PredictionErrors);
   //@}
 
 
@@ -82,8 +111,8 @@ namespace TClassificationTester
 
   // Dump a confusion matrix to std and "Results" folder
   void SDumpConfusionMatrix(
-    const TDirectory&       ResultsDir,
-    const TList<TString>&   ClassNames,
+    const TDirectory& ResultsDir,
+    const TList<TString>& ClassNames,
     const TConfusionMatrix& ConfusionMatrix);
   //@}
 
@@ -91,10 +120,10 @@ namespace TClassificationTester
   //@{ ... Run Tests
 
   float SRunTest(
-    TClassificationModel&             Model,
+    TClassificationModel& Model,
     const TClassificationTestDataSet& DataSet,
-    int                               NumberOfRuns,
-    int                               RandomSeed);
+    int NumberOfRuns,
+    int RandomSeed);
   //@}
 }
 
@@ -113,32 +142,31 @@ int gMain(const TList<TString>& Arguments)
   // ... Parse program options
 
   const std::string ProgramName = gCutPath(Arguments[0]).StdCString();
-  const std::string Usage = std::string() + "Usage:\n" +
-    "  " + ProgramName.c_str() + " [options] <input.db>\n" +
-    "  " + ProgramName.c_str() + " --help";
+  const std::string Usage =
+    std::string() + "Usage:\n" + "  " + ProgramName.c_str() + " [options] <input.db>\n" + "  " +
+    ProgramName.c_str() + " --help";
 
   boost::program_options::options_description CommandLineOptions("Options");
-  CommandLineOptions.add_options()
-    ("help,h", "Show help message.")
-    ("all,a", boost::program_options::value<bool>()->default_value(false),
-      "When enabled, test all models instead of just the the default model.")
-    ("repeat,r", boost::program_options::value<int>()->default_value(10), 
-      "Number of times the test should be repeated.")
-    ("seed,s", boost::program_options::value<int>()->default_value(-1),
-      "Random seed, if any, in order to replicate tests.")
-    ("bagging,b", boost::program_options::value<bool>()->default_value(false),
-      "When enabled, test bagging ensemble models instead of 'raw' ones.")
-    ("src_database,i", boost::program_options::value<std::string>()->required(),
-      "The low level descriptor db file to create the train and test data from. "
-      "Can also be passed as last (positional) argument.")
-    ;
+  CommandLineOptions.add_options()("help,h", "Show help message.")(
+    "repeat,r",
+    boost::program_options::value<int>()->default_value(10),
+    "Number of times the test should be repeated.")(
+    "seed,s",
+    boost::program_options::value<int>()->default_value(-1),
+    "Random seed, if any, in order to replicate tests.")(
+    "bagging,b",
+    boost::program_options::value<bool>()->default_value(false),
+    "When enabled, test bagging ensemble models instead of 'raw' ones.")(
+    "src_database,i",
+    boost::program_options::value<std::string>()->required(),
+    "The low level descriptor db file to create the train and test data from. "
+    "Can also be passed as last (positional) argument.");
 
   boost::program_options::positional_options_description PositionalArguments;
   PositionalArguments.add("src_database", 1);
 
   // extract options
   bool TestBaggingModels;
-  bool TestAllModels;
   int NumberOfTestRuns;
   int RandomSeed;
   TString SourceDatabasePathAndName;
@@ -147,14 +175,15 @@ int gMain(const TList<TString>& Arguments)
   {
     // parse arguments
     const boost::program_options::parsed_options ParsedOptions =
-      CreateBoostCommandLineParser(Arguments).options(
-        CommandLineOptions).positional(PositionalArguments).run();
+      CreateBoostCommandLineParser(Arguments)
+        .options(CommandLineOptions)
+        .positional(PositionalArguments)
+        .run();
     boost::program_options::variables_map ProgramVariablesMap;
     boost::program_options::store(ParsedOptions, ProgramVariablesMap);
 
     // show help
-    if (Arguments.Size() == 1 ||
-        ProgramVariablesMap.find("help") != ProgramVariablesMap.end())
+    if (Arguments.Size() == 1 || ProgramVariablesMap.find("help") != ProgramVariablesMap.end())
     {
       std::cout << Usage << "\n\n" << CommandLineOptions << "\n";
       return EXIT_SUCCESS;
@@ -162,9 +191,6 @@ int gMain(const TList<TString>& Arguments)
 
     // validate arguments
     boost::program_options::notify(ProgramVariablesMap);
-
-    // all -> TestAllModels
-    TestAllModels = ProgramVariablesMap["all"].as<bool>();
 
     // repeat -> NumberOfTestRuns
     NumberOfTestRuns = ProgramVariablesMap["repeat"].as<int>();
@@ -174,17 +200,17 @@ int gMain(const TList<TString>& Arguments)
 
     // bagging -> TestBaggingModels
     TestBaggingModels = ProgramVariablesMap["bagging"].as<bool>();
-    
+
     // src_database -> SourceDatabasePathAndName
     if (ProgramVariablesMap.find("src_database") != ProgramVariablesMap.end())
     {
       SourceDatabasePathAndName = ArgumentToString(ProgramVariablesMap["src_database"]);
 
-      if (!TFile(SourceDatabasePathAndName).Exists() &&
-          !TFile(gCutExtension(SourceDatabasePathAndName) + ".shark").Exists())
+      if (! TFile(SourceDatabasePathAndName).Exists() &&
+          ! TFile(gCutExtension(SourceDatabasePathAndName) + ".shark").Exists())
       {
         std::cerr << "ERROR: src_database is not a valid low level database file: "
-          << SourceDatabasePathAndName.StdCString() << std::endl;
+                  << SourceDatabasePathAndName.StdCString() << std::endl;
 
         std::cerr << Usage << "\n\n" << CommandLineOptions << "\n";
         return EXIT_FAILURE;
@@ -235,17 +261,17 @@ int gMain(const TList<TString>& Arguments)
     float BestError = std::numeric_limits<float>::max();
     TString BestModel = TString();
 
-    const TString TestDataSetFilename =
-      gCutExtension(SourceDatabasePathAndName) + ".shark";
+    const TString TestDataSetFilename = gCutExtension(SourceDatabasePathAndName) + ".shark";
 
     TOwnerPtr<TClassificationTestDataSet> pTestSet;
 
     if (TFile(TestDataSetFilename).Exists() &&
         (TFile(TestDataSetFilename).ModificationStatTime() >
            TFile(SourceDatabasePathAndName).ModificationStatTime() ||
-         !TFile(SourceDatabasePathAndName).Exists()))
+         ! TFile(SourceDatabasePathAndName).Exists()))
     {
-      TClassificationTester::STraceResults("Loading data set from '%s'",
+      TClassificationTester::STraceResults(
+        "Loading data set from '%s'",
         TestDataSetFilename.StdCString().c_str());
 
       pTestSet = TOwnerPtr<TClassificationTestDataSet>(new TClassificationTestDataSet());
@@ -253,15 +279,15 @@ int gMain(const TList<TString>& Arguments)
     }
     else
     {
-      TClassificationTester::STraceResults("Creating data set from '%s'",
+      TClassificationTester::STraceResults(
+        "Creating data set from '%s'",
         SourceDatabasePathAndName.StdCString().c_str());
 
       const bool ReadOnlyPool = true;
       TSqliteSampleDescriptorPool Pool(TSampleDescriptors::kLowLevelDescriptors);
-      if (!Pool.Open(SourceDatabasePathAndName, ReadOnlyPool))
+      if (! Pool.Open(SourceDatabasePathAndName, ReadOnlyPool))
       {
-        throw TReadableException(
-          MText("Failed to open database: '%s'", SourceDatabasePathAndName));
+        throw TReadableException(MText("Failed to open database: '%s'", SourceDatabasePathAndName));
       }
 
       const int NumberOfSamples = Pool.NumberOfSamples();
@@ -275,7 +301,7 @@ int gMain(const TList<TString>& Arguments)
           // extract feature values by default
           TSampleClassificationDescriptors::TFeatureExtractionFlags Flags =
             TSampleClassificationDescriptors::kExtractFeatureValues;
-          if (!ExtractedFeatureNames)
+          if (! ExtractedFeatureNames)
           {
             // extract feature names in/with the first entry
             ExtractedFeatureNames = true;
@@ -290,7 +316,8 @@ int gMain(const TList<TString>& Arguments)
       pTestSet = TOwnerPtr<TClassificationTestDataSet>(
         new TClassificationTestDataSet(SourceDatabasePathAndName, Descriptors));
 
-      TClassificationTester::STraceResults("Saving data set to '%s'", 
+      TClassificationTester::STraceResults(
+        "Saving data set to '%s'",
         TestDataSetFilename.StdCString().c_str());
 
       // cache set, to quickly rerun next times
@@ -310,57 +337,34 @@ int gMain(const TList<TString>& Arguments)
       TestSet.NumberOfClasses());
 
 
-    #define MRunTest(MODEL_TYPE, DATA_SET) \
-      { \
-        TPtr<MODEL_TYPE> pModel(new MODEL_TYPE()); \
-        \
-        const float Error = TClassificationTester::SRunTest( \
-          *pModel, DATA_SET, NumberOfTestRuns, RandomSeed); \
-          \
-        if (Error >= 0.0f && Error < BestError) \
-        { \
-          BestError = Error; \
-          BestModel = pModel->Name(); \
-        } \
-      }
-
-    // currently disabled
-    // MRunTest(TRandomForestClassificationModel, TestSet);
-    // MRunTest(TNaiveBayesClassificationModel, TestSet);
-    // MRunTest(TKnnClassificationModel, TestSet);
-    // MRunTest(TRbmClassificationModel, TestSet);
-    // MRunTest(TDnnClassificationModel, TestSet);
+#define MRunTest(MODEL_TYPE, DATA_SET) \
+  { \
+    TPtr<MODEL_TYPE> pModel(new MODEL_TYPE()); \
+\
+    const float Error = \
+      TClassificationTester::SRunTest(*pModel, DATA_SET, NumberOfTestRuns, RandomSeed); \
+\
+    if (Error >= 0.0f && Error < BestError) \
+    { \
+      BestError = Error; \
+      BestModel = pModel->Name(); \
+    } \
+  }
 
     if (TestBaggingModels)
     {
-      if (TestAllModels) 
-      {
-        MRunTest(TBaggingClassificationModel<TAnnClassificationModel>, TestSet);
-        MRunTest(TBaggingClassificationModel<TSvmClassificationModel>, TestSet);
-        MRunTest(TBaggingClassificationModel<TGbdtClassificationModel>, TestSet);
-      }
-      else 
-      {
-        MRunTest(TDefaultBaggingClassificationModel, TestSet);
-      }
+      MRunTest(TDefaultBaggingClassificationModel, TestSet);
     }
     else
     {
-      if (TestAllModels) 
-      {
-        MRunTest(TAnnClassificationModel, TestSet);
-        MRunTest(TSvmClassificationModel, TestSet);
-        MRunTest(TGbdtClassificationModel, TestSet);
-      }
-      else 
-      {
-        MRunTest(TDefaultClassificationModel, TestSet);
-      }
+      MRunTest(TDefaultClassificationModel, TestSet);
     }
 
     TClassificationTester::STraceResults(
-      "-> Best: '%s' Error: %g (Accuracy %.2f%%)", BestModel.StdCString().c_str(),
-      BestError, (1.0f - BestError)*100.0f);
+      "-> Best: '%s' Error: %g (Accuracy %.2f%%)",
+      BestModel.StdCString().c_str(),
+      BestError,
+      (1.0f - BestError) * 100.0f);
   }
 
   // covers shark::Exception and TReadableException
@@ -373,7 +377,7 @@ int gMain(const TList<TString>& Arguments)
   M__EnableFloatingPointAssertions
 
 
-  // ... Finalize 
+  // ... Finalize
 
   try
   {
@@ -395,9 +399,7 @@ int gMain(const TList<TString>& Arguments)
 
 // -------------------------------------------------------------------------------------------------
 
-static float SCalcClassAccuracy(
-  const TArray<unsigned int>& PredictionRow,
-  int                         Class)
+static float SCalcClassAccuracy(const TArray<unsigned int>& PredictionRow, int Class)
 {
   MAssert(Class >= 0 && Class < PredictionRow.Size(), "");
 
@@ -425,8 +427,7 @@ void TClassificationTester::STraceResults(const char* pString, ...)
 
   va_list ArgList;
   va_start(ArgList, pString);
-  vsnprintf(TempChars, sizeof(TempChars),
-    pString, ArgList);
+  vsnprintf(TempChars, sizeof(TempChars), pString, ArgList);
   va_end(ArgList);
 
   gTrace(TempChars);
@@ -436,22 +437,22 @@ void TClassificationTester::STraceResults(const char* pString, ...)
 // -------------------------------------------------------------------------------------------------
 
 void TClassificationTester::SDumpPredictionErrors(
-  const TDirectory&               ResultsDir,
-  const TList<TString>&           ClassNames,
-  const TList<TPredictionError>&  PredictionErrors)
+  const TDirectory& ResultsDir,
+  const TList<TString>& ClassNames,
+  const TList<TPredictionError>& PredictionErrors)
 {
   const int NumberOfClasses = ClassNames.Size();
 
   TFile ResultFile(ResultsDir.Path() + "PredictionErrors.csv");
 
-  if (!ResultFile.Open(TFile::kWrite))
+  if (! ResultFile.Open(TFile::kWrite))
   {
-    throw shark::Exception(std::string() +
-      "Failed to open '" + ResultFile.FileName().StdCString() + "' for writing");
+    throw shark::Exception(
+      std::string() + "Failed to open '" + ResultFile.FileName().StdCString() + "' for writing");
   }
 
   // sort errors by name
-  std::map<TString, TList<TPredictionError> > SortedErrors;
+  std::map<TString, TList<TPredictionError>> SortedErrors;
   for (int i = 0; i < PredictionErrors.Size(); ++i)
   {
     SortedErrors[PredictionErrors[i].mName].Append(PredictionErrors[i]);
@@ -539,26 +540,27 @@ void TClassificationTester::SDumpPredictionErrors(
 // -------------------------------------------------------------------------------------------------
 
 void TClassificationTester::SDumpConfusionMatrix(
-  const TDirectory&       ResultsDir,
-  const TList<TString>&   ClassNames,
+  const TDirectory& ResultsDir,
+  const TList<TString>& ClassNames,
   const TConfusionMatrix& ConfusionMatrix)
 {
   const int NumberOfClasses = ConfusionMatrix.Size();
 
-  MAssert(ClassNames.Size() == NumberOfClasses &&
-    ConfusionMatrix.Size() == ConfusionMatrix[0].Size(), "");
+  MAssert(
+    ClassNames.Size() == NumberOfClasses && ConfusionMatrix.Size() == ConfusionMatrix[0].Size(),
+    "");
 
   TFile ResultFile(ResultsDir.Path() + "Confusion.csv");
 
-  if (!ResultFile.Open(TFile::kWrite))
+  if (! ResultFile.Open(TFile::kWrite))
   {
-    throw shark::Exception(std::string() +
-      "Failed to open '" + ResultFile.FileName().StdCString() + "' for writing");
+    throw shark::Exception(
+      std::string() + "Failed to open '" + ResultFile.FileName().StdCString() + "' for writing");
   }
 
   TList<TString> CsvContent;
 
-  // dump matrix 
+  // dump matrix
   STraceResults("  Class Accuracy:");
 
   TString Header;
@@ -598,17 +600,16 @@ void TClassificationTester::SDumpConfusionMatrix(
 // -------------------------------------------------------------------------------------------------
 
 float TClassificationTester::SRunTest(
-  TClassificationModel&             Model,
+  TClassificationModel& Model,
   const TClassificationTestDataSet& DataSet,
-  int                               NumberOfRuns,
-  int                               RandomSeed)
+  int NumberOfRuns,
+  int RandomSeed)
 {
-  TClassificationTester::STraceResults(
-    "Training %s model...", Model.Name().StdCString().c_str());
+  TClassificationTester::STraceResults("Training %s model...", Model.Name().StdCString().c_str());
 
   float BestError = 1.0f;
   TList<float> Errors, SecondaryErrors;
-  TArray< TArray<unsigned int> > SummedConfusionMatrix;
+  TArray<TArray<unsigned int>> SummedConfusionMatrix;
   TList<TClassificationTestResults::TPredictionError> SummedPredictionErrors;
 
   if (RandomSeed != -1)
@@ -650,9 +651,11 @@ float TClassificationTester::SRunTest(
     }
     else
     {
-      STraceResults("  Run %d - Accuracy %.2f%% (2nd: %.2f%%)",
-        i + 1, (1.0f - Result.mFinalError)*100.0f,
-        (1.0f - Result.mFinalSecondaryError)*100.0f);
+      STraceResults(
+        "  Run %d - Accuracy %.2f%% (2nd: %.2f%%)",
+        i + 1,
+        (1.0f - Result.mFinalError) * 100.0f,
+        (1.0f - Result.mFinalSecondaryError) * 100.0f);
 
       Errors.Append(Result.mFinalError);
       SecondaryErrors.Append(Result.mFinalSecondaryError);
@@ -674,36 +677,35 @@ float TClassificationTester::SRunTest(
   float ErrorPrecentageVar = 0.0f;
   for (int i = 0; i < Errors.Size(); ++i)
   {
-    ErrorPrecentageVar += TMathT<float>::Square(
-      Errors[i] * 100.0f - ErrorPrecentageMean) /
+    ErrorPrecentageVar +=
+      TMathT<float>::Square(Errors[i] * 100.0f - ErrorPrecentageMean) /
       MMax(1, (Errors.Size() - 1));
   }
 
   float SecondaryErrorPrecentageMean = 0.0f;
   for (int i = 0; i < Errors.Size(); ++i)
   {
-    SecondaryErrorPrecentageMean +=
-      (SecondaryErrors[i] / SecondaryErrors.Size()) * 100;
+    SecondaryErrorPrecentageMean += (SecondaryErrors[i] / SecondaryErrors.Size()) * 100;
   }
 
   float SecondaryErrorPrecentageVar = 0.0f;
   for (int i = 0; i < SecondaryErrors.Size(); ++i)
   {
-    SecondaryErrorPrecentageVar += TMathT<float>::Square(
-      SecondaryErrors[i] * 100.0f - SecondaryErrorPrecentageMean) /
+    SecondaryErrorPrecentageVar +=
+      TMathT<float>::Square(SecondaryErrors[i] * 100.0f - SecondaryErrorPrecentageMean) /
       MMax(1, (SecondaryErrors.Size() - 1));
   }
 
-  SDumpPredictionErrors(
-    Model.ResultsDir(), DataSet.ClassNames(), SummedPredictionErrors);
+  SDumpPredictionErrors(Model.ResultsDir(), DataSet.ClassNames(), SummedPredictionErrors);
 
-  SDumpConfusionMatrix(
-    Model.ResultsDir(), DataSet.ClassNames(), SummedConfusionMatrix);
+  SDumpConfusionMatrix(Model.ResultsDir(), DataSet.ClassNames(), SummedConfusionMatrix);
 
-  STraceResults("-> Accuracy %.2f%% +- %.2f%% (2nd: %.2f%% +- %.2f%%)\n",
-    (100.0f - ErrorPrecentageMean), ErrorPrecentageVar,
-    (100.0f - SecondaryErrorPrecentageMean), SecondaryErrorPrecentageVar);
+  STraceResults(
+    "-> Accuracy %.2f%% +- %.2f%% (2nd: %.2f%% +- %.2f%%)\n",
+    (100.0f - ErrorPrecentageMean),
+    ErrorPrecentageVar,
+    (100.0f - SecondaryErrorPrecentageMean),
+    SecondaryErrorPrecentageVar);
 
   return ErrorPrecentageMean / 100.0f;
 }
-

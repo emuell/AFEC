@@ -25,9 +25,7 @@
                 "${workspaceRoot}/3rdParty/Resample/Dist/include",
                 "${workspaceRoot}/3rdParty/PortAudio/Dist/include",
                 "${workspaceRoot}/3rdParty/OpenBLAS/Dist",
-                "${workspaceRoot}/3rdParty/CuDNN/Dist/include",
                 "${workspaceRoot}/3rdParty/Shark/Dist/include",
-                "${workspaceRoot}/3rdParty/TinyDNN/Dist",
                 "${workspaceRoot}/3rdParty/Sqlite/Dist/src"
             ],
             "defines": [
@@ -81,9 +79,7 @@
                 "${workspaceRoot}/3rdParty/LibXtract/Dist/include",
                 "${workspaceRoot}/3rdParty/Resample/Dist/include",
                 "${workspaceRoot}/3rdParty/OpenBLAS/Dist",
-                "${workspaceRoot}/3rdParty/CuDNN/Dist/include",
                 "${workspaceRoot}/3rdParty/Shark/Dist/include",
-                "${workspaceRoot}/3rdParty/TinyDNN/Dist",
                 "${workspaceRoot}/3rdParty/Sqlite/Dist/src"
             ],
             "defines": [
@@ -118,9 +114,7 @@
                     "${workspaceRoot}/3rdParty/LibXtract/Dist/include",
                     "${workspaceRoot}/3rdParty/Resample/Dist/include",
                     "${workspaceRoot}/3rdParty/OpenBLAS/Dist",
-                    "${workspaceRoot}/3rdParty/CuDNN/Dist/include",
                     "${workspaceRoot}/3rdParty/Shark/Dist/include",
-                    "${workspaceRoot}/3rdParty/TinyDNN/Dist",
                     "${workspaceRoot}/3rdParty/Sqlite/Dist/src"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
@@ -149,7 +143,6 @@
                 "${workspaceRoot}/3rdParty/Resample/Dist/include",
                 "${workspaceRoot}/3rdParty/OpenBLAS/Dist",
                 "${workspaceRoot}/3rdParty/Shark/Dist/include",
-                "${workspaceRoot}/3rdParty/TinyDNN/Dist",
                 "${workspaceRoot}/3rdParty/Sqlite/Dist/src"
             ],
             "defines": [

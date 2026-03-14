@@ -3,7 +3,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMModelTester")
 include_directories(../../../3rdParty/Boost/Dist)
 include_directories(../../../3rdParty/OpenBLAS/Dist)
 include_directories(../../../3rdParty/Shark/Dist/include)
-include_directories(../../../3rdParty/Sharkonvnet/Dist/src)
 
 project_source_files(PROJECT_SOURCE_FILES)
 add_executable(XModelTester ${PROJECT_SOURCE_FILES})

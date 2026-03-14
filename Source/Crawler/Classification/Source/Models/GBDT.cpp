@@ -18,9 +18,7 @@
 
 // -------------------------------------------------------------------------------------------------
 
-TGbdtClassificationModel::TGbdtClassificationModel()
-{ 
-}
+TGbdtClassificationModel::TGbdtClassificationModel() { }
 
 // -------------------------------------------------------------------------------------------------
 
@@ -39,16 +37,16 @@ TString TGbdtClassificationModel::OnName() const
 // -------------------------------------------------------------------------------------------------
 
 TClassificationTestResults TGbdtClassificationModel::OnTrain(
-  const TString&                      DatabaseFileName,
+  const TString& DatabaseFileName,
   const shark::ClassificationDataset& TrainData,
-  const TList<TString>&               TrainDataSampleNames,
+  const TList<TString>& TrainDataSampleNames,
   const shark::ClassificationDataset& TestData,
-  const TList<TString>                TestDataSampleNames,
-  const TPoint&                       InputFeaturesSize,
-  int                                 NumberOfClasses)
+  const TList<TString> TestDataSampleNames,
+  const TPoint& InputFeaturesSize,
+  int NumberOfClasses)
 {
   // ... configure LightGBM
-  
+
   const TString TrainDataFileName = gGenerateTempFileName(gTempDir(), ".data");
   const TString TestDataFileName = gGenerateTempFileName(gTempDir(), ".data");
 
@@ -110,7 +108,7 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
     params.emplace("feature_fraction", "0.25");
   }
 
-  // common iterations and early-stopping setup 
+  // common iterations and early-stopping setup
   params.emplace("num_iterations", "800");
   params.emplace("early_stopping", "100");
   params.emplace("learning_rate", "0.06");
@@ -121,39 +119,35 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   // assign parameters to config
   mpConfig = std::unique_ptr<LightGBM::Config>(new LightGBM::Config());
   mpConfig->Set(params);
-  
+
 
   // ... Convert datasets
 
   // TODO: add label, feature names to header
 
-  #if defined(MCompiler_VisualCPP)
-    std::ofstream TrainDataFileStream(TrainDataFileName.Chars());
-    std::ofstream TestDataFileStream(TestDataFileName.Chars());
-  #elif defined(MCompiler_GCC)
-    std::ofstream TrainDataFileStream(
-      TrainDataFileName.StdCString(TString::kFileSystemEncoding));
-    std::ofstream TestDataFileStream(
-      TestDataFileName.StdCString(TString::kFileSystemEncoding));
-  #else
-    #error "Unknown compiler"
-  #endif
+#if defined(MCompiler_VisualCPP)
+  std::ofstream TrainDataFileStream(TrainDataFileName.Chars());
+  std::ofstream TestDataFileStream(TestDataFileName.Chars());
+#elif defined(MCompiler_GCC)
+  std::ofstream TrainDataFileStream(TrainDataFileName.StdCString(TString::kFileSystemEncoding));
+  std::ofstream TestDataFileStream(TestDataFileName.StdCString(TString::kFileSystemEncoding));
+#else
+  #error "Unknown compiler"
+#endif
 
   shark::detail::exportCSV_labeled(
     TrainData.inputs().elements(),
     TrainData.labels().elements(),
     TrainDataFileStream,
     shark::FIRST_COLUMN,
-    ','
-  );
+    ',');
 
   shark::detail::exportCSV_labeled(
     TestData.inputs().elements(),
     TestData.labels().elements(),
     TestDataFileStream,
     shark::FIRST_COLUMN,
-    ','
-  );
+    ',');
 
   TrainDataFileStream.close();
   TestDataFileStream.close();
@@ -175,14 +169,13 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   mTrainMetrics.clear();
   mTestMetrics.clear();
 
-  LightGBM::DatasetLoader DatasetLoader(
-    *mpConfig, nullptr, mpConfig->num_class, mpConfig->data.c_str());
-  
+  LightGBM::DatasetLoader
+    DatasetLoader(*mpConfig, nullptr, mpConfig->num_class, mpConfig->data.c_str());
+
   // load data for single machine
   const int Rank = 0;
   const int NumberOfMachines = 1;
-  mpTrainDataset.reset(DatasetLoader.LoadFromFile(
-    mpConfig->data.c_str(), Rank, NumberOfMachines));
+  mpTrainDataset.reset(DatasetLoader.LoadFromFile(mpConfig->data.c_str(), Rank, NumberOfMachines));
 
   // create training metric
   if (mpConfig->is_provide_training_metric)
@@ -200,7 +193,7 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   mTrainMetrics.shrink_to_fit();
 
   // only when we have metrics then need to construct validation data
-  if (!mpConfig->metric.empty())
+  if (! mpConfig->metric.empty())
   {
     // Add validation data, if it exists
     for (size_t i = 0; i < mpConfig->valid.size(); ++i)
@@ -208,17 +201,18 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
       // HACK: instantiate a new loader: reusing the "DatasetLoader" randomly
       // crashes in Linux builds - probably due to a memory overflow...
       LightGBM::DatasetLoader TrainDatasetLoader(
-        *mpConfig, LightGBM::PredictFunction(), mpConfig->num_class, mpConfig->data.c_str());
-  
+        *mpConfig,
+        LightGBM::PredictFunction(),
+        mpConfig->num_class,
+        mpConfig->data.c_str());
+
       // add new dataset
       auto pNewDataset = std::unique_ptr<LightGBM::Dataset>(
-        TrainDatasetLoader.LoadFromFileAlignWithOtherDataset(
-          mpConfig->valid[i].c_str(),
-          mpTrainDataset.get())
-        );
+        TrainDatasetLoader
+          .LoadFromFileAlignWithOtherDataset(mpConfig->valid[i].c_str(), mpTrainDataset.get()));
 
       mTestDatasets.push_back(std::move(pNewDataset));
-      
+
       // add metric for validation data
       mTestMetrics.emplace_back();
       for (auto MetricType : mpConfig->metric)
@@ -226,8 +220,7 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
         if (auto pMetric = std::unique_ptr<LightGBM::Metric>(
               LightGBM::Metric::CreateMetric(MetricType, *mpConfig)))
         {
-          pMetric->Init(mTestDatasets.back()->metadata(),
-            mTestDatasets.back()->num_data());
+          pMetric->Init(mTestDatasets.back()->metadata(), mTestDatasets.back()->num_data());
           mTestMetrics.back().push_back(std::move(pMetric));
         }
       }
@@ -256,33 +249,38 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   mpBoosting.reset(LightGBM::Boosting::CreateBoosting("gbdt", nullptr));
 
   // create objective function
-  mpObjectiveFunction.reset(LightGBM::ObjectiveFunction::CreateObjectiveFunction(
-    mpConfig->objective, *mpConfig));
-  
+  mpObjectiveFunction.reset(
+    LightGBM::ObjectiveFunction::CreateObjectiveFunction(mpConfig->objective, *mpConfig));
+
   // initialize the objective function
   mpObjectiveFunction->Init(mpTrainDataset->metadata(), mpTrainDataset->num_data());
-  
+
   // initialize the boosting
-  mpBoosting->Init(mpConfig.get(), mpTrainDataset.get(), mpObjectiveFunction.get(),
+  mpBoosting->Init(
+    mpConfig.get(),
+    mpTrainDataset.get(),
+    mpObjectiveFunction.get(),
     LightGBM::Common::ConstPtrInVectorWrapper<LightGBM::Metric>(mTrainMetrics));
-  
+
   // add validation data into boosting
   for (size_t i = 0; i < mTestDatasets.size(); ++i)
   {
-    mpBoosting->AddValidDataset(mTestDatasets[i].get(),
+    mpBoosting->AddValidDataset(
+      mTestDatasets[i].get(),
       LightGBM::Common::ConstPtrInVectorWrapper<LightGBM::Metric>(mTestMetrics[i]));
   }
 
-  
+
   // ... Train Model
-  
+
   mpBoosting->Train(mpConfig->snapshot_freq, mpConfig->output_model);
-  
- 
+
+
   // ... Evaluate Results
 
   // preallocate predictions data
-  shark::Data<shark::RealVector> Predictions(TestData.numberOfElements(),
+  shark::Data<shark::RealVector> Predictions(
+    TestData.numberOfElements(),
     shark::RealVector(NumberOfClasses));
 
   // make sure predictions are partititioned just like the test data that
@@ -293,8 +291,9 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
   EarlyStopConfig.margin_threshold = mpConfig->pred_early_stop_margin;
   EarlyStopConfig.round_period = mpConfig->pred_early_stop_freq;
 
-  LightGBM::PredictionEarlyStopInstance EarlyStop = 
-    LightGBM::CreatePredictionEarlyStopInstance("multiclass", EarlyStopConfig);
+  LightGBM::PredictionEarlyStopInstance EarlyStop = LightGBM::CreatePredictionEarlyStopInstance(
+    "multiclass",
+    EarlyStopConfig);
 
   const int StartIteration = 0;
   const int NumberOfIterations = -1;
@@ -317,25 +316,24 @@ TClassificationTestResults TGbdtClassificationModel::OnTrain(
       Prediction[c] = Outputs[c];
     }
   }
-  
+
   return TClassificationTestResults(TestData, TestDataSampleNames, Predictions);
 }
 
 // -------------------------------------------------------------------------------------------------
 
-TList<float> TGbdtClassificationModel::OnEvaluate(
-  const TClassificationTestDataItem& Item) const
+TList<float> TGbdtClassificationModel::OnEvaluate(const TClassificationTestDataItem& Item) const
 {
   MAssert(mpBoosting.get(), "Need to train or load a model first");
 
   const shark::Data<shark::RealVector>& SharkTestData = Item.TestData();
 
-  const shark::DataView< shark::Data<shark::RealVector> > SharkTestDataView(
+  const shark::DataView<shark::Data<shark::RealVector>> SharkTestDataView(
     const_cast<shark::Data<shark::RealVector>&>(SharkTestData));
 
   MAssert(SharkTestDataView.size() == 1, "Expecting one item only");
   auto Element = SharkTestDataView[0];
-  
+
   std::vector<double> InputFeatures;
   InputFeatures.reserve(Element.size());
   for (auto Value : Element)
@@ -350,13 +348,14 @@ TList<float> TGbdtClassificationModel::OnEvaluate(
   EarlyStopConfig.margin_threshold = pConfig->pred_early_stop_margin;
   EarlyStopConfig.round_period = pConfig->pred_early_stop_freq;
 
-  LightGBM::PredictionEarlyStopInstance EarlyStop =
-    LightGBM::CreatePredictionEarlyStopInstance("multiclass", EarlyStopConfig);
+  LightGBM::PredictionEarlyStopInstance EarlyStop = LightGBM::CreatePredictionEarlyStopInstance(
+    "multiclass",
+    EarlyStopConfig);
 
   const int StartIteration = 0;
   const int NumberOfIterations = -1;
   const bool PredictFeatureContribution = false;
-  mpBoosting->InitPredict(StartIteration , NumberOfIterations, PredictFeatureContribution);
+  mpBoosting->InitPredict(StartIteration, NumberOfIterations, PredictFeatureContribution);
 
   const int NumberOfClasses = NumberOfOutputClasses();
   std::vector<double> Outputs(NumberOfClasses);
@@ -374,15 +373,14 @@ TList<float> TGbdtClassificationModel::OnEvaluate(
 
 // -------------------------------------------------------------------------------------------------
 
-void TGbdtClassificationModel::OnLoadModel(
-  eos::portable_iarchive& Archive)
+void TGbdtClassificationModel::OnLoadModel(eos::portable_iarchive& Archive)
 {
   // load compressed model byte array
   int CompressedModelByteArraySize = 0;
   Archive & CompressedModelByteArraySize;
 
   TArray<TInt8> CompressedModelByteArray(CompressedModelByteArraySize);
-  Archive & boost::serialization::make_binary_object(
+  Archive& boost::serialization::make_binary_object(
     CompressedModelByteArray.FirstWrite(),
     CompressedModelByteArray.Size());
 
@@ -394,16 +392,14 @@ void TGbdtClassificationModel::OnLoadModel(
   std::unique_ptr<LightGBM::Boosting> pNewBoosting(
     LightGBM::Boosting::CreateBoosting("gbdt", nullptr));
 
-  pNewBoosting->LoadModelFromString(
-    ModelByteArray.FirstRead(), ModelByteArray.Size());
-  
+  pNewBoosting->LoadModelFromString(ModelByteArray.FirstRead(), ModelByteArray.Size());
+
   mpBoosting.reset(pNewBoosting.release());
 }
 
 // -------------------------------------------------------------------------------------------------
 
-void TGbdtClassificationModel::OnSaveModel(
-  eos::portable_oarchive& Archive) const
+void TGbdtClassificationModel::OnSaveModel(eos::portable_oarchive& Archive) const
 {
   MAssert(mpBoosting, "Need to train or load a model first");
 
@@ -411,12 +407,11 @@ void TGbdtClassificationModel::OnSaveModel(
   const int StartIteration = 0;
   const int NumberOfIterations = -1;
   const int FeatureImportance = 0; // 0: split, 1: gain
-  const std::string ModelString = mpBoosting->SaveModelToString(
-    StartIteration, NumberOfIterations, FeatureImportance);
-  
+  const std::string ModelString =
+    mpBoosting->SaveModelToString(StartIteration, NumberOfIterations, FeatureImportance);
+
   TArray<TInt8> ModelByteArray((int)ModelString.size());
-  TMemory::Copy(ModelByteArray.FirstWrite(), 
-    ModelString.c_str(), (int)ModelString.size());
+  TMemory::Copy(ModelByteArray.FirstWrite(), ModelString.c_str(), (int)ModelString.size());
 
   // gzip compress model string
   const int CompressionLevel = 6;
@@ -424,9 +419,8 @@ void TGbdtClassificationModel::OnSaveModel(
   TZipFile::SGZipData(ModelByteArray, CompressedModelByteArray, CompressionLevel);
 
   // save compressed model byte array
-  Archive & (int)CompressedModelByteArray.Size();
-  Archive & boost::serialization::make_binary_object(
+  Archive&(int)CompressedModelByteArray.Size();
+  Archive& boost::serialization::make_binary_object(
     CompressedModelByteArray.FirstWrite(),
     CompressedModelByteArray.Size());
 }
-

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# runs the modeltester for the specified classification model train data folder, 
+# runs the modeltester for the specified classification model train data folder,
 # e.g "OneShot-vs-Loops" in the afec/classification-packs repository
 
 SCRIPT_DIR=`dirname -- "$0"`
@@ -35,7 +35,7 @@ if [ ! -t "$CLASSIFICATION_FOLDER/afec-ll.db" ]; then
 fi
 
 # run model tester
-$BIN_DIR/ModelTester --repeat=5 --seed=300 --all=true --bagging=false "$CLASSIFICATION_FOLDER/afec-ll.db" || {
+$BIN_DIR/ModelTester --repeat=5 --seed=300 --bagging=false "$CLASSIFICATION_FOLDER/afec-ll.db" || {
   echo "*** ModelTester failed to run"
   exit 1
 }

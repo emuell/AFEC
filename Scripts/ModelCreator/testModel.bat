@@ -1,4 +1,4 @@
-:: runs the modeltester for the specified classification model train data folder, 
+:: runs the modeltester for the specified classification model train data folder,
 :: e.g "OneShot-vs-Loops" in the afec/classification-packs repository
 
 @echo off
@@ -21,7 +21,7 @@ if %ERRORLEVEL% GTR 0 goto :Crawler_Error
 
 :: run model tester
 :Test
-%BIN_DIR%\ModelTester.exe --repeat=5 --seed=300 --all=true --bagging=false "%CLASSIFICATION_FOLDER%\afec-ll.db"
+%BIN_DIR%\ModelTester.exe --repeat=5 --seed=300 --bagging=false "%CLASSIFICATION_FOLDER%\afec-ll.db"
 if %ERRORLEVEL% GTR 0 goto :ModelTester_Error
 
 :: copy results: NB: assumes GBDT is the default model
@@ -31,7 +31,7 @@ goto :end
 
 :: ------------------------------------------------------------------------------------------------
 :CLASSIFICATION_FOLDER_Error
-echo. 
+echo.
 echo *** Missing or invalid argument: Can't find classification data set folder at
 echo *** %CLASSIFICATION_FOLDER%
 echo *** You can download the classification packs via:
@@ -40,19 +40,19 @@ goto :end
 
 :: ------------------------------------------------------------------------------------------------
 :BIN_DIR_Error
-echo. 
+echo.
 echo *** Can't find binaries at %BIN_DIR%. Run crawler build scripts first.
 goto :end
 
 :: ------------------------------------------------------------------------------------------------
 :Crawler_Error
-echo. 
+echo.
 echo *** Crawler failed to run
 goto :end
 
 :: ------------------------------------------------------------------------------------------------
 :ModelTester_Error
-echo. 
+echo.
 echo *** ModelTester failed to run
 GOTO :end
 

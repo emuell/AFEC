@@ -375,7 +375,6 @@ AFEC uses the following third-party libraries, which are bundled in the `3rdPart
 ### Sound Classification:
 * [SharkC++](http://image.diku.dk/shark/): Used for various classification test models and for the model ensemble generation.
 * [LightGBM](https://github.com/Microsoft/LightGBM): The default classification model.
-* [TinyDNN](https://github.com/tiny-dnn/tiny-dnn/): DNN experiments (should be removed).
 ### Audio Feature Extraction:
 * [Aubio](https://aubio.org/): For pitch/key detection and partly for BPM detection.
 * [LibXtract](https://www.jamiebullock.com/LibXtract/documentation/): To calculate Mel Frequency Cepstral Coefficients.
